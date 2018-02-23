@@ -4,10 +4,16 @@ Encore
     .setOutputPath('public/build/')
     .setPublicPath('/build')
     .addEntry('app', './assets/js/app.js')
-    .enableSassLoader()
-    .autoProvidejQuery()
+    .enableSassLoader(function(sassOptions) {}, {
+        resolveUrlLoader: false
+    })
+    .autoProvidejQuery({
+        $: 'jquery',
+        jQuery: 'jquery'
+    })
     .enableSourceMaps(!Encore.isProduction())
     .cleanupOutputBeforeBuild()
+    .enableVersioning(Encore.isProduction())
     .enableBuildNotifications()
 ;
 

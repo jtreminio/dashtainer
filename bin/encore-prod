@@ -1,5 +1,3 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-"${DIR}/../node_modules/.bin/encore" production
+yarn run encore production
