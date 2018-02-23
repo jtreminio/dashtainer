@@ -1,0 +1,33 @@
+{% if conf.proxy_redirect|default(false) %}
+  proxy_redirect {{ conf.proxy_redirect }};
+{% endif %}
+{% if conf.proxy_connect_timeout|default(false) %}
+  proxy_connect_timeout {{ conf.proxy_connect_timeout }};
+{% endif %}
+{% if conf.proxy_send_timeout|default(false) %}
+  proxy_send_timeout {{ conf.proxy_send_timeout }};
+{% endif %}
+{% if conf.proxy_read_timeout|default(false) %}
+  proxy_read_timeout {{ conf.proxy_read_timeout }};
+{% endif %}
+{% if conf.proxy_buffers|default(false) %}
+  proxy_buffers {{ conf.proxy_buffers }};
+{% endif %}
+{% if conf.proxy_buffer_size|default(false) %}
+  proxy_buffer_size {{ conf.proxy_buffer_size }};
+{% endif %}
+{% if conf.proxy_http_version|default(false) %}
+  proxy_http_version {{ conf.proxy_http_version|number_format(1) }};
+{% endif %}
+{% for header in conf.proxy_set_header|default([]) %}
+  proxy_set_header {{ header }};
+{% endfor %}
+{% for header in conf.proxy_hide_header|default([]) %}
+  proxy_hide_header {{ header }};
+{% endfor %}
+{% for header in conf.proxy_pass_header|default([]) %}
+  proxy_pass_header {{ header }};
+{% endfor %}
+{% if conf.proxy_headers_hash_bucket_size|default(false) %}
+  proxy_headers_hash_bucket_size {{ conf.proxy_headers_hash_bucket_size }};
+{% endif %}

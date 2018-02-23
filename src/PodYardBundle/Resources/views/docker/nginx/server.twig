@@ -1,0 +1,273 @@
+{% for server_name in server.server_names|default({}) if server.rewrite_www_to_non_www|default(false) %}
+    {% if not (server_name starts with 'www.') %}
+server {
+        {% for listen in server.listens|default(['*:80', '[::]:80', '443 default ssl http2']) %}
+    listen {{ listen|replace({'default': ''}) }};
+        {% endfor %}
+    server_name www.{{ server_name }};
+        {% if server.rewrite_to_https %}
+    return 301 https://{{ server_name }}$request_uri;
+        {% else %}
+    return 301 http://{{ server_name }}$request_uri;
+        {% endif %}
+}
+    {% endif %}
+{% endfor %}
+
+server {
+{% for listen in server.listens|default(['*:80', '[::]:80', '443 default ssl http2']) %}
+    listen {{ listen }};
+{% endfor %}
+{% if server.server_names|default(false) %}
+    server_name {{ server.server_names|join(' ') }};
+{% endif %}
+
+{% if server.ssl|default(false) %}
+    {% if server.rewrite_to_https|default(false) %}
+    if ($ssl_protocol = "") {
+        return 301 https://$host$request_uri;
+    }
+    {% endif %}
+    ssl on;
+    {% if server.ssl_certificate|default(false) %}
+    ssl_certificate {{ server.ssl_certificate }};
+    {% endif %}
+    {% if server.ssl_certificate_key|default(false) %}
+    ssl_certificate_key {{ server.ssl_certificate_key }};
+    {% endif %}
+    {% if server.ssl_client_certificate|default(false) %}
+    ssl_client_certificate {{ server.ssl_client_certificate }};
+    {% endif %}
+    {% if server.ssl_verify_client|default(false) %}
+    ssl_verify_client {{ server.ssl_verify_client }};
+    {% endif %}
+    {% if server.ssl_dhparam|default(false) %}
+    ssl_dhparam {{ server.ssl_dhparam }};
+    {% endif %}
+    ssl_session_cache {{ server.ssl_session_cache|default('shared:SSL:10m') }};
+    ssl_session_timeout {{ server.ssl_session_timeout|default('5m') }};
+    {% if server.ssl_session_tickets|default(false) %}
+    ssl_session_tickets {{ server.ssl_session_tickets }};
+    {% endif %}
+    {% if server.ssl_session_ticket_key|default(false) %}
+    ssl_session_ticket_key {{ server.ssl_session_ticket_key }};
+    {% endif %}
+    {% if server.ssl_buffer_size|default(false) %}
+    ssl_buffer_size {{ server.ssl_buffer_size }};
+    {% endif %}
+    ssl_protocols {{ server.ssl_protocols|default('TLSv1.2') }};
+    ssl_ciphers {{ server.ssl_ciphers|default('EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH') }};
+    ssl_prefer_server_ciphers {{ server.ssl_prefer_server_ciphers|default('on') }};
+    {% if server.ssl_crl|default(false) %}
+    ssl_crl {{ server.ssl_crl }};
+    {% endif %}
+    {% if server.ssl_stapling|default(false) %}
+    ssl_stapling {{ server.ssl_stapling }};
+    {% endif %}
+    {% if server.ssl_stapling_file|default(false) %}
+    ssl_stapling_file {{ server.ssl_stapling_file }};
+    {% endif %}
+    {% if server.ssl_stapling_responder|default(false) %}
+    ssl_stapling_responder {{ server.ssl_stapling_responder }};
+    {% endif %}
+    {% if server.ssl_stapling_verify|default(false) %}
+    ssl_stapling_verify {{ server.ssl_stapling_verify }};
+    {% endif %}
+    {% if server.ssl_trusted_certificate|default(false) %}
+    ssl_trusted_certificate {{ server.ssl_trusted_certificate }};
+    {% endif %}
+{% endif %}
+
+{% if server.auth_basic|default(false) %}
+    auth_basic "{{ server.auth_basic }}";
+{% endif %}
+{% if server.auth_basic_user_file|default(false) %}
+    auth_basic_user_file {{ server.auth_basic_user_file }};
+{% endif %}
+{% if server.auth_request|default(false) %}
+    auth_request {{ server.auth_request }};
+{% endif %}
+{% if server.client_body_timeout|default(false) %}
+    client_body_timeout {{ server.client_body_timeout }};
+{% endif %}
+{% if server.client_header_timeout|default(false) %}
+    client_header_timeout {{ server.client_header_timeout }};
+{% endif %}
+{% if server.client_max_body_size|default(false) %}
+    client_max_body_size {{ server.client_max_body_size }};
+{% endif %}
+{% if server.sendfile|default('off') %}
+    sendfile {{ server.sendfile }};
+{% endif %}
+{% if server.gzip_types|default(false) %}
+    gzip_types {{ server.gzip_types|join(' ') }};
+{% endif %}
+{% if server.root|default(false) %}
+    root {{ server.root }};
+{% endif %}
+{% for passenger_cgi_param in server.passenger_cgi_params|default([]) %}
+    passenger_set_cgi_param {{ passenger_cgi_param }};
+{% endfor %}
+{% for passenger_set_header in server.passenger_set_headers|default([]) %}
+    passenger_set_header {{ passenger_set_header }};
+{% endfor %}
+{% for passenger_env_var in server.passenger_env_vars|default([]) %}
+    passenger_env_var {{ passenger_env_var }};
+{% endfor %}
+{% if server.resolver|default(false) %}
+    resolver {{ server.resolver|join(' ') }};
+{% endif %}
+{% for add_header in server.add_headers|default([]) %}
+    add_header {{ add_header }};
+{% endfor %}
+{% if server.indexs|default(false) %}
+    index {{ server.indexs|join(' ') }};
+{% endif %}
+    access_log /var/log/nginx/_.access.log;
+    error_log /var/log/nginx/_.error.log;
+{% for error_page in server.error_pages|default([]) %}
+    error_page {{ error_page }};
+{% endfor %}
+
+{% for location in server.locations|default({}) %}
+    location {{ location.path|default('/') }} {
+    {% if location.root|default(false) %}
+        root {{ location.root }};
+    {% endif %}
+    {% if location.internal|default(false) %}
+        internal;
+    {% endif %}
+    {% if location.mp4|default(false) %}
+        mp4;
+    {% endif %}
+    {% if location.flv|default(false) %}
+        flv;
+    {% endif %}
+    {% if location.satisfy|default(false) %}
+        satisfy {{ location.satisfy }};
+    {% endif %}
+    {% if location.expires|default(false) %}
+        expires {{ location.expires }};
+    {% endif %}
+    {% for rule in location.allows|default([]) %}
+        allow {{ rule }};
+    {% endfor %}
+    {% for rule in location.denys|default([]) %}
+        deny {{ rule }};
+    {% endfor %}
+    {% for set in location.sets|default([])%}
+        set {{ set }};
+    {% endfor %}
+    {% if location.auth_basic|default(false) %}
+        auth_basic "{{ location.auth_basic }}";
+    {% endif %}
+    {% if location.auth_basic_user_file|default(false) %}
+        auth_basic_user_file {{ location.auth_basic_user_file }};
+    {% endif %}
+    {% if location.auth_request|default(false) %}
+        auth_request {{ location.auth_request }};
+    {% endif %}
+    {% for rewrite in location.rewrites|default([]) %}
+        {% if rewrite.when|default(false) %}
+        if ({{ rewrite.when }}) {
+            rewrite {{ rewrite.regex }} {{ rewrite.target }};
+        }
+        {% else %}
+        rewrite {{ rewrite.regex }} {{ rewrite.target }};
+        {% endif %}
+    {% endfor %}
+    {% if location.alias|default(false) %}
+        alias {{ location.alias }};
+    {% endif %}
+    {% if location.stub_status|default(false) %}
+        stub_status on;
+    {% endif %}
+
+    {% if location.proxy_pass|default(false) %}
+        proxy_pass {{ location.proxy_pass }};
+        proxy_read_timeout {{ location.proxy_read_timeout|default('60s') }};
+        proxy_connect_timeout {{ location.proxy_connect_timeout|default('90') }};
+        {% if location.proxy_redirect|default(false) %}
+        proxy_redirect {{ location.proxy_redirect }};
+        {% endif %}
+        {% if location.proxy_http_version|default(false) %}
+        proxy_http_version {{ location.proxy_http_version }};
+        {% endif %}
+        {% if location.proxy_method|default(false) %}
+        proxy_method {{ location.proxy_method }};
+        {% endif %}
+        {% if location.proxy_set_body|default(false) %}
+        proxy_set_body {{ location.proxy_set_body }};
+        {% endif %}
+        {% if location.proxy_buffering|default(false) %}
+        proxy_buffering {{ location.proxy_buffering }};
+        {% endif %}
+        {% for header in location.proxy_set_headers|default([]) %}
+        proxy_set_header {{ header }};
+        {% endfor %}
+        {% for header in location.proxy_hide_headers|default([]) %}
+        proxy_hide_header {{ header }};
+        {% endfor %}
+        {% for header in location.proxy_pass_headers|default([]) %}
+        proxy_pass_header {{ header }};
+        {% endfor %}
+        {% if location.proxy_cache|default(false) %}
+        proxy_cache {{ location.proxy_cache }};
+        {% endif %}
+        {% for line in location.proxy_cache_valids|default([]) %}
+        proxy_cache_valid {{ line }};
+        {% endfor %}
+        {% if location.proxy_cache_use_stale|default(false) %}
+        proxy_cache_use_stale {{ location.proxy_cache_use_stale }};
+        {% endif %}
+        {% if location.proxy_cache_key|default(false) %}
+        proxy_cache_key {{ location.proxy_cache_key }};
+        {% endif %}
+    {% endif %}
+
+    {% if location.uwsgi_pass|default(false) %}
+        include /etc/nginx/uwsgi_params;
+        uwsgi_pass {{ location.uwsgi_pass }};
+        {% for uwsgi_param in location.uwsgi_params|default([]) %}
+        uwsgi_param {{ uwsgi_param }};
+        {% endfor %}
+        {% if location.uwsgi_read_timeout|default(false) %}
+        uwsgi_read_timeout {{ location.uwsgi_read_timeout }};
+        {% endif %}
+    {% endif %}
+
+    {% if location.fastcgi_pass|default(false) %}
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass {{ location.fastcgi_pass }};
+        {% if location.fastcgi_index|default(false) %}
+        fastcgi_index {{ location.fastcgi_index }};
+        {% endif %}
+        {% if location.fastcgi_split_path_info|default(false) %}
+        fastcgi_split_path_info {{ location.fastcgi_split_path_info }};
+        {% endif %}
+        {% for fastcgi_param in location.fastcgi_params|default([]) %}
+        fastcgi_param {{ fastcgi_param }};
+        {% endfor %}
+    {% endif %}
+    {% if location.autoindex|default(false) %}
+        autoindex {{ location.autoindex }};
+    {% endif %}
+    {% if location.index|default(false) %}
+        index {{ location.index|join(' ') }};
+    {% endif %}
+    {% if location.try_files|default(false) %}
+        try_files {{ location.try_files|join(' ') }};
+    {% endif %}
+    {% for include in location.includes|default([]) %}
+        include {{ include }};
+    {% endfor %}
+    }
+{% endfor %}
+{% for include in server.includes|default([]) %}
+    include {{ include }};
+{% endfor %}
+}
+
+{% for passenger_pre_start in server.passenger_pre_starts|default([]) %}
+passenger_pre_start {{ passenger_pre_start }};
+{% endfor %}

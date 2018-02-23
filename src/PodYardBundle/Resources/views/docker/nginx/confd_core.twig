@@ -1,0 +1,6 @@
+{% if conf.client_max_body_size|default(false) %}
+  client_max_body_size {{ conf.client_max_body_size }};
+{% endif %}
+{% if conf.client_body_buffer_size|default(false) %}
+  client_body_buffer_size {{ conf.client_body_buffer_size }};
+{% endif %}

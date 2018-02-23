@@ -1,0 +1,17 @@
+{% for rewrite in rewrites|default([]) %}
+    {% if rewrite.comment|default(false) %}
+    #{{ rewrite.comment }}
+    {% endif %}
+    {% if rewrite.rewrite_base|default(false) %}
+    RewriteBase {{ rewrite.rewrite_base }}
+    {% endif %}
+    {% for cond in rewrite.rewrite_cond|default([]) %}
+    RewriteCond {{ cond }}
+    {% endfor %}
+    {% for map in rewrite.rewrite_map|default([]) %}
+    RewriteMap {{ map }}
+    {% endfor %}
+    {% for rule in rewrite.rewrite_rule|default([]) %}
+    RewriteRule {{ rule }}
+    {% endfor %}
+{% endfor %}

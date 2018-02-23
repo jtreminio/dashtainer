@@ -1,0 +1,268 @@
+<VirtualHost {{ vhost.port|default(['*:80', '*:443']) | join(' ') }}>
+{% if vhost.server_name|default(false) %}
+    ServerName {{ vhost.server_name }}
+{% endif %}
+{% for server_alias in vhost.server_aliases|default([]) %}
+    ServerAlias {{ server_alias }}
+{% endfor %}
+{% if vhost.server_admin|default(false) %}
+    ServerAdmin {{ vhost.server_admin }}
+{% endif %}
+{% if vhost.virtual_document_root|default(false) %}
+    VirtualDocumentRoot "{{ vhost.virtual_document_root }}"
+{% elseif vhost.document_root|default(false) %}
+    DocumentRoot "{{ vhost.document_root }}"
+{% endif %}
+
+{% if vhost.protocols|default([]) %}
+    Protocols {{ vhost.protocols | join(' ') }}
+{% endif %}
+
+{% for statement in vhost.aliases|default([]) %}
+    {% if statement.path|default(false) %}
+        {% if statement.alias|default(false) %}
+    Alias {{ statement.alias }} "{{ statement.path }}"
+        {% elseif statement.aliasmatch|default(false) %}
+    AliasMatch {{ statement.aliasmatch }} "{{ statement.path }}"
+        {% elseif statement.scriptalias|default(false) %}
+    ScriptAlias {{ statement.scriptalias }} "{{ statement.path }}"
+        {% elseif statement.scriptaliasmatch|default(false) %}
+    ScriptAliasMatch {{ statement.scriptaliasmatch }} "{{ statement.path }}"
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{% if vhost.fallback_resource|default(false) %}
+    FallbackResource {{ vhost.fallback_resource }}
+{% endif %}
+
+{% if vhost.allow_encoded_slashes|default(false) %}
+    AllowEncodedSlashes {{ vhost.allow_encoded_slashes }}
+{% endif %}
+
+{% include '@PodYard/docker/apache/_directory.twig' with {'directories': vhost.directories|default([])} %}
+
+{% if vhost.include_optionals|default([]) %}
+    {% for include_optional in vhost.include_optionals|default([]) %}
+    IncludeOptional "{{ include_optional }}"
+    {% endfor %}
+{% endif %}
+
+    ErrorLog "/var/log/apache2/vhost-error.log"
+    CustomLog "/var/log/apache2/vhost-access.log" combined
+    LogLevel {{ vhost.log_level|default('warn') }}
+    ServerSignature Off
+
+{% for action in vhost.actions|default([]) %}
+    Action {{ action.mime }} "{{ action.script }}"
+{% endfor %}
+
+{% for error_document in vhost.error_documents|default([]) %}
+    ErrorDocument {{ error_document.error_code }} "{{ error_document.document }}"
+{% endfor %}
+
+{% for header in vhost.headers|default([]) %}
+    Header {{ header }}
+{% endfor %}
+
+{% for header in vhost.request_headers|default([]) %}
+    RequestHeader {{ header }}
+{% endfor %}
+
+{% for uri in vhost.passenger_base_uris|default([]) %}
+    PassengerBaseURI {{ uri }}
+{% endfor %}
+
+{% if vhost.rewrites|default(false) %}
+    RewriteEngine On
+    RewriteOptions Inherit
+    {% if vhost.rewrite_base|default(false) %}
+    RewriteBase {{ vhost.rewrite_base }}
+    {% endif %}
+
+    {% include '@PodYard/docker/apache/_rewrite.twig' with {'rewrites': vhost.rewrites|default([])} %}
+{% endif %}
+
+{% for salias in vhost.script_aliases|default([]) %}
+    {% if salias.script_alias|default(false) and salias.path|default(false) %}
+    ScriptAlias {{ salias.script_alias }} "{{ salias.path }}"
+    {% elseif salias.script_alias_match|default(false) and salias.path|default(false) %}
+    ScriptAliasMatch {{ salias.script_alias_match }} "{{ salias.path }}"
+    {% endif %}
+{% endfor %}
+
+{% for env in vhost.set_env|default([]) %}
+    SetEnv {{ env }}
+{% endfor %}
+{% for env in vhost.set_env_if|default([]) %}
+    SetEnvIf {{ env }}
+{% endfor %}
+{% for env in vhost.set_env_if_no_case|default([]) %}
+    SetEnvIfNoCase {{ env }}
+{% endfor %}
+
+{% if vhost.ssl|default(false) %}
+    SSLEngine on
+    SSLCertificateFile      "{{ vhost.ssl_certificate_file }}"
+    SSLCertificateKeyFile   "{{ vhost.ssl_certificate_key_file }}"
+    {% if vhost.ssl_certificate_chain_file|default(false) %}
+    SSLCertificateChainFile "{{ vhost.ssl_certificate_chain_file }}"
+    {% endif %}
+    {% if vhost.ssl_ca_certificate_path|default(false) %}
+    SSLCACertificatePath    "{{ vhost.ssl_ca_certificate_path }}"
+    {% endif %}
+    {% if vhost.ssl_ca_certificate_file|default(false) %}
+    SSLCACertificateFile    "{{ vhost.ssl_ca_certificate_file }}"
+    {% endif %}
+    {% if vhost.ssl_ca_revocation_path|default(false) %}
+    SSLCARevocationPath     "{{ vhost.ssl_ca_revocation_path }}"
+    {% endif %}
+    {% if vhost.ssl_ca_revocation_file|default(false) %}
+    SSLCARevocationFile     "{{ vhost.ssl_ca_revocation_file }}"
+    {% endif %}
+    {% if vhost.ssl_ca_revocation_check|default(false) %}
+    SSLCARevocationCheck    "{{ vhost.ssl_ca_revocation_check }}"
+    {% endif %}
+    {% if vhost.ssl_protocols|default(false) %}
+    SSLProtocol             {{ vhost.ssl_protocols | join(' ') }}
+    {% endif %}
+    {% if vhost.ssl_cipher_suite|default(false) %}
+    SSLCipherSuite          {{ vhost.ssl_cipher_suite }}
+    {% endif %}
+    {% if vhost.ssl_honor_cipher_order|default(false) %}
+    SSLHonorCipherOrder     {{ vhost.ssl_honor_cipher_order }}
+    {% endif %}
+    {% if vhost.ssl_verify_client|default(false) %}
+    SSLVerifyClient         {{ vhost.ssl_verify_client }}
+    {% endif %}
+    {% if vhost.ssl_verify_depth|default(false) %}
+    SSLVerifyDepth          {{ vhost.ssl_verify_depth }}
+    {% endif %}
+    {% if vhost.ssl_options|default(false) %}
+    SSLOptions              {{ vhost.ssl_options | join(' ') }}
+    {% endif %}
+    {% if vhost.ssl_openssl_conf_cmd|default(false) %}
+    SSLOpenSSLConfCmd       {{ vhost.ssl_openssl_conf_cmd }}
+    {% endif %}
+    {% if vhost.ssl_use_stapling is defined %}
+        {% if vhost.ssl_use_stapling in ['true', 'True', '1', 1, 'on', 'On', ] %}
+            {% set v = 'On' %}{% else %}{% set v = 'Off' %}
+        {% endif %}
+    SSLUseStapling {{ v }}
+    {% endif %}
+    {% if vhost.ssl_stapling_responder_timeout|default(false) %}
+    SSLStaplingResponderTimeout {{ vhost.ssl_stapling_responder_timeout }}
+    {% endif %}
+    {% if vhost.ssl_stapling_return_responder_errors is defined %}
+        {% if vhost.ssl_stapling_return_responder_errors in ['true', 'True', '1', 1, 'on', 'On', ] %}
+            {% set v = 'On' %}{% else %}{% set v = 'Off' %}
+        {% endif %}
+    SSLStaplingReturnResponderErrors {{ v }}
+    {% endif %}
+{% endif %}
+
+{% if vhost.ssl_proxy_engine|default(false) %}
+    SSLProxyEngine On
+    {% if vhost.ssl_proxy_verify|default(false) %}
+    SSLProxyVerify                 {{ vhost.ssl_proxy_verify }}
+    {% endif %}
+    {% if vhost.ssl_proxy_check_peer_cn|default(false) %}
+    SSLProxyCheckPeerCN            {{ vhost.ssl_proxy_check_peer_cn }}
+    {% endif %}
+    {% if vhost.ssl_proxy_check_peer_name|default(false) %}
+    SSLProxyCheckPeerName          {{ vhost.ssl_proxy_check_peer_name }}
+    {% endif %}
+    {% if vhost.ssl_proxy_check_peer_expire|default(false) %}
+    SSLProxyCheckPeerExpire        {{ vhost.ssl_proxy_check_peer_expire }}
+    {% endif %}
+    {% if vhost.ssl_proxy_machine_certificate_file|default(false) %}
+    SSLProxyMachineCertificateFile "{{ vhost.ssl_proxy_machine_certificate_file }}"
+    {% endif %}
+    {% if vhost.ssl_proxy_protocols|default(false) %}
+    SSLProxyProtocol               {{ vhost.ssl_proxy_protocols | join(' ') }}
+    {% endif %}
+{% endif %}
+
+{% if vhost.wsgi_application_group|default(false) %}
+    WSGIApplicationGroup {{ vhost.wsgi_application_group }}
+{% endif %}
+{% if vhost.wsgi_daemon_process|default(false) %}
+    WSGIDaemonProcess {{ vhost.wsgi_daemon_process }}
+{% endif %}
+{% if vhost.wsgi_import_script|default(false) %}
+    WSGIImportScript {{ vhost.wsgi_import_script }}
+{% endif %}
+{% if vhost.wsgi_process_group|default(false) %}
+    WSGIProcessGroup {{ vhost.wsgi_process_group }}
+{% endif %}
+{% for param_key, param_value in vhost.wsgi_script_alias_matches|default({}) | sort %}
+    WSGIScriptAliasMatch {{ param_key }} "{{ param_value }}"
+{% endfor %}
+{% for param_key, param_value in vhost.wsgi_script_aliases|default({}) | sort %}
+    WSGIScriptAlias {{ param_key }} "{{ param_value }}"
+{% endfor %}
+{% if vhost.wsgi_pass_authorization|default(false) %}
+    WSGIPassAuthorization {{ vhost.wsgi_pass_authorization }}
+{% endif %}
+{% if vhost.wsgi_chunked_request|default(false) %}
+    WSGIChunkedRequest {{ vhost.wsgi_chunked_request }}
+{% endif %}
+
+{% if vhost.fastcgi_server|default(false) %}
+    FastCgiExternalServer {{ vhost.fastcgi_server }}
+{% endif %}
+
+{% if vhost.passenger_app_root|default(false) %}
+    PassengerAppRoot {{ vhost.passenger_app_root }}
+{% endif %}
+{% if vhost.passenger_app_env|default(false) %}
+    PassengerAppEnv {{ vhost.passenger_app_env }}
+{% endif %}
+{% if vhost.passenger_ruby|default(false) %}
+    PassengerRuby {{ vhost.passenger_ruby }}
+{% endif %}
+{% if vhost.passenger_min_instances|default(false) %}
+    PassengerMinInstances {{ vhost.passenger_min_instances }}
+{% endif %}
+{% if vhost.passenger_start_timeout|default(false) %}
+    PassengerStartTimeout {{ vhost.passenger_start_timeout }}
+{% endif %}
+{% if vhost.passenger_pre_start |default(false) %}
+    PassengerPreStart {{ vhost.passenger_pre_start }}
+{% endif %}
+{% if vhost.passenger_user|default(false) %}
+    PassengerUser {{ vhost.passenger_user }}
+{% endif %}
+{% if vhost.passenger_high_performance |default(false) %}
+    {% if vhost.passenger_high_performance in ['true', 'True', '1', 1, 'on', 'On', ] %}
+        {% set v = 'On' %}{% else %}{% set v = 'Off' %}
+    {% endif %}
+    PassengerHighPerformance {{ v }}
+{% endif %}
+{% if vhost.passenger_nodejs|default(false) %}
+    PassengerNodejs {{ vhost.passenger_nodejs }}
+{% endif %}
+{% if vhost.passenger_sticky_sessions|default(false) %}
+    {% if vhost.passenger_sticky_sessions in ['true', 'True', '1', 1, 'on', 'On', ] %}
+        {% set v = 'On' %}{% else %}{% set v = 'Off' %}
+    {% endif %}
+    PassengerStickySessions {{ v }}
+{% endif %}
+{% if vhost.passenger_startup_file|default(false) %}
+    PassengerStartupFile {{ vhost.passenger_startup_file }}
+{% endif %}
+
+{% if vhost.add_default_charset|default(false) %}
+    AddDefaultCharset {{ vhost.add_default_charset }}
+{% endif %}
+
+{% if vhost.keep_alive|default(false) %}
+    KeepAlive {{ vhost.keep_alive }}
+{% endif %}
+{% if vhost.keep_alive_timeout|default(false) %}
+    KeepAliveTimeout {{ vhost.keep_alive_timeout }}
+{% endif %}
+{% if vhost.max_keep_alive_requests|default(false) %}
+    MaxKeepAliveRequests {{ vhost.max_keep_alive_requests }}
+{% endif %}
+</VirtualHost>

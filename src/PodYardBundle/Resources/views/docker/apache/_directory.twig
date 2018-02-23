@@ -1,0 +1,148 @@
+{% for directory in directories %}
+    {%- if directory.provider|default(false) == 'directorymatch' %}{% set provider = 'DirectoryMatch' %}
+    {% elseif directory.provider|default(false) == 'locationmatch' %}{% set provider = 'LocationMatch' %}
+    {% elseif directory.provider|default(false) == 'filesmatch' %}{% set provider = 'FilesMatch' %}
+    {% elseif directory.provider|default(false) == 'proxymatch' %}{% set provider = 'ProxyMatch' %}
+    {% else %}{% set provider = (directory.provider|default('directory')) | capitalize %}{% endif -%}
+
+    {% if directory.path|default(false) %}
+    <{{ provider }} "{{ directory.path }}">
+        {% for header in directory.headers|default([]) %}
+        Header {{ header }}
+        {% endfor %}
+        {% if directory.geo_ip_enable|default(false) %}
+        GeoIPEnable {{ directory.geo_ip_enable }}
+        {% endif %}
+        {% if directory.options|default(false) %}
+        Options {{ directory.options | join(' ') }}
+        {% endif %}
+        {% if directory.index_options|default(false) %}
+        IndexOptions {{ directory.index_options | join(' ') }}
+        {% endif %}
+        {% if directory.index_order_default|default(false) %}
+        IndexOrderDefault {{ directory.index_order_default | join(' ') }}
+        {% endif %}
+        {% if directory.index_style_sheet|default(false) %}
+        IndexStyleSheet {{ directory.index_style_sheet | join(' ') }}
+        {% endif %}
+        {% if directory.allow_overrides|default(false) %}
+        AllowOverride {{ directory.allow_overrides | join(' ') }}
+        {% endif %}
+
+        {% include '@PodYard/docker/apache/_require.twig' with {'requires': directory.requires|default([])} %}
+
+        {% if directory.set_handler|default(false) %}
+        SetHandler {{ directory.set_handler }}
+        {% endif %}
+        {% if directory.passenger_enabled|default(false) %}
+        PassengerEnabled {{ directory.passenger_enabled }}
+        {% endif %}
+        {% if directory.directory_index|default(false) %}
+        DirectoryIndex {{ directory.directory_index }}
+        {% endif %}
+        {% for additional_include in directory.includes|default([]) %}
+        Include "{{ additional_include }}"
+        {% endfor %}
+        {% for error_document in directory.error_documents|default([]) %}
+        ErrorDocument {{ error_document.error }}
+        {% endfor %}
+        {% if directory.auth_type|default(false) %}
+        AuthType {{ directory.auth_type }}
+        {% endif %}
+        {% if directory.auth_name|default(false) %}
+        AuthName {{ directory.auth_name }}
+        {% endif %}
+        {% if directory.auth_digest_algorithm|default(false) %}
+        AuthDigestAlgorithm {{ directory.auth_digest_algorithm }}
+        {% endif %}
+        {% if directory.auth_digest_domain|default(false) %}
+        AuthDigestDomain {{ directory.auth_digest_domain }}
+        {% endif %}
+        {% if directory.auth_digest_nonce_lifetime|default(false) %}
+        AuthDigestNonceLifetime {{ directory.auth_digest_nonce_lifetime }}
+        {% endif %}
+        {% if directory.auth_digest_provider|default(false) %}
+        AuthDigestProvider {{ directory.auth_digest_provider }}
+        {% endif %}
+        {% if directory.auth_digest_qop|default(false) %}
+        AuthDigestQop {{ directory.auth_digest_qop }}
+        {% endif %}
+        {% if directory.auth_digest_shmem_size|default(false) %}
+        AuthDigestShmemSize {{ directory.auth_digest_shmem_size }}
+        {% endif %}
+        {% if directory.auth_basic_authoritative|default(false) %}
+        AuthBasicAuthoritative {{ directory.auth_basic_authoritative }}
+        {% endif %}
+        {% if directory.auth_basic_fake|default(false) %}
+        AuthBasicFake {{ directory.auth_basic_fake }}
+        {% endif %}
+        {% if directory.auth_basic_provider|default(false) %}
+        AuthBasicProvider {{ directory.auth_basic_provider }}
+        {% endif %}
+        {% if directory.auth_user_file|default(false) %}
+        AuthUserFile {{ directory.auth_user_file }}
+        {% endif %}
+        {% if directory.auth_group_file|default(false) %}
+        AuthGroupFile {{ directory.auth_group_file }}
+        {% endif %}
+        {% if directory.auth_merging|default(false) %}
+        AuthMerging {{ directory.auth_merging }}
+        {% endif %}
+        {% if directory.auth_ldap_url|default(false) %}
+        AuthLDAPURL {{ directory.auth_ldap_url }}
+        {% endif %}
+        {% if directory.auth_ldap_bind_dn|default(false) %}
+        AuthLDAPBindDN {{ directory.auth_ldap_bind_dn }}
+        {% endif %}
+        {% if directory.auth_ldap_bind_password|default(false) %}
+        AuthLDAPBindPassword {{ directory.auth_ldap_bind_password }}
+        {% endif %}
+        {% for groupattr in directory.auth_ldap_group_attribute|default([]) %}
+        AuthLDAPGroupAttribute {{ groupattr }}
+        {% endfor %}
+        {% if directory.auth_ldap_group_attribute_is_dn|default(false) == 'off' %}
+        AuthLDAPGroupAttributeIsDN Off
+        {% endif %}
+        {% if directory.auth_ldap_group_attribute_is_dn|default(false) == 'on' %}
+        AuthLDAPGroupAttributeIsDN On
+        {% endif %}
+        {% if directory.fallback_resource|default(false) %}
+        FallbackResource {{ directory.fallback_resource }}
+        {% endif %}
+        {% if directory.expires_active|default(false) %}
+        ExpiresActive {{ directory.expires_active }}
+        {% endif %}
+        {% if directory.expires_default|default(false) %}
+        ExpiresDefault {{ directory.expires_default }}
+        {% endif %}
+        {% for rule in directory.expires_by_type|default([]) %}
+        ExpiresByType {{ rule }}
+        {% endfor %}
+
+        {% if directory.ext_filter_options|default(false) %}
+        ExtFilterOptions {{ directory.ext_filter_options }}
+        {% endif %}
+        {% if directory.force_type|default(false) %}
+        ForceType {{ directory.force_type }}
+        {% endif %}
+        {% if directory.ssl_options|default([]) %}
+        SSLOptions {{ directory.ssl_options | join(' ') }}
+        {% endif %}
+        {% if directory.suphp|default({}) %}
+        suPHP_UserGroup {{ directory.suphp }}
+        {% endif %}
+        {% if directory.fcgi_wrapper|default({}) %}
+        FcgidWrapper {{ directory.fcgi_wrapper }}
+        {% endif %}
+
+        {% include '@PodYard/docker/apache/_rewrite.twig' with {'rewrites': directory.rewrites|default([])} %}
+
+        {% for set_env in directory.set_env|default([]) %}
+        SetEnv {{ set_env }}
+        {% endfor %}
+        {% if directory.set_output_filter|default(false) %}
+        SetOutputFilter {{ directory.set_output_filter }}
+        {% endif %}
+    </{{ provider }}>
+    {% endif %}
+{% endfor %}

@@ -1,0 +1,4 @@
+podyard:
+    resource: "@PodYardBundle/Controller/"
+    type:     annotation
+    prefix:   /

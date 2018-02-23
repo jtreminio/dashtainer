@@ -1,0 +1,8 @@
+parameters:
+    database_host: 127.0.0.1
+    database_port: 3306
+    database_name: podyard
+    database_user: podyard
+    database_password: podyard
+
+    secret: ThisTokenIsNotSoSecretChangeIt

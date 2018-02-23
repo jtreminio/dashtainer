@@ -1,0 +1,38 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    security_lib.strength:
+        class: SecurityLib\Strength
+        arguments:
+            - 5
+
+    random_lib:
+        class: RandomLib\Factory
+
+    security_lib.factory:
+        class: RandomLib\Factory
+        factory: ['@random_lib', getGenerator]
+        arguments: ['@security_lib.strength']
+
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
+        public:    false
+        arguments:
+            - "mysql:host=%database_host%;port=%database_port%;dbname=%database_name%"
+            -
+                db_table: sessions
+                db_username: "%database_port%"
+                db_password: "%database_password%"
+
+    PodYardBundle\:
+        resource: '../../src/PodYardBundle/*'
+        exclude: '../../src/PodYardBundle/{Entity,Repository,Tests}'
+
+    PodYardBundle\Controller\:
+        resource: '../../src/PodYardBundle/Controller'
+        public: true
+        tags: ['controller.service_arguments']
