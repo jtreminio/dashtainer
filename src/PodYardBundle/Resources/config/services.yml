@@ -1,7 +1,7 @@
 parameters:
     locale: 'en'
-    bin_dir: '%kernel.root_dir%/../bin'
-    docker_source_dir: '%kernel.root_dir%/../docker-source'
+    bin_dir: '%kernel.project_dir%/bin'
+    docker_source_dir: '%kernel.project_dir%/docker-source'
 
 services:
     podyard.docker.manager:
