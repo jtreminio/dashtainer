@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-abstract class AbstractCommand extends Command
+abstract class CommandAbstract extends Command
 {
     /** @var SymfonyStyle */
     protected $io;

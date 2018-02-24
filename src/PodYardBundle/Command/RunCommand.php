@@ -6,7 +6,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Yaml\Yaml;
 
-class RunCommand extends AbstractCommand
+class RunCommand extends CommandAbstract
 {
     protected function configure()
     {

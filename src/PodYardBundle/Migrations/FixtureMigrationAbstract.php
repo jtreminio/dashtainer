@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-abstract class AbstractFixtureMigration
+abstract class FixtureMigrationAbstract
     extends AbstractMigration
     implements ContainerAwareInterface
 {
