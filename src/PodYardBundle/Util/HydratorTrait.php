@@ -2,7 +2,7 @@
 
 namespace PodYardBundle\Util;
 
-abstract class HydratableAbstract implements HydratableInterface
+trait HydratorTrait
 {
     private $accessibleProperties = [];
     private $accessibleMethods    = [];

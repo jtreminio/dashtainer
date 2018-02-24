@@ -2,10 +2,12 @@
 
 namespace PodYardBundle\Tests\Entity;
 
-use PodYardBundle\Util\HydratableAbstract;
+use PodYardBundle\Util\HydratorTrait;
 
-class MockEntity extends HydratableAbstract
+class MockEntity
 {
+    use HydratorTrait;
+
     public $publicProperty1;
     public $publicProperty2;
     public $publicProperty3;
