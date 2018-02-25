@@ -2,9 +2,10 @@
 
 namespace PodYardBundle\Tests\Entity;
 
+use PodYardBundle\Util\HydratorInterface;
 use PodYardBundle\Util\HydratorTrait;
 
-class MockEntity
+class MockEntity implements HydratorInterface
 {
     use HydratorTrait;
 
