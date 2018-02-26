@@ -20,6 +20,12 @@ services:
             - "@serializer"
             - '%kernel.environment%'
 
+    dashtainer.domain.validator:
+        class: DashtainerBundle\Domain\Validator
+        shared: false
+        arguments:
+            - '@validator'
+
     ## Public handlers
 
     dashtainer.docker.handler.apache:
