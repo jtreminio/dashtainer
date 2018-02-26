@@ -1,12 +1,12 @@
 <?php
 
-namespace PodYardBundle\Tests\Docker;
+namespace DashtainerBundle\Tests\Docker;
 
-use PodYardBundle\Docker\HandlerInterface;
-use PodYardBundle\Docker\Manager;
-use PodYardBundle\Tests\Docker\Handler\MockPrivateHandler;
-use PodYardBundle\Tests\Docker\Handler\MockPublicHandler;
-use PodYardBundle\Tests\Docker\Handler\MockPublicHandlerWithPrivateHandler;
+use DashtainerBundle\Docker\HandlerInterface;
+use DashtainerBundle\Docker\Manager;
+use DashtainerBundle\Tests\Docker\Handler\MockPrivateHandler;
+use DashtainerBundle\Tests\Docker\Handler\MockPublicHandler;
+use DashtainerBundle\Tests\Docker\Handler\MockPublicHandlerWithPrivateHandler;
 
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Symfony\Bundle\FrameworkBundle\Templating;
@@ -25,9 +25,9 @@ class ManagerTest extends KernelTestCase
 
     /**
      * @expectedException        \Exception
-     * @expectedExceptionMessage Empty PodYard config file
+     * @expectedExceptionMessage Empty Dashtainer config file
      */
-    public function testGetDockerConfigYamlThrowsExceptionOnNoPodYardConfigFilePassed()
+    public function testGetDockerConfigYamlThrowsExceptionOnNoDashtainerConfigFilePassed()
     {
         $this->manager->generateArchive(__DIR__);
     }
@@ -47,7 +47,7 @@ services: {  }
 
 EOD;
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -70,7 +70,7 @@ EOD;
 
         $this->manager->setHandlers([$this->getPublicHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -93,7 +93,7 @@ EOD;
 
         $this->manager->setPrivateHandlers([$this->getPrivateHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -127,7 +127,7 @@ EOD;
 
         $this->manager->setHandlers([$this->getPublicHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -161,7 +161,7 @@ EOD;
 
         $this->manager->setHandlers([$this->getPublicHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -195,7 +195,7 @@ EOD;
 
         $this->manager->setHandlers([$this->getPublicHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());
@@ -241,7 +241,7 @@ EOD;
         $this->manager->setHandlers([$this->getPublicWithPrivateHandler()]);
         $this->manager->setPrivateHandlers([$this->getPrivateHandler()]);
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());

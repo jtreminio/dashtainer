@@ -1,9 +1,9 @@
 parameters:
     database_host: 127.0.0.1
     database_port: 3306
-    database_name: podyard
-    database_user: podyard
-    database_password: podyard
+    database_name: dashtainer
+    database_user: dashtainer
+    database_password: dashtainer
     mailer_transport: smtp
     mailer_host: 127.0.0.1
     mailer_user: null

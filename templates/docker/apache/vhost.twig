@@ -40,7 +40,7 @@
     AllowEncodedSlashes {{ vhost.allow_encoded_slashes }}
 {% endif %}
 
-{% include '@PodYard/docker/apache/_directory.twig' with {'directories': vhost.directories|default([])} %}
+{% include '@Dashtainer/docker/apache/_directory.twig' with {'directories': vhost.directories|default([])} %}
 
 {% if vhost.include_optionals|default([]) %}
     {% for include_optional in vhost.include_optionals|default([]) %}
@@ -80,7 +80,7 @@
     RewriteBase {{ vhost.rewrite_base }}
     {% endif %}
 
-    {% include '@PodYard/docker/apache/_rewrite.twig' with {'rewrites': vhost.rewrites|default([])} %}
+    {% include '@Dashtainer/docker/apache/_rewrite.twig' with {'rewrites': vhost.rewrites|default([])} %}
 {% endif %}
 
 {% for salias in vhost.script_aliases|default([]) %}

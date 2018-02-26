@@ -1,8 +1,8 @@
 {
-    "name": "PodYard.com",
+    "name": "Dashtainer.com",
     "autoload": {
         "psr-4": {
-            "PodYardBundle\\": "src/PodYardBundle"
+            "DashtainerBundle\\": "src/DashtainerBundle"
         },
         "classmap": [
             "app/AppKernel.php",
@@ -11,7 +11,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "PodYardBundle\\Tests\\": "tests/"
+            "DashtainerBundle\\Tests\\": "tests/"
         },
         "files": [
             "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php"

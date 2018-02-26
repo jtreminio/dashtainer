@@ -1,9 +1,9 @@
 <?php
 
-namespace PodYardBundle\Tests\Docker\Handler;
+namespace DashtainerBundle\Tests\Docker\Handler;
 
-use PodYardBundle\Docker;
-use PodYardBundle\Entity;
+use DashtainerBundle\Docker;
+use DashtainerBundle\Entity;
 
 class MockPublicHandlerWithPrivateHandler extends Docker\HandlerAbstract implements Docker\HandlerInterface
 {
@@ -16,7 +16,7 @@ class MockPublicHandlerWithPrivateHandler extends Docker\HandlerAbstract impleme
             'name'         => 'extra-private-service',
         ];
 
-        $extraService = new Entity\PodYardServiceConfig($extraServiceConfig);
+        $extraService = new Entity\DashtainerServiceConfig($extraServiceConfig);
         $extraService->setEnvironment([
             'IS_EXTRA' => 'yes!',
 

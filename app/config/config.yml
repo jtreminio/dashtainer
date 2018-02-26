@@ -2,7 +2,7 @@ imports:
     - { resource: parameters.yml }
     - { resource: security.yml }
     - { resource: services.yml }
-    - { resource: "@PodYardBundle/Resources/config/services.yml" }
+    - { resource: "@DashtainerBundle/Resources/config/services.yml" }
 
 parameters:
     locale: en
@@ -36,7 +36,7 @@ twig:
     debug: '%kernel.debug%'
     strict_variables: '%kernel.debug%'
     paths:
-        "%kernel.project_dir%/templates": PodYard
+        "%kernel.project_dir%/templates": Dashtainer
 
 # Doctrine Configuration
 doctrine:
@@ -51,7 +51,7 @@ doctrine:
         types:
             uuid: Ramsey\Uuid\Doctrine\UuidType
             uuid_binary: Ramsey\Uuid\Doctrine\UuidBinaryType
-            varbinary: PodYardBundle\Types\VarBinary
+            varbinary: DashtainerBundle\Types\VarBinary
         mapping_types:
             uuid_binary: binary
 
@@ -61,15 +61,15 @@ doctrine:
         auto_mapping: true
 
 doctrine_migrations:
-    dir_name: '%kernel.project_dir%/src/PodYardBundle/Migrations'
-    namespace: PodYardBundle\Migrations
+    dir_name: '%kernel.project_dir%/src/DashtainerBundle/Migrations'
+    namespace: DashtainerBundle\Migrations
     table_name: migration_versions
-    name: PodYard Database Migrations
+    name: Dashtainer Database Migrations
 
 fos_user:
     db_driver: orm
     firewall_name: main
-    user_class: PodYardBundle\Entity\User
+    user_class: DashtainerBundle\Entity\User
     from_email:
         address: '%mailer_user%'
         sender_name: '%mailer_user%'

@@ -1,8 +1,8 @@
 <?php
 
-namespace PodYardBundle\Tests\Util;
+namespace DashtainerBundle\Tests\Util;
 
-use PodYardBundle\Tests\Entity\MockEntity;
+use DashtainerBundle\Tests\Entity\MockEntity;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 

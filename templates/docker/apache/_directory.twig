@@ -29,7 +29,7 @@
         AllowOverride {{ directory.allow_overrides | join(' ') }}
         {% endif %}
 
-        {% include '@PodYard/docker/apache/_require.twig' with {'requires': directory.requires|default([])} %}
+        {% include '@Dashtainer/docker/apache/_require.twig' with {'requires': directory.requires|default([])} %}
 
         {% if directory.set_handler|default(false) %}
         SetHandler {{ directory.set_handler }}
@@ -135,7 +135,7 @@
         FcgidWrapper {{ directory.fcgi_wrapper }}
         {% endif %}
 
-        {% include '@PodYard/docker/apache/_rewrite.twig' with {'rewrites': directory.rewrites|default([])} %}
+        {% include '@Dashtainer/docker/apache/_rewrite.twig' with {'rewrites': directory.rewrites|default([])} %}
 
         {% for set_env in directory.set_env|default([]) %}
         SetEnv {{ set_env }}

@@ -1,8 +1,8 @@
 <?php
 
-namespace PodYardBundle\Tests\Util;
+namespace DashtainerBundle\Tests\Util;
 
-use PodYardBundle\Util\YamlTag;
+use DashtainerBundle\Util\YamlTag;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Yaml\Yaml;

@@ -1,10 +1,10 @@
 <?php
 
-namespace PodYardBundle\Tests\Docker\Handler;
+namespace DashtainerBundle\Tests\Docker\Handler;
 
-use PodYardBundle\Docker\HandlerInterface;
-use PodYardBundle\Docker\Handler\Apache;
-use PodYardBundle\Docker\Manager;
+use DashtainerBundle\Docker\HandlerInterface;
+use DashtainerBundle\Docker\Handler\Apache;
+use DashtainerBundle\Docker\Manager;
 
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Symfony\Bundle\FrameworkBundle\Templating;
@@ -71,7 +71,7 @@ services:
 
 EOD;
 
-        $this->manager->setPodYardConfig($config)
+        $this->manager->setDashtainerConfig($config)
             ->generateArchive(__DIR__);
 
         $this->assertEquals($expected, $this->manager->getDockerConfigYaml());

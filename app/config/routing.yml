@@ -1,5 +1,5 @@
-podyard:
-    resource: "@PodYardBundle/Controller/"
+dashtainer:
+    resource: "@DashtainerBundle/Controller/"
     type:     annotation
     prefix:   /
 

@@ -5,7 +5,7 @@
 /test-coverage
 /phpunit.xml
 /var/*
-!/var/podyard-config.yml
+!/var/dashtainer-config.yml
 !/var/cache
 /var/cache/*
 !var/cache/.gitkeep
