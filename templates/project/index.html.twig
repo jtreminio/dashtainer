@@ -1,0 +1,57 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container">
+    {% if app.user.getProjects is not empty %}
+        <p>Created projects</p>
+        <hr />
+
+        {% for project in app.user.getProjects %}
+            <p><a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                    'projectSlug': project.name|urlize
+                }) }}">{{ project.name }}</a></p>
+        {% endfor %}
+
+        <hr />
+    {% else %}
+        <p>You have no projects.</p>
+    {% endif %}
+
+    <p><a href="#" data-toggle="modal"
+          data-target="#project-create-modal">Create a new project</a></p>
+</div>
+
+<div class="modal fade" id="project-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="project-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="project-create-modal-title">Create a new project</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.create.post') }}" method="post">
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row">
+                            <label for="name">Project Name</label>
+                            <input type="text" class="form-control"
+                                   id="name" name="name"
+                                   placeholder="" value="" required />
+                            <div class="invalid-feedback">
+                                Project name is required.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

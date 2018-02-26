@@ -1,0 +1,12 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container">
+    <p>Project details:</p>
+    <hr />
+
+    <p>ID: {{ project.id }}</p>
+    <p>Name: {{ project.name }}</p>
+    <p>Slug: {{ project.name|urlize }}</p>
+</div>
+{% endblock %}

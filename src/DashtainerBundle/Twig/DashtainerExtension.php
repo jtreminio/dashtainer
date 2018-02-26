@@ -2,6 +2,7 @@
 
 namespace DashtainerBundle\Twig;
 
+use Behat\Transliterator\Transliterator;
 use Zend\Stdlib\ArrayUtils;
 
 class DashtainerExtension extends \Twig_Extension
@@ -11,6 +12,7 @@ class DashtainerExtension extends \Twig_Extension
         return [
             new \Twig_Filter('preg_quote', [$this, 'preg_quote']),
             new \Twig_Filter('str_replace', [$this, 'str_replace']),
+            new \Twig_Filter('urlize', [$this, 'urlize']),
         ];
     }
 
@@ -45,6 +47,11 @@ class DashtainerExtension extends \Twig_Extension
     public function str_replace($subject, $search, $replace)
     {
         return str_replace($search, $replace, $subject);
+    }
+
+    public function urlize($string)
+    {
+        return Transliterator::urlize($string);
     }
 
     ## Functions
