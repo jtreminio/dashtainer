@@ -14,6 +14,12 @@ services:
                 method: setPrivateHandlers
                 arguments: [!tagged docker.private_handler]
 
+    podyard.migrations.dataloader:
+        class: PodYardBundle\Migrations\DataLoader
+        arguments:
+            - '@serializer'
+            - '%kernel.environment%'
+
     ## Public handlers
 
     podyard.docker.handler.apache:

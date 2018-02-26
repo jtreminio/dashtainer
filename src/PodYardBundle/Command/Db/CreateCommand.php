@@ -17,7 +17,8 @@ class CreateCommand extends Command\CommandAbstract
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->runConsole('doctrine:schema:drop', ['--force' => true]);
+        $this->runConsole('doctrine:database:drop', ['--force' => true]);
+        $this->runConsole('doctrine:database:create');
         $this->runConsole('doctrine:schema:create');
         $this->runConsole('doctrine:migrations:migrate', ['--no-interaction' => true]);
 

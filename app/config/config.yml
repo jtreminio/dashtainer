@@ -26,6 +26,8 @@ framework:
         json_manifest_path: '%kernel.project_dir%/public/build/manifest.json'
     php_errors:
         log: true
+    serializer:
+        enabled: true
     templating:
         engines: ['twig']
 
