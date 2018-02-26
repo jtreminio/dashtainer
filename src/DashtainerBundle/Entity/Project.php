@@ -4,8 +4,8 @@ namespace DashtainerBundle\Entity;
 
 use DashtainerBundle\Util;
 
+use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
-use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
  * @ORM\Table(name="project")
@@ -14,15 +14,8 @@ use Gedmo\Mapping\Annotation as Gedmo;
 class Project implements Util\HydratorInterface, EntityBaseInterface
 {
     use Util\HydratorTrait;
+    use RandomIdTrait;
     use EntityBaseTrait;
-
-    /**
-     * @ORM\Id
-     * @ORM\Column(name="id", type="string", length=8)
-     * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class="DashtainerBundle\Doctrine\RandomIdGenerator")
-     */
-    protected $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\User", inversedBy="projects")
@@ -31,9 +24,20 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
     protected $user;
 
     /**
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Service", mappedBy="project")
+     * @ORM\OrderBy({"created_at" = "DESC"})
+     */
+    protected $services;
+
+    /**
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
+
+    public function __construct()
+    {
+        $this->services = new Collections\ArrayCollection();
+    }
 
     public function getUser() : ?User
     {
@@ -49,6 +53,33 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
         $this->user = $user;
 
         return $this;
+    }
+
+    /**
+     * @param Service $service
+     * @return $this
+     */
+    public function addService(Service $service)
+    {
+        $this->services[] = $service;
+
+        return $this;
+    }
+
+    /**
+     * @param Service $service
+     */
+    public function removeService(Service $service)
+    {
+        $this->services->removeElement($service);
+    }
+
+    /**
+     * @return Service[]|Collections\ArrayCollection
+     */
+    public function getServices()
+    {
+        return $this->services;
     }
 
     public function getName() : ?string

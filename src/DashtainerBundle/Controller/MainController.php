@@ -20,10 +20,6 @@ class MainController extends Controller
      */
     public function indexGetAction(User $user = null) : Response
     {
-        if (!$user) {
-            return $this->redirectToRoute('fos_user_security_login');
-        }
-
-        return $this->redirectToRoute('project.index.get');
+        return $this->redirectToRoute('fos_user_security_login');
     }
 }

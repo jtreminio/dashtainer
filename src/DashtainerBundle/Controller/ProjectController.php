@@ -4,7 +4,9 @@ namespace DashtainerBundle\Controller;
 
 use DashtainerBundle\Entity;
 use DashtainerBundle\Form;
+use DashtainerBundle\Repository;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +14,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProjectController extends Controller
 {
+    /** @var EntityManagerInterface */
+    protected $em;
+
+    /** @var Repository\ProjectRepository */
+    protected $projectRepo;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em          = $em;
+        $this->projectRepo = $em->getRepository('DashtainerBundle:Project');
+    }
+
     /**
      * @Route(name="project.index.get",
      *     path="/project",
@@ -53,17 +67,17 @@ class ProjectController extends Controller
         $project->fromArray($form->toArray());
         $project->setUser($user);
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($project);
-        $em->flush();
+        $this->em->persist($project);
+        $this->em->flush();
 
         $response->setContent('good form!');
 
         return $response;
     }
+
     /**
-     * @Route(name="project.view.get",
-     *     path="/project/view/{projectId}/{projectSlug}",
+     * @Route(name="project.manage.get",
+     *     path="/project/manage/{projectId}/{projectSlug}",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
@@ -71,14 +85,17 @@ class ProjectController extends Controller
      * @param string      $projectSlug
      * @return Response
      */
-    public function viewGetAction(
+    public function manageGetAction(
         Entity\User $user,
         string $projectId,
         string $projectSlug
     ) : Response {
-        $em = $this->getDoctrine()->getRepository('DashtainerBundle:Project');
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
 
-        if (!$project = $em->find($projectId)) {
+        if (!$project) {
             $response = new Response();
 
             $response->setContent('project not found');
@@ -86,15 +103,7 @@ class ProjectController extends Controller
             return $response;
         }
 
-        if ($project->getUser() !== $user) {
-            $response = new Response();
-
-            $response->setContent('project does not belong to this user');
-
-            return $response;
-        }
-
-        return $this->render('@Dashtainer/project/view.html.twig', [
+        return $this->render('@Dashtainer/project/manage.html.twig', [
             'project' => $project,
         ]);
     }
