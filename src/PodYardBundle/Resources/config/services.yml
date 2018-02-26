@@ -17,7 +17,7 @@ services:
     podyard.migrations.dataloader:
         class: PodYardBundle\Migrations\DataLoader
         arguments:
-            - '@serializer'
+            - "@serializer"
             - '%kernel.environment%'
 
     ## Public handlers
@@ -25,7 +25,7 @@ services:
     podyard.docker.handler.apache:
         class: PodYardBundle\Docker\Handler\Apache
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -34,7 +34,7 @@ services:
     podyard.docker.handler.nginx:
         class: PodYardBundle\Docker\Handler\Nginx
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -43,7 +43,7 @@ services:
     podyard.docker.handler.php-fpm:
         class: PodYardBundle\Docker\Handler\PhpFpm
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -52,7 +52,7 @@ services:
     podyard.docker.handler.mariadb:
         class: PodYardBundle\Docker\Handler\MariaDB
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -61,7 +61,7 @@ services:
     podyard.docker.handler.mysql:
         class: PodYardBundle\Docker\Handler\MySQL
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -70,7 +70,7 @@ services:
     podyard.docker.handler.postgresql:
         class: PodYardBundle\Docker\Handler\PostgreSQL
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -79,7 +79,7 @@ services:
     podyard.docker.handler.mongodb:
         class: PodYardBundle\Docker\Handler\MongoDB
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -88,7 +88,7 @@ services:
     podyard.docker.handler.redis:
         class: PodYardBundle\Docker\Handler\Redis
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -97,7 +97,7 @@ services:
     podyard.docker.handler.mailhog:
         class: PodYardBundle\Docker\Handler\MailHog
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -106,7 +106,7 @@ services:
     podyard.docker.handler.beanstalkd:
         class: PodYardBundle\Docker\Handler\Beanstalkd
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -115,7 +115,7 @@ services:
     podyard.docker.handler.elasticsearch:
         class: PodYardBundle\Docker\Handler\Elasticsearch
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
@@ -126,7 +126,7 @@ services:
     podyard.docker.handler.blackfire:
         class: PodYardBundle\Docker\Handler\Blackfire
         arguments:
-            - '@templating'
+            - "@templating"
             - '%bin_dir%'
             - '%docker_source_dir%'
         tags:
