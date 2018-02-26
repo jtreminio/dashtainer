@@ -5,10 +5,11 @@ namespace DashtainerBundle\Entity;
 use DashtainerBundle\Util;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
- * @ORM\Entity
  * @ORM\Table(name="project")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ProjectRepository")
  */
 class Project implements Util\HydratorInterface, EntityBaseInterface
 {
@@ -16,8 +17,16 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
     use EntityBaseTrait;
 
     /**
+     * @ORM\Id
+     * @ORM\Column(name="id", type="string", length=8)
+     * @ORM\GeneratedValue(strategy="CUSTOM")
+     * @ORM\CustomIdGenerator(class="DashtainerBundle\Doctrine\RandomIdGenerator")
+     */
+    protected $id;
+
+    /**
      * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\User", inversedBy="projects")
-     * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
      */
     protected $user;
 
@@ -25,11 +34,6 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
-
-    /**
-     * @ORM\Column(name="version", type="string", length=255)
-     */
-    protected $version;
 
     public function getUser() : ?User
     {
@@ -59,22 +63,6 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
     public function setName(string $name)
     {
         $this->name = $name;
-
-        return $this;
-    }
-
-    public function getVersion() : ?string
-    {
-        return $this->version;
-    }
-
-    /**
-     * @param string $version
-     * @return $this
-     */
-    public function setVersion(string $version)
-    {
-        $this->version = $version;
 
         return $this;
     }

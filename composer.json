@@ -19,6 +19,7 @@
     },
     "require": {
         "php": ">=5.5.9",
+        "behat/transliterator": "~v1.2",
         "doctrine/data-fixtures": "^v1.3",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/doctrine-fixtures-bundle": "^3.0",
