@@ -26,6 +26,7 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
 
     /**
      * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Project", mappedBy="user")
+     * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $projects;
 
