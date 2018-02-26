@@ -4,5 +4,8 @@ parameters:
     database_name: podyard
     database_user: podyard
     database_password: podyard
-
-    secret: ThisTokenIsNotSoSecretChangeIt
+    mailer_transport: smtp
+    mailer_host: 127.0.0.1
+    mailer_user: null
+    mailer_password: null
+    secret: 4a26620b4a7a55c5c48499eeecf992d6b20f19ac

@@ -25,6 +25,7 @@
         "doctrine/doctrine-migrations-bundle": "^v1.3",
         "doctrine/migrations": "^v1.6",
         "doctrine/orm": "^2.5",
+        "friendsofsymfony/user-bundle": "~2.0",
         "igorw/get-in": "~1.0",
         "incenteev/composer-parameter-handler": "^2.0",
         "ircmaxell/random-lib": "^v1.2",

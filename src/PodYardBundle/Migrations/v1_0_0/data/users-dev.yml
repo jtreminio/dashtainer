@@ -1,0 +1,5 @@
+-
+    username: testuser
+    email: test@podyard.com
+    plain_password: test123
+    enabled: true

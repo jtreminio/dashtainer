@@ -16,8 +16,10 @@ class Version1_0_0 extends FixtureMigrationAbstract
 
     public function postUp(Schema $schema)
     {
+        $dataLoader = $this->container->get('podyard.migrations.dataloader');
+
         $this->loadFixtures([
-            // new v1_0_0\DataFixtures(),
+            new v1_0_0\DataFixtures($dataLoader),
         ]);
     }
 }
