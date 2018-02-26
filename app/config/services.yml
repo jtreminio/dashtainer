@@ -32,6 +32,10 @@ services:
         resource: '../../src/DashtainerBundle/*'
         exclude: '../../src/DashtainerBundle/{Entity,Repository,Tests}'
 
+    DashtainerBundle\ArgumentResolver\UserValueResolver:
+        tags:
+            - { name: controller.argument_value_resolver, priority: 50 }
+
     DashtainerBundle\Controller\:
         resource: '../../src/DashtainerBundle/Controller'
         public: true

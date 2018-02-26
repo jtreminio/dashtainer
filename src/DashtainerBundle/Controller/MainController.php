@@ -2,20 +2,28 @@
 
 namespace DashtainerBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use DashtainerBundle\Entity\User;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Response;
 
 class MainController extends Controller
 {
     /**
-     * @Route(name="index", path="/")
+     * @param User $user
+     * @return Response
+     * @Route(name="index.get",
+     *     path="/",
+     *     methods={"GET"}
+     * )
      */
-    public function indexAction()
+    public function indexGetAction(User $user = null) : Response
     {
-        $userManager = $this->get('fos_user.user_manager');
+        if (!$user) {
+            return $this->redirectToRoute('fos_user_security_login');
+        }
 
-        $user = $userManager->findUserByUsername('test@dashtainer.com');
-
-        return $this->render('@Dashtainer/index.html.twig');
+        return $this->redirectToRoute('project.index.get');
     }
 }
