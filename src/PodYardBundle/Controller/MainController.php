@@ -5,7 +5,7 @@ namespace PodYardBundle\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
-class DefaultController extends Controller
+class MainController extends Controller
 {
     /**
      * @Route(name="index", path="/")
