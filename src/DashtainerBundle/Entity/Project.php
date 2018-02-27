@@ -4,6 +4,7 @@ namespace DashtainerBundle\Entity;
 
 use DashtainerBundle\Util;
 
+use Behat\Transliterator\Transliterator;
 use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -11,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name="project")
  * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ProjectRepository")
  */
-class Project implements Util\HydratorInterface, EntityBaseInterface
+class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -96,5 +97,10 @@ class Project implements Util\HydratorInterface, EntityBaseInterface
         $this->name = $name;
 
         return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return Transliterator::urlize($this->getName());
     }
 }

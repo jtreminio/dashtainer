@@ -4,13 +4,14 @@ namespace DashtainerBundle\Entity;
 
 use DashtainerBundle\Util;
 
+use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Table(name="service")
  * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ProjectRepository")
  */
-class Service implements Util\HydratorInterface, EntityBaseInterface
+class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -57,5 +58,10 @@ class Service implements Util\HydratorInterface, EntityBaseInterface
         $this->name = $name;
 
         return $this;
+    }
+
+    public function getSlug(): string
+    {
+        return Transliterator::urlize($this->getName());
     }
 }
