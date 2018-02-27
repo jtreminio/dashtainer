@@ -30,6 +30,8 @@ class DataFixtures
         $this->em = $manager;
 
         $this->loadUsers();
+        $this->loadServiceCategories();
+        $this->loadServiceTypes();
     }
 
     protected function loadUsers()
@@ -39,6 +41,40 @@ class DataFixtures
             $entity->fromArray($row);
 
             $this->em->persist($entity);
+        }
+
+        $this->em->flush();
+    }
+
+    protected function loadServiceCategories()
+    {
+        foreach ($this->dataLoader->getData('service_categories') as $row) {
+            $entity = new Entity\ServiceCategory();
+            $entity->fromArray($row);
+
+            $this->em->persist($entity);
+
+            $referenceName = "service_category-{$entity->getName()}";
+            $this->addReference($referenceName, $entity);
+        }
+
+        $this->em->flush();
+    }
+
+    protected function loadServiceTypes()
+    {
+        foreach ($this->dataLoader->getData('service_types') as $row) {
+            $row['service_category'] = $this->getReference(
+                "service_category-{$row['service_category']}"
+            );
+
+            $entity = new Entity\ServiceType();
+            $entity->fromArray($row);
+
+            $this->em->persist($entity);
+
+            $referenceName = "service_type-{$entity->getName()}";
+            $this->addReference($referenceName, $entity);
         }
 
         $this->em->flush();

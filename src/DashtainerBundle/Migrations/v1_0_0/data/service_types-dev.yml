@@ -1,0 +1,56 @@
+-
+    name: Apache
+    service_category: Web Server
+    is_public: true
+    order: 1
+-
+    name: Nginx
+    service_category: Web Server
+    is_public: true
+    order: 2
+-
+    name: PHP
+    service_category: Programming Language
+    is_public: true
+    order: 1
+-
+    name: MariaDB
+    service_category: Database
+    is_public: true
+    order: 1
+-
+    name: MySQL
+    service_category: Database
+    is_public: true
+    order: 2
+-
+    name: PostgreSQL
+    service_category: Database
+    is_public: true
+    order: 3
+-
+    name: MongoDB
+    service_category: Database
+    is_public: true
+    order: 4
+-
+    name: Redis
+    service_category: Database
+    is_public: true
+    order: 5
+-
+    name: MailHog
+    service_category: Mail Tool
+    is_public: true
+    order: 1
+-
+    name: Beanstalkd
+    service_category: Work Queue
+    is_public: true
+    order: 1
+-
+    name: Elasticsearch
+    service_category: Search Server
+    is_public: true
+    order: 1
+

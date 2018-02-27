@@ -1,0 +1,18 @@
+-
+    name: Web Server
+    order: 1
+-
+    name: Programming Language
+    order: 2
+-
+    name: Database
+    order: 3
+-
+    name: Mail Tool
+    order: 4
+-
+    name: Work Queue
+    order: 5
+-
+    name: Search Server
+    order: 6

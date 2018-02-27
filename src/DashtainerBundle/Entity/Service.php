@@ -9,13 +9,19 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Table(name="service")
- * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ProjectRepository")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ServiceRepository")
  */
 class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
     use EntityBaseTrait;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\ServiceType", inversedBy="services")
+     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
+     */
+    protected $service_type;
 
     /**
      * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\Project", inversedBy="services")
@@ -27,6 +33,22 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
+
+    public function getServiceType() : ?ServiceType
+    {
+        return $this->service_type;
+    }
+
+    /**
+     * @param ServiceType $serviceType
+     * @return $this
+     */
+    public function setServiceType(ServiceType $serviceType)
+    {
+        $this->service_type = $serviceType;
+
+        return $this;
+    }
 
     public function getProject() : ?Project
     {
