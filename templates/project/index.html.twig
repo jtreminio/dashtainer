@@ -1,6 +1,15 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Projects</li>
+        </ol>
+    </nav>
+</div>
+
 <div class="container">
     {% if app.user.getProjects is not empty %}
         <p>Created projects</p>
