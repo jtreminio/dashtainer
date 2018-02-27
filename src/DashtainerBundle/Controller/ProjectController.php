@@ -21,10 +21,15 @@ class ProjectController extends Controller
     /** @var Repository\ProjectRepository */
     protected $projectRepo;
 
+    /** @var Repository\ServiceCategoryRepository */
+    protected $serviceCatRepo;
+
     public function __construct(EntityManagerInterface $em)
     {
-        $this->em          = $em;
-        $this->projectRepo = $em->getRepository('DashtainerBundle:Project');
+        $this->em = $em;
+
+        $this->projectRepo    = $em->getRepository('DashtainerBundle:Project');
+        $this->serviceCatRepo = $em->getRepository('DashtainerBundle:ServiceCategory');
     }
 
     /**
@@ -32,8 +37,10 @@ class ProjectController extends Controller
      *     path="/project",
      *     methods={"GET"}
      * )
+     * @param Entity\User $user
+     * @return Response
      */
-    public function indexGetAction()
+    public function getIndexAction(Entity\User $user) : Response
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
         ]);
@@ -46,9 +53,9 @@ class ProjectController extends Controller
      * )
      * @param Request     $request
      * @param Entity\User $user
-     * @return Response
+     * @return AjaxResponse
      */
-    public function createPostAction(Request $request, Entity\User $user) : Response
+    public function postCreateAction(Request $request, Entity\User $user) : AjaxResponse
     {
         $form = new Form\ProjectCreateForm();
         $form->fromArray($request->request->all());
@@ -72,27 +79,24 @@ class ProjectController extends Controller
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
-            'data' => $this->generateUrl('project.manage.get', [
-                'projectId'   => $project->getId(),
-                'projectSlug' => $project->getSlug(),
+            'data' => $this->generateUrl('project.view.get', [
+                'projectId' => $project->getId(),
             ]),
         ], AjaxResponse::HTTP_OK);
     }
 
     /**
-     * @Route(name="project.manage.get",
-     *     path="/project/manage/{projectId}/{projectSlug}",
+     * @Route(name="project.view.get",
+     *     path="/project/{projectId}",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
-     * @param string      $projectSlug
      * @return Response
      */
-    public function manageGetAction(
+    public function getViewAction(
         Entity\User $user,
-        string $projectId,
-        string $projectSlug
+        string $projectId
     ) : Response {
         $project = $this->projectRepo->findOneBy([
             'id'   => $projectId,
@@ -103,8 +107,67 @@ class ProjectController extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        return $this->render('@Dashtainer/project/manage.html.twig', [
-            'project' => $project,
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
+        ]);
+    }
+
+    /**
+     * @Route(name="project.update.get",
+     *     path="/project/{projectId}/update",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getUpdateAction(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
+        ]);
+    }
+
+    /**
+     * @Route(name="project.delete.get",
+     *     path="/project/{projectId}/delete",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getDeleteAction(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
         ]);
     }
 }

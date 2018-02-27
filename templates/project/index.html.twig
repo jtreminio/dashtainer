@@ -13,12 +13,10 @@
 <div class="container">
     {% if app.user.getProjects is not empty %}
         <p>Created projects</p>
-        <hr />
 
         {% for project in app.user.getProjects %}
-            <p><a href="{{ path('project.manage.get', {
+            <p><a href="{{ path('project.view.get', {
                     'projectId': project.id,
-                    'projectSlug': project.name|urlize
                 }) }}">{{ project.name }}</a></p>
         {% endfor %}
 
@@ -44,12 +42,13 @@
             <form action="{{ path('project.create.post') }}" method="post" data-ajax>
                 <div class="modal-body">
                     <div class="container">
-                        <div class="row">
+                        <div class="row form-group">
                             <label for="name">Project Name</label>
                             <input type="text" class="form-control"
                                    id="name" name="name" placeholder=""
                                    value="" required data-error-container="name" />
-                            <div class="invalid-feedback" data-error-container-name="name"></div>
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
                         </div>
                     </div>
                 </div>

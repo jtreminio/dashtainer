@@ -21,41 +21,52 @@ class ServiceController extends Controller
     /** @var Repository\ProjectRepository */
     protected $projectRepo;
 
+    /** @var Repository\ServiceRepository */
+    protected $serviceRepo;
+
+    /** @var Repository\ServiceCategoryRepository */
+    protected $serviceCatRepo;
+
+    /** @var Repository\ServiceTypeRepository */
+    protected $serviceTypeRepo;
+
     public function __construct(EntityManagerInterface $em)
     {
-        $this->em          = $em;
-        $this->projectRepo = $em->getRepository('DashtainerBundle:Project');
+        $this->em = $em;
+
+        $this->projectRepo     = $em->getRepository('DashtainerBundle:Project');
+        $this->serviceRepo     = $em->getRepository('DashtainerBundle:Service');
+        $this->serviceCatRepo  = $em->getRepository('DashtainerBundle:ServiceCategory');
+        $this->serviceTypeRepo = $em->getRepository('DashtainerBundle:ServiceType');
     }
 
     /**
      * @Route(name="project.service.create.post",
-     *     path="/project/manage/{projectId}/service/create",
+     *     path="/project/{projectId}/service/create",
      *     methods={"POST"}
      * )
      * @param Request     $request
      * @param Entity\User $user
      * @param string      $projectId
-     * @return Response
+     * @return AjaxResponse
      */
-    public function createPostAction(
+    public function postCreateAction(
         Request $request,
         Entity\User $user,
         string $projectId
-    ) : Response {
-        $project = $this->projectRepo->findOneBy([
+    ) : AjaxResponse {
+        $form = new Form\ServiceCreateForm();
+        $form->fromArray($request->request->all());
+
+        $form->project = $this->projectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user
         ]);
 
-        if (!$project) {
-            $response = new Response();
-            $response->setContent('project not found');
-
-            return $response;
-        }
-
-        $form = new Form\ServiceCreateForm();
-        $form->fromArray($request->request->all());
+        $form->service_type = $this->serviceTypeRepo->findOneBy([
+            'id'        => $form->service_type,
+            'is_public' => true,
+        ]);
 
         $validator = $this->get('dashtainer.domain.validator');
         $validator->setSource($form);
@@ -69,14 +80,135 @@ class ServiceController extends Controller
 
         $service = new Entity\Service();
         $service->fromArray($form->toArray());
-        $service->setProject($project);
 
         $this->em->persist($service);
         $this->em->flush();
 
-        // todo: temp reload
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
+            'data' => $this->generateUrl('project.service.view.get', [
+                'projectId' => $form->project->getId(),
+                'serviceId' => $service->getId(),
+            ]),
         ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.view.get",
+     *     path="/project/{projectId}/service/{serviceId}",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceId
+     * @return Response
+     */
+    public function getViewAction(
+        Entity\User $user,
+        string $projectId,
+        string $serviceId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user,
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        $service = $this->serviceRepo->findOneBy([
+            'id'      => $serviceId,
+            'project' => $project,
+        ]);
+
+        if (!$service) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/service/view.html.twig', [
+            'service' => $service,
+            'project' => $project,
+        ]);
+    }
+
+    /**
+     * @Route(name="project.service.update.get",
+     *     path="/project/{projectId}/service/{serviceId}/update",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceId
+     * @return Response
+     */
+    public function getUpdateAction(
+        Entity\User $user,
+        string $projectId,
+        string $serviceId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user,
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        $service = $this->serviceRepo->findOneBy([
+            'id'      => $serviceId,
+            'project' => $project,
+        ]);
+
+        if (!$service) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/service/view.html.twig', [
+            'service' => $service,
+            'project' => $project,
+        ]);
+    }
+
+    /**
+     * @Route(name="project.service.delete.get",
+     *     path="/project/{projectId}/service/{serviceId}/delete",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceId
+     * @return Response
+     */
+    public function getDeleteAction(
+        Entity\User $user,
+        string $projectId,
+        string $serviceId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user,
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        $service = $this->serviceRepo->findOneBy([
+            'id'      => $serviceId,
+            'project' => $project,
+        ]);
+
+        if (!$service) {
+            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/service/view.html.twig', [
+            'service' => $service,
+            'project' => $project,
+        ]);
     }
 }

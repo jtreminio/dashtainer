@@ -6,7 +6,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Manage</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
         </ol>
     </nav>
 </div>
@@ -14,18 +14,21 @@
 <div class="container">
     <p>Project details:</p>
 
-    <hr />
-
     <p>ID: {{ project.id }}</p>
     <p>Name: {{ project.name }}</p>
-    <p>Slug: {{ project.name|urlize }}</p>
 
     <hr />
 
     {% if project.services is not empty %}
+        <p>Services:</p>
         {% for service in project.services %}
-            <p>{{ service.name }}</p>
+            <p><a href="{{ path('project.service.view.get', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}">{{ service.name }}</a></p>
         {% endfor %}
+
+        <hr />
     {% else %}
         <p>You have no services.</p>
     {% endif %}
@@ -49,12 +52,31 @@
                 }) }}" method="post" data-ajax>
                 <div class="modal-body">
                     <div class="container">
-                        <div class="row">
+                        <div class="row form-group">
                             <label for="name">Service Name</label>
                             <input type="text" class="form-control"
                                    id="name" name="name" placeholder=""
                                    value="" required data-error-container="name" />
-                            <div class="invalid-feedback" data-error-container-name="name"></div>
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
+                        </div>
+
+                        <div class="row form-group">
+                            <label for="service_type">Service Type</label>
+                            <select class="form-control"
+                                    id="service_type" name="service_type" required
+                                    data-error-container="service_type">
+                                <option value="" disabled selected hidden>Select your option</option>
+                                {% for category in serviceCategories %}
+                                    <optgroup label="{{ category.name }}">
+                                        {% for type in category.serviceTypes %}
+                                            <option value="{{ type.id }}">{{ type.name }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback"
+                                 data-error-container-name="service_type"></div>
                         </div>
                     </div>
                 </div>
