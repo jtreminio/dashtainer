@@ -100,11 +100,7 @@ class ProjectController extends Controller
         ]);
 
         if (!$project) {
-            $response = new Response();
-
-            $response->setContent('project not found');
-
-            return $response;
+            return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         return $this->render('@Dashtainer/project/manage.html.twig', [

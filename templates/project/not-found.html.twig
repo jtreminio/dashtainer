@@ -1,0 +1,17 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Project Not Found</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <p>Project not found!</p>
+</div>
+{% endblock %}
