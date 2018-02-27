@@ -36,17 +36,15 @@
             </div>
             <form action="{{ path('project.service.create.post', {
                     'projectId': project.id,
-                }) }}" method="post">
+                }) }}" method="post" data-ajax>
                 <div class="modal-body">
                     <div class="container">
                         <div class="row">
                             <label for="name">Service Name</label>
                             <input type="text" class="form-control"
-                                   id="name" name="name"
-                                   placeholder="" value="" required />
-                            <div class="invalid-feedback">
-                                Service name is required.
-                            </div>
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback" data-error-container-name="name"></div>
                         </div>
                     </div>
                 </div>

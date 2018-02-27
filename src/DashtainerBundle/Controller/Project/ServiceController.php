@@ -5,6 +5,7 @@ namespace DashtainerBundle\Controller\Project;
 use DashtainerBundle\Entity;
 use DashtainerBundle\Form;
 use DashtainerBundle\Repository;
+use DashtainerBundle\Response\AjaxResponse;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -48,7 +49,6 @@ class ServiceController extends Controller
 
         if (!$project) {
             $response = new Response();
-
             $response->setContent('project not found');
 
             return $response;
@@ -60,12 +60,11 @@ class ServiceController extends Controller
         $validator = $this->get('dashtainer.domain.validator');
         $validator->setSource($form);
 
-        $response = new Response();
-
         if (!$validator->isValid()) {
-            $response->setContent('bad form!');
-
-            return $response;
+            return new AjaxResponse([
+                'type'   => AjaxResponse::AJAX_ERROR,
+                'errors' => $validator->getErrors(true),
+            ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
         $service = new Entity\Service();
@@ -75,8 +74,9 @@ class ServiceController extends Controller
         $this->em->persist($service);
         $this->em->flush();
 
-        $response->setContent('good form!');
-
-        return $response;
+        // todo: temp reload
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_REDIRECT,
+        ], AjaxResponse::HTTP_OK);
     }
 }

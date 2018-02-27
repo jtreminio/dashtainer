@@ -32,17 +32,15 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ path('project.create.post') }}" method="post">
+            <form action="{{ path('project.create.post') }}" method="post" data-ajax>
                 <div class="modal-body">
                     <div class="container">
                         <div class="row">
                             <label for="name">Project Name</label>
                             <input type="text" class="form-control"
-                                   id="name" name="name"
-                                   placeholder="" value="" required />
-                            <div class="invalid-feedback">
-                                Project name is required.
-                            </div>
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback" data-error-container-name="name"></div>
                         </div>
                     </div>
                 </div>

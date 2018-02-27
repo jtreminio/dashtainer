@@ -1,0 +1,28 @@
+#ajax-spinner {
+    z-index: 9999;
+
+    i.fa {
+        font-size: 50px;
+        color: #fff;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+    }
+}
+
+#dynamic-modal {
+    .modal-content {
+        margin-bottom: 200px;
+    }
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    &.in {
+        opacity: 0.5;
+    }
+}
+
+.invalid-feedback:before {
+    content: '* ';
+}

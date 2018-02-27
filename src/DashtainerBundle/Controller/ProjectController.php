@@ -5,6 +5,7 @@ namespace DashtainerBundle\Controller;
 use DashtainerBundle\Entity;
 use DashtainerBundle\Form;
 use DashtainerBundle\Repository;
+use DashtainerBundle\Response\AjaxResponse;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -55,12 +56,11 @@ class ProjectController extends Controller
         $validator = $this->get('dashtainer.domain.validator');
         $validator->setSource($form);
 
-        $response = new Response();
-
         if (!$validator->isValid()) {
-            $response->setContent('bad form!');
-
-            return $response;
+            return new AjaxResponse([
+                'type'   => AjaxResponse::AJAX_ERROR,
+                'errors' => $validator->getErrors(true),
+            ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
         $project = new Entity\Project();
@@ -70,9 +70,13 @@ class ProjectController extends Controller
         $this->em->persist($project);
         $this->em->flush();
 
-        $response->setContent('good form!');
-
-        return $response;
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_REDIRECT,
+            'data' => $this->generateUrl('project.manage.get', [
+                'projectId'   => $project->getId(),
+                'projectSlug' => $project->getSlug(),
+            ]),
+        ], AjaxResponse::HTTP_OK);
     }
 
     /**

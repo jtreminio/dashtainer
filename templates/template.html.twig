@@ -8,5 +8,12 @@
 {% block content %}{% endblock %}
 
 <script src="{{ asset('build/app.js') }}"></script>
+<div id="ajax-spinner" class="hidden invisible modal-backdrop in">
+    <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+</div>
+
+<div class="modal" id="dynamic-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog"><div class="modal-content"></div></div>
+</div>
 </body>
 </html>
