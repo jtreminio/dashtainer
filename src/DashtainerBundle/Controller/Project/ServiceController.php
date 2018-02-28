@@ -126,7 +126,12 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/service/not-found.html.twig');
         }
 
-        return $this->render('@Dashtainer/project/service/view.html.twig', [
+        $serviceType = $service->getServiceType();
+        $template    = sprintf('@Dashtainer/project/service/type/%s.html.twig',
+            strtolower($serviceType->getName())
+        );
+
+        return $this->render($template, [
             'service' => $service,
             'project' => $project,
         ]);
