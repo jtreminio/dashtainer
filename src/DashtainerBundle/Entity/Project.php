@@ -31,6 +31,12 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     protected $services;
 
     /**
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Network", mappedBy="project")
+     * @ORM\OrderBy({"created_at" = "DESC"})
+     */
+    protected $networks;
+
+    /**
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
@@ -38,6 +44,7 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     public function __construct()
     {
         $this->services = new Collections\ArrayCollection();
+        $this->networks = new Collections\ArrayCollection();
     }
 
     public function getUser() : ?User
@@ -67,9 +74,6 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         return $this;
     }
 
-    /**
-     * @param Service $service
-     */
     public function removeService(Service $service)
     {
         $this->services->removeElement($service);
@@ -81,6 +85,30 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     public function getServices()
     {
         return $this->services;
+    }
+
+    /**
+     * @param Network $network
+     * @return $this
+     */
+    public function addNetwork(Network $network)
+    {
+        $this->networks[] = $network;
+
+        return $this;
+    }
+
+    public function removeNetwork(Network $network)
+    {
+        $this->networks->removeElement($network);
+    }
+
+    /**
+     * @return Network[]|Collections\ArrayCollection
+     */
+    public function getNetworks()
+    {
+        return $this->networks;
     }
 
     public function getName() : ?string
