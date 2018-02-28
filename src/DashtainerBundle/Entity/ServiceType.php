@@ -59,9 +59,6 @@ class ServiceType implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    /**
-     * @param Service $service
-     */
     public function removeService(Service $service)
     {
         $this->services->removeElement($service);

@@ -48,9 +48,6 @@ class ServiceCategory implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    /**
-     * @param ServiceType $serviceType
-     */
     public function removeServiceType(ServiceType $serviceType)
     {
         $this->service_types->removeElement($serviceType);

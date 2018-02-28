@@ -48,9 +48,6 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
         return $this;
     }
 
-    /**
-     * @param Project $project
-     */
     public function removeProject(Project $project)
     {
         $this->projects->removeElement($project);
