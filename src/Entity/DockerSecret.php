@@ -5,6 +5,7 @@ namespace Dashtainer\Entity;
 use Dashtainer\Util;
 
 use Behat\Transliterator\Transliterator;
+use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -46,6 +47,16 @@ class DockerSecret implements Util\HydratorInterface, EntityBaseInterface, SlugI
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="secrets")
+     */
+    protected $services;
+
+    public function __construct()
+    {
+        $this->services = new Collections\ArrayCollection();
+    }
 
     /**
      * @return bool|string
@@ -106,6 +117,30 @@ class DockerSecret implements Util\HydratorInterface, EntityBaseInterface, SlugI
         $this->project = $project;
 
         return $this;
+    }
+
+    /**
+     * @param DockerService $service
+     * @return $this
+     */
+    public function addService(DockerService $service)
+    {
+        $this->services[] = $service;
+
+        return $this;
+    }
+
+    public function removeService(DockerService $service)
+    {
+        $this->services->removeElement($service);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getServices()
+    {
+        return $this->services;
     }
 
     public function getSlug() : string

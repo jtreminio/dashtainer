@@ -18,20 +18,10 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     use RandomIdTrait;
     use EntityBaseTrait;
 
-    public const PROPOGATION_CACHED     = 'cached';
-    public const PROPOGATION_CONSISTENT = 'consistent';
-    public const PROPOGATION_DELEGATED  = 'delegated';
-
     public const RESTART_NO             = 'no';
     public const RESTART_ALWAYS         = 'always';
     public const RESTART_ON_FAILURE     = 'on-failure';
     public const RESTART_UNLESS_STOPPED = 'unless-stopped';
-
-    protected const ALLOWED_PROPOGATIONS = [
-        self::PROPOGATION_CACHED,
-        self::PROPOGATION_CONSISTENT,
-        self::PROPOGATION_DELEGATED,
-    ];
 
     protected const ALLOWED_RESTARTS = [
         self::RESTART_NO,
@@ -189,10 +179,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $restart = 'no';
 
     /**
-     * @ORM\Column(name="secrets", type="simple_array", nullable=true)
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerSecret", inversedBy="services")
+     * @ORM\JoinTable(name="docker_services_secrets")
      * @see https://docs.docker.com/compose/compose-file/#secrets
      */
-    protected $secrets = [];
+    protected $secrets;
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
@@ -232,14 +223,17 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $userns_mode;
 
     /**
-     * @ORM\Column(name="volumes", type="json_array", nullable=true)
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerVolume", inversedBy="services")
+     * @ORM\JoinTable(name="docker_services_volumes")
      * @see https://docs.docker.com/compose/compose-file/#volumes
      */
-    protected $volumes = [];
+    protected $volumes;
 
     public function __construct()
     {
         $this->networks = new Collections\ArrayCollection();
+        $this->secrets  = new Collections\ArrayCollection();
+        $this->volumes  = new Collections\ArrayCollection();
     }
 
     public function getBuild() : DockerService\Build
@@ -709,20 +703,28 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
-    public function getSecrets() : array
+    /**
+     * @param DockerSecret $secret
+     * @return $this
+     */
+    public function addSecret(DockerSecret $secret)
     {
-        return $this->secrets;
+        $this->secrets[] = $secret;
+
+        return $this;
+    }
+
+    public function removeSecret(DockerSecret $secret)
+    {
+        $this->secrets->removeElement($secret);
     }
 
     /**
-     * @param array $secrets
-     * @return $this
+     * @return DockerSecret[]|Collections\ArrayCollection
      */
-    public function setSecrets(array $secrets)
+    public function getSecrets()
     {
-        $this->secrets = $secrets;
-
-        return $this;
+        return $this->secrets;
     }
 
     public function getServiceType() : ?DockerServiceType
@@ -849,51 +851,26 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     }
 
     /**
-     * @param string      $source
-     * @param string      $target
-     * @param string|null $propogation
+     * @param DockerVolume $volume
      * @return $this
      */
-    public function addVolume(
-        string $source,
-        string $target,
-        string $propogation = null
-    ) {
-
-        if (!is_null($propogation) &&
-            !in_array($propogation, static::ALLOWED_PROPOGATIONS)
-        ) {
-            throw new \UnexpectedValueException();
-        }
-
-        $volume = "{$source}:{$target}";
-        $volume = $propogation
-            ? "{$volume}:{$propogation}"
-            : $volume;
-
-        $this->volumes[$source] = $volume;
+    public function addVolume(DockerVolume $volume)
+    {
+        $this->volumes[] = $volume;
 
         return $this;
     }
 
-    public function getVolumes() : array
+    public function removeVolume(DockerVolume $volume)
     {
-        return $this->volumes;
+        $this->volumes->removeElement($volume);
     }
 
     /**
-     * @param array $arr
-     * @return $this
+     * @return DockerVolume[]|Collections\ArrayCollection
      */
-    public function setVolumes(array $arr)
+    public function getVolumes()
     {
-        $this->volumes = $arr;
-
-        return $this;
-    }
-
-    public function removeVolume(string $source)
-    {
-        unset($this->volumes[$source]);
+        return $this->volumes;
     }
 }

@@ -5,6 +5,7 @@ namespace Dashtainer\Entity;
 use Dashtainer\Util;
 
 use Behat\Transliterator\Transliterator;
+use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -16,6 +17,16 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     use Util\HydratorTrait;
     use RandomIdTrait;
     use EntityBaseTrait;
+
+    public const PROPOGATION_CACHED     = 'cached';
+    public const PROPOGATION_CONSISTENT = 'consistent';
+    public const PROPOGATION_DELEGATED  = 'delegated';
+
+    protected const ALLOWED_PROPOGATIONS = [
+        self::PROPOGATION_CACHED,
+        self::PROPOGATION_CONSISTENT,
+        self::PROPOGATION_DELEGATED,
+    ];
 
     /**
      * @ORM\Column(name="name", type="string", length=255)
@@ -64,6 +75,26 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
+
+    /**
+     * Only used in MacOS hosts.
+     *
+     * Not used directly in volumes main section, only within services.volumes
+     *
+     * @ORM\Column(name="propogation", type="string", length=10, nullable=true)
+     * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
+     */
+    protected $propogation;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="secrets")
+     */
+    protected $services;
+
+    public function __construct()
+    {
+        $this->services = new Collections\ArrayCollection();
+    }
 
     public function getDriver() : ?string
     {
@@ -192,8 +223,52 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
         return $this;
     }
 
+    public function getPropogation() : ?string
+    {
+        return $this->propogation;
+    }
+
+    /**
+     * @param string $propogation
+     * @return $this
+     */
+    public function setPropogation(string $propogation = null)
+    {
+        if (!in_array($propogation, static::ALLOWED_PROPOGATIONS)) {
+            throw new \UnexpectedValueException();
+        }
+
+        $this->propogation = $propogation;
+
+        return $this;
+    }
+
     public function getSlug() : string
     {
         return Transliterator::urlize($this->getName());
+    }
+
+    /**
+     * @param DockerService $service
+     * @return $this
+     */
+    public function addService(DockerService $service)
+    {
+        $this->services[] = $service;
+
+        return $this;
+    }
+
+    public function removeService(DockerService $service)
+    {
+        $this->services->removeElement($service);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getServices()
+    {
+        return $this->services;
     }
 }
