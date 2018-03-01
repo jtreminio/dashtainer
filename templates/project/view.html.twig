@@ -20,22 +20,71 @@
 
     <hr />
 
-    {% if project.services is not empty %}
-        <p>Services:</p>
-        {% for service in project.services %}
-            <p><a href="{{ path('project.service.view.get', {
-                    'projectId': project.id,
-                    'serviceId': service.id,
-                }) }}">{{ service.name }}</a></p>
-        {% endfor %}
+    <p>Services:</p>
+    {% for service in project.services %}
+        <p><a href="{{ path('project.service.view.get', {
+                'projectId': project.id,
+                'serviceId': service.id,
+            }) }}">{{ service.name }}</a></p>
+    {% endfor %}
 
-        <hr />
-    {% else %}
+    {% if project.services is empty %}
         <p>You have no services.</p>
     {% endif %}
 
     <p><a href="#" data-toggle="modal"
           data-target="#service-create-modal">Create a new service</a></p>
+
+    <hr />
+
+    <p>Networks:</p>
+    {% for network in project.networks %}
+        <p><a href="{{ path('project.network.view.get', {
+                'projectId': project.id,
+                'networkId': network.id,
+            }) }}">{{ network.name }}</a></p>
+    {% endfor %}
+
+    {% if project.networks is empty %}
+        <p>You have no networks.</p>
+    {% endif %}
+
+    <p><a href="#" data-toggle="modal"
+          data-target="#network-create-modal">Create a new network</a></p>
+
+    <hr />
+
+    <p>Secrets:</p>
+    {% for secret in project.secrets %}
+        <p><a href="{{ path('project.secret.view.get', {
+                'projectId': project.id,
+                'secretId': secret.id,
+            }) }}">{{ secret.name }}</a></p>
+    {% endfor %}
+
+    {% if project.secrets is empty %}
+        <p>You have no secrets.</p>
+    {% endif %}
+
+    <p><a href="#" data-toggle="modal"
+          data-target="#secret-create-modal">Create a new secret</a></p>
+
+    <hr />
+
+    <p>Volumes:</p>
+    {% for volume in project.volumes %}
+        <p><a href="{{ path('project.volume.view.get', {
+                'projectId': project.id,
+                'volumeId': volume.id,
+            }) }}">{{ volume.name }}</a></p>
+    {% endfor %}
+
+    {% if project.volumes is empty %}
+        <p>You have no volumes.</p>
+    {% endif %}
+
+    <p><a href="#" data-toggle="modal"
+          data-target="#volume-create-modal">Create a new volume</a></p>
 </div>
 
 <div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
@@ -78,6 +127,108 @@
                             </select>
                             <div class="invalid-feedback"
                                  data-error-container-name="service_type"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="network-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="network-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="network-create-modal-title">Create a new network</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.network.create.post', {
+                    'projectId': project.id,
+                }) }}" method="post" data-ajax>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row form-group">
+                            <label for="name">Network Name</label>
+                            <input type="text" class="form-control"
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="secret-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="secret-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="secret-create-modal-title">Create a new secret</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.secret.create.post', {
+                    'projectId': project.id,
+                }) }}" method="post" data-ajax>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row form-group">
+                            <label for="name">Secret Name</label>
+                            <input type="text" class="form-control"
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="volume-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="volume-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="volume-create-modal-title">Create a new volume</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.volume.create.post', {
+                    'projectId': project.id,
+                }) }}" method="post" data-ajax>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row form-group">
+                            <label for="name">Volume Name</label>
+                            <input type="text" class="form-control"
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
                         </div>
                     </div>
                 </div>

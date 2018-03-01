@@ -154,68 +154,44 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user,
-        ]);
-
-        if (!$project) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
-        }
-
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
-        }
-
-        // todo implement
-        return $this->render('@Dashtainer/project/service/view.html.twig', [
-            'service' => $service,
-            'project' => $project,
-        ]);
+        //
     }
 
     /**
-     * @Route(name="project.service.delete.get",
-     *     path="/project/{projectId}/service/{serviceId}/delete",
-     *     methods={"GET"}
+     * @Route(name="project.service.update.post",
+     *     path="/project/{projectId}/service/{serviceId}/update",
+     *     methods={"POST"}
+     * )
+     * @param Request     $request
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceId
+     * @return AjaxResponse
+     */
+    public function postUpdate(
+        Request $request,
+        Entity\User $user,
+        string $projectId,
+        string $serviceId
+    ) : AjaxResponse {
+        //
+    }
+
+    /**
+     * @Route(name="project.service.delete.post",
+     *     path="/project/{projectId}/service/{networkId}/delete",
+     *     methods={"POST"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
      * @param string      $serviceId
      * @return Response
      */
-    public function getDelete(
+    public function postDelete(
         Entity\User $user,
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user,
-        ]);
-
-        if (!$project) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
-        }
-
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
-        }
-
-        // todo implement
-        return $this->render('@Dashtainer/project/service/view.html.twig', [
-            'service' => $service,
-            'project' => $project,
-        ]);
+        //
     }
 }
