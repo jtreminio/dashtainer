@@ -11,14 +11,14 @@ use Symfony\Component\HttpFoundation\Response;
 class MainController extends Controller
 {
     /**
-     * @param User $user
-     * @return Response
      * @Route(name="index.get",
      *     path="/",
      *     methods={"GET"}
      * )
+     * @param User $user
+     * @return Response
      */
-    public function indexGetAction(User $user = null) : Response
+    public function indexGet(User $user = null) : Response
     {
         if (!$user) {
             return $this->redirectToRoute('fos_user_security_login');

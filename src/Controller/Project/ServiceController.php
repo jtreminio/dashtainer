@@ -57,7 +57,7 @@ class ServiceController extends Controller
      * @param string      $projectId
      * @return AjaxResponse
      */
-    public function postCreateAction(
+    public function postCreate(
         Request $request,
         Entity\User $user,
         string $projectId
@@ -105,7 +105,7 @@ class ServiceController extends Controller
      * @param string      $serviceId
      * @return Response
      */
-    public function getViewAction(
+    public function getView(
         Entity\User $user,
         string $projectId,
         string $serviceId
@@ -149,7 +149,7 @@ class ServiceController extends Controller
      * @param string      $serviceId
      * @return Response
      */
-    public function getUpdateAction(
+    public function getUpdate(
         Entity\User $user,
         string $projectId,
         string $serviceId
@@ -189,7 +189,7 @@ class ServiceController extends Controller
      * @param string      $serviceId
      * @return Response
      */
-    public function getDeleteAction(
+    public function getDelete(
         Entity\User $user,
         string $projectId,
         string $serviceId

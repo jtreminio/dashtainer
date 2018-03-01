@@ -49,7 +49,7 @@ class ProjectController extends Controller
      * )
      * @return Response
      */
-    public function getIndexAction() : Response
+    public function getIndex() : Response
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
         ]);
@@ -64,7 +64,7 @@ class ProjectController extends Controller
      * @param Entity\User $user
      * @return AjaxResponse
      */
-    public function postCreateAction(Request $request, Entity\User $user) : AjaxResponse
+    public function postCreate(Request $request, Entity\User $user) : AjaxResponse
     {
         $form = new Form\DockerProjectCreateForm();
         $form->fromArray($request->request->all());
@@ -97,7 +97,7 @@ class ProjectController extends Controller
      * @param string      $projectId
      * @return Response
      */
-    public function getViewAction(
+    public function getView(
         Entity\User $user,
         string $projectId
     ) : Response {
@@ -125,7 +125,7 @@ class ProjectController extends Controller
      * @param string      $projectId
      * @return Response
      */
-    public function getUpdateAction(
+    public function getUpdate(
         Entity\User $user,
         string $projectId
     ) : Response {
@@ -154,7 +154,7 @@ class ProjectController extends Controller
      * @param string      $projectId
      * @return Response
      */
-    public function getDeleteAction(
+    public function getDelete(
         Entity\User $user,
         string $projectId
     ) : Response {
