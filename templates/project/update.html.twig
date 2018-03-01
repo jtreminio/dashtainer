@@ -1,0 +1,59 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <form action="{{ path('project.update.post', {
+                'projectId': project.id,
+            }) }}" method="post" data-ajax>
+                <div class="form-group">
+                    <label for="name">Project Name</label>
+                    <input type="text" class="form-control"
+                           id="name" name="name" placeholder=""
+                           value="{{ project.name }}" required data-error-container="name"/>
+                    <div class="invalid-feedback"
+                         data-error-container-name="name"></div>
+                </div>
+
+                <hr class="mb-4" />
+
+                <button class="btn btn-primary btn-lg btn-block" type="submit">Update Project</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-create-modal-title">Create a new service</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
