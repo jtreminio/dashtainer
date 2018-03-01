@@ -8,16 +8,16 @@ use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="service_category")
- * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ServiceCategoryRepository")
+ * @ORM\Table(name="docker_service_category")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\DockerServiceCategoryRepository")
  */
-class ServiceCategory implements Util\HydratorInterface, EntityBaseInterface
+class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterface
 {
     use Util\HydratorTrait;
     use EntityBaseTrait;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\ServiceType", mappedBy="service_category")
+     * @ORM\OneToMany(targetEntity="DockerServiceType", mappedBy="service_category")
      * @ORM\OrderBy({"order" = "ASC"})
      */
     protected $service_types;
@@ -38,23 +38,23 @@ class ServiceCategory implements Util\HydratorInterface, EntityBaseInterface
     }
 
     /**
-     * @param ServiceType $serviceType
+     * @param DockerServiceType $serviceType
      * @return $this
      */
-    public function addServiceType(ServiceType $serviceType)
+    public function addServiceType(DockerServiceType $serviceType)
     {
         $this->service_types[] = $serviceType;
 
         return $this;
     }
 
-    public function removeServiceType(ServiceType $serviceType)
+    public function removeServiceType(DockerServiceType $serviceType)
     {
         $this->service_types->removeElement($serviceType);
     }
 
     /**
-     * @return Service[]|Collections\ArrayCollection
+     * @return DockerService[]|Collections\ArrayCollection
      */
     public function getServiceTypes()
     {

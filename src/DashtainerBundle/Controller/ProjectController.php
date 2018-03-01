@@ -18,18 +18,18 @@ class ProjectController extends Controller
     /** @var EntityManagerInterface */
     protected $em;
 
-    /** @var Repository\ProjectRepository */
+    /** @var Repository\DockerProjectRepository */
     protected $projectRepo;
 
-    /** @var Repository\ServiceCategoryRepository */
+    /** @var Repository\DockerServiceCategoryRepository */
     protected $serviceCatRepo;
 
     public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
 
-        $this->projectRepo    = $em->getRepository('DashtainerBundle:Project');
-        $this->serviceCatRepo = $em->getRepository('DashtainerBundle:ServiceCategory');
+        $this->projectRepo    = $em->getRepository('DockerProject');
+        $this->serviceCatRepo = $em->getRepository('DockerServiceCategory');
     }
 
     /**
@@ -57,7 +57,7 @@ class ProjectController extends Controller
      */
     public function postCreateAction(Request $request, Entity\User $user) : AjaxResponse
     {
-        $form = new Form\ProjectCreateForm();
+        $form = new Form\DockerProjectCreateForm();
         $form->fromArray($request->request->all());
 
         $validator = $this->get('dashtainer.domain.validator');
@@ -70,7 +70,7 @@ class ProjectController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $project = new Entity\Project();
+        $project = new Entity\DockerProject();
         $project->fromArray($form->toArray());
         $project->setUser($user);
 

@@ -7,10 +7,10 @@ use DashtainerBundle\Util;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="network")
+ * @ORM\Table(name="docker_network")
  * @ORM\Entity()
  */
-class Network implements Util\HydratorInterface, EntityBaseInterface
+class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -25,7 +25,7 @@ class Network implements Util\HydratorInterface, EntityBaseInterface
     ];
 
     /**
-     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\Project", inversedBy="networks")
+     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\DockerProject", inversedBy="networks")
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
@@ -68,16 +68,16 @@ class Network implements Util\HydratorInterface, EntityBaseInterface
      */
     protected $labels = [];
 
-    public function getProject() : ?Project
+    public function getProject() : ?DockerProject
     {
         return $this->project;
     }
 
     /**
-     * @param Project $project
+     * @param DockerProject $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(DockerProject $project)
     {
         $this->project = $project;
 

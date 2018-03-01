@@ -49,7 +49,7 @@ class DataFixtures
     protected function loadServiceCategories()
     {
         foreach ($this->dataLoader->getData('service_categories') as $row) {
-            $entity = new Entity\ServiceCategory();
+            $entity = new Entity\DockerServiceCategory();
             $entity->fromArray($row);
 
             $this->em->persist($entity);
@@ -68,7 +68,7 @@ class DataFixtures
                 "service_category-{$row['service_category']}"
             );
 
-            $entity = new Entity\ServiceType();
+            $entity = new Entity\DockerServiceType();
             $entity->fromArray($row);
 
             $this->em->persist($entity);

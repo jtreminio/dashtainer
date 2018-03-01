@@ -8,10 +8,10 @@ use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="service")
- * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ServiceRepository")
+ * @ORM\Table(name="docker_service")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\DockerServiceRepository")
  */
-class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
+class DockerService implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -40,13 +40,13 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     ];
 
     /**
-     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\ServiceType", inversedBy="services")
+     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\DockerServiceType", inversedBy="services")
      * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
      */
     protected $service_type;
 
     /**
-     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\Project", inversedBy="services")
+     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\DockerProject", inversedBy="services")
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
@@ -58,7 +58,7 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     /**
      * @ORM\Column(name="build", type="json_array", nullable=true)
-     * @uses \DashtainerBundle\Entity\Service\Build
+     * @uses \DashtainerBundle\Entity\DockerService\Build
      * @see https://docs.docker.com/compose/compose-file/#build
      */
     protected $build = [];
@@ -71,7 +71,7 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     /**
      * @ORM\Column(name="deploy", type="json_array", nullable=true)
-     * @uses \DashtainerBundle\Entity\Service\Deploy
+     * @uses \DashtainerBundle\Entity\DockerService\Deploy
      * @see https://docs.docker.com/compose/compose-file/#deploy
      */
     protected $deploy = [];
@@ -132,7 +132,7 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     /**
      * @ORM\Column(name="healthcheck", type="json_array", nullable=true)
-     * @uses \DashtainerBundle\Entity\Service\Deploy
+     * @uses \DashtainerBundle\Entity\DockerService\Deploy
      * @see https://docs.docker.com/compose/compose-file/#healthcheck
      */
     protected $healthcheck = [];
@@ -157,7 +157,7 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     /**
      * @ORM\Column(name="logging", type="json_array", nullable=true)
-     * @uses \DashtainerBundle\Entity\Service\Logging
+     * @uses \DashtainerBundle\Entity\DockerService\Logging
      * @see https://docs.docker.com/compose/compose-file/#logging
      */
     protected $logging = [];
@@ -218,7 +218,7 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     /**
      * @ORM\Column(name="ulimits", type="json_array", nullable=true)
-     * @uses \DashtainerBundle\Entity\Service\Ulimits
+     * @uses \DashtainerBundle\Entity\DockerService\Ulimits
      * @see https://docs.docker.com/compose/compose-file/#ulimits
      */
     protected $ulimits = [];
@@ -235,32 +235,32 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
      */
     protected $volumes = [];
 
-    public function getServiceType() : ?ServiceType
+    public function getServiceType() : ?DockerServiceType
     {
         return $this->service_type;
     }
 
     /**
-     * @param ServiceType $serviceType
+     * @param DockerServiceType $serviceType
      * @return $this
      */
-    public function setServiceType(ServiceType $serviceType)
+    public function setServiceType(DockerServiceType $serviceType)
     {
         $this->service_type = $serviceType;
 
         return $this;
     }
 
-    public function getProject() : ?Project
+    public function getProject() : ?DockerProject
     {
         return $this->project;
     }
 
     /**
-     * @param Project $project
+     * @param DockerProject $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(DockerProject $project)
     {
         $this->project = $project;
 
@@ -283,19 +283,19 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         return $this;
     }
 
-    public function getBuild() : Service\Build
+    public function getBuild() : DockerService\Build
     {
-        $build = new Service\Build();
+        $build = new DockerService\Build();
         $build->fromArray($this->build);
 
         return $build;
     }
 
     /**
-     * @param Service\Build $build
+     * @param DockerService\Build $build
      * @return $this
      */
-    public function setBuild(Service\Build $build = null)
+    public function setBuild(DockerService\Build $build = null)
     {
         $this->build = $build
             ? $build->toArray()
@@ -320,19 +320,19 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         return $this;
     }
 
-    public function getDeploy() : Service\Deploy
+    public function getDeploy() : DockerService\Deploy
     {
-        $deploy = new Service\Deploy();
+        $deploy = new DockerService\Deploy();
         $deploy->fromArray($this->deploy);
 
         return $deploy;
     }
 
     /**
-     * @param Service\Deploy $deploy
+     * @param DockerService\Deploy $deploy
      * @return $this
      */
-    public function setDeploy(Service\Deploy $deploy = null)
+    public function setDeploy(DockerService\Deploy $deploy = null)
     {
         $this->deploy = $deploy
             ? $deploy->toArray()
@@ -519,19 +519,19 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         return $this;
     }
 
-    public function getHealthcheck() : Service\Healthcheck
+    public function getHealthcheck() : DockerService\Healthcheck
     {
-        $healthcheck = new Service\Healthcheck();
+        $healthcheck = new DockerService\Healthcheck();
         $healthcheck->fromArray($this->healthcheck);
 
         return $healthcheck;
     }
 
     /**
-     * @param Service\Healthcheck $healthcheck
+     * @param DockerService\Healthcheck $healthcheck
      * @return $this
      */
-    public function setHealthcheck(Service\Healthcheck $healthcheck = null)
+    public function setHealthcheck(DockerService\Healthcheck $healthcheck = null)
     {
         $this->healthcheck = $healthcheck
             ? $healthcheck->toArray()
@@ -605,19 +605,19 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         unset($this->labels[$key]);
     }
 
-    public function getLogging() : Service\Logging
+    public function getLogging() : DockerService\Logging
     {
-        $logging = new Service\Logging();
+        $logging = new DockerService\Logging();
         $logging->fromArray($this->logging);
 
         return $logging;
     }
 
     /**
-     * @param Service\Logging $logging
+     * @param DockerService\Logging $logging
      * @return $this
      */
-    public function setLogging(Service\Logging $logging = null)
+    public function setLogging(DockerService\Logging $logging = null)
     {
         $this->logging = $logging
             ? $logging->toArray()
@@ -791,19 +791,19 @@ class Service implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         unset($this->sysctls[$key]);
     }
 
-    public function getUlimits() : Service\Ulimits
+    public function getUlimits() : DockerService\Ulimits
     {
-        $ulimits = new Service\Ulimits();
+        $ulimits = new DockerService\Ulimits();
         $ulimits->fromArray($this->ulimits);
 
         return $ulimits;
     }
 
     /**
-     * @param Service\Ulimits $ulimits
+     * @param DockerService\Ulimits $ulimits
      * @return $this
      */
-    public function setUlimits(Service\Ulimits $ulimits = null)
+    public function setUlimits(DockerService\Ulimits $ulimits = null)
     {
         $this->ulimits = $ulimits
             ? $ulimits->toArray()

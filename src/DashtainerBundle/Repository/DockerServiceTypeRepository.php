@@ -4,6 +4,6 @@ namespace DashtainerBundle\Repository;
 
 use Doctrine\ORM;
 
-class ProjectRepository extends ORM\EntityRepository
+class DockerServiceTypeRepository extends ORM\EntityRepository
 {
 }

@@ -6,12 +6,12 @@ use DashtainerBundle\Entity;
 
 use Doctrine\ORM;
 
-class ServiceRepository extends ORM\EntityRepository
+class DockerServiceRepository extends ORM\EntityRepository
 {
     /**
      * @param array      $criteria
      * @param array|null $orderBy
-     * @return null|Entity\Service
+     * @return null|Entity\DockerService
      */
     public function findOneBy(array $criteria, array $orderBy = null)
     {

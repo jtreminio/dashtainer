@@ -25,7 +25,7 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
     protected $id;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Project", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerProject", mappedBy="user")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $projects;
@@ -38,23 +38,23 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
     }
 
     /**
-     * @param Project $project
+     * @param DockerProject $project
      * @return $this
      */
-    public function addProject(Project $project)
+    public function addProject(DockerProject $project)
     {
         $this->projects[] = $project;
 
         return $this;
     }
 
-    public function removeProject(Project $project)
+    public function removeProject(DockerProject $project)
     {
         $this->projects->removeElement($project);
     }
 
     /**
-     * @return Project[]|Collections\ArrayCollection
+     * @return DockerProject[]|Collections\ArrayCollection
      */
     public function getProjects()
     {

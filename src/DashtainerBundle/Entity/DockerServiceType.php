@@ -8,22 +8,22 @@ use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="service_type")
- * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ServiceTypeRepository")
+ * @ORM\Table(name="docker_service_type")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\DockerServiceTypeRepository")
  */
-class ServiceType implements Util\HydratorInterface, EntityBaseInterface
+class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
 {
     use Util\HydratorTrait;
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\ServiceCategory", inversedBy="service_types")
+     * @ORM\ManyToOne(targetEntity="DockerServiceCategory", inversedBy="service_types")
      * @ORM\JoinColumn(name="service_category_id", referencedColumnName="id", nullable=false)
      */
     protected $service_category;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Service", mappedBy="service_type")
+     * @ORM\OneToMany(targetEntity="DockerService", mappedBy="service_type")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $services;
@@ -49,23 +49,23 @@ class ServiceType implements Util\HydratorInterface, EntityBaseInterface
     }
 
     /**
-     * @param Service $service
+     * @param DockerService $service
      * @return $this
      */
-    public function addService(Service $service)
+    public function addService(DockerService $service)
     {
         $this->services[] = $service;
 
         return $this;
     }
 
-    public function removeService(Service $service)
+    public function removeService(DockerService $service)
     {
         $this->services->removeElement($service);
     }
 
     /**
-     * @return Service[]|Collections\ArrayCollection
+     * @return DockerService[]|Collections\ArrayCollection
      */
     public function getServices()
     {

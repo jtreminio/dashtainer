@@ -9,10 +9,10 @@ use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="project")
- * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\ProjectRepository")
+ * @ORM\Table(name="docker_project")
+ * @ORM\Entity(repositoryClass="DashtainerBundle\Repository\DockerProjectRepository")
  */
-class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
+class DockerProject implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -25,19 +25,19 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     protected $user;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Network", mappedBy="project")
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerNetwork", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $networks;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Service", mappedBy="project")
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerService", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $services;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Volume", mappedBy="project")
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerVolume", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $volumes;
@@ -71,23 +71,23 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     }
 
     /**
-     * @param Network $network
+     * @param DockerNetwork $network
      * @return $this
      */
-    public function addNetwork(Network $network)
+    public function addNetwork(DockerNetwork $network)
     {
         $this->networks[] = $network;
 
         return $this;
     }
 
-    public function removeNetwork(Network $network)
+    public function removeNetwork(DockerNetwork $network)
     {
         $this->networks->removeElement($network);
     }
 
     /**
-     * @return Network[]|Collections\ArrayCollection
+     * @return DockerNetwork[]|Collections\ArrayCollection
      */
     public function getNetworks()
     {
@@ -95,23 +95,23 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     }
 
     /**
-     * @param Service $service
+     * @param DockerService $service
      * @return $this
      */
-    public function addService(Service $service)
+    public function addService(DockerService $service)
     {
         $this->services[] = $service;
 
         return $this;
     }
 
-    public function removeService(Service $service)
+    public function removeService(DockerService $service)
     {
         $this->services->removeElement($service);
     }
 
     /**
-     * @return Service[]|Collections\ArrayCollection
+     * @return DockerService[]|Collections\ArrayCollection
      */
     public function getServices()
     {
@@ -119,23 +119,23 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     }
 
     /**
-     * @param Volume $volume
+     * @param DockerVolume $volume
      * @return $this
      */
-    public function addVolume(Volume $volume)
+    public function addVolume(DockerVolume $volume)
     {
         $this->volumes[] = $volume;
 
         return $this;
     }
 
-    public function removeVolume(Volume $volume)
+    public function removeVolume(DockerVolume $volume)
     {
         $this->volumes->removeElement($volume);
     }
 
     /**
-     * @return Volume[]|Collections\ArrayCollection
+     * @return DockerVolume[]|Collections\ArrayCollection
      */
     public function getVolumes()
     {

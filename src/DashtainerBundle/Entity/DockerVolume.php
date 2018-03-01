@@ -8,17 +8,17 @@ use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="volume")
+ * @ORM\Table(name="docker_volume")
  * @ORM\Entity()
  */
-class Volume implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
+class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\Project", inversedBy="volumes")
+     * @ORM\ManyToOne(targetEntity="DashtainerBundle\Entity\DockerProject", inversedBy="volumes")
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;

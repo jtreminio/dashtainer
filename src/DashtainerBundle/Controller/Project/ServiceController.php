@@ -18,26 +18,26 @@ class ServiceController extends Controller
     /** @var EntityManagerInterface */
     protected $em;
 
-    /** @var Repository\ProjectRepository */
+    /** @var Repository\DockerProjectRepository */
     protected $projectRepo;
 
-    /** @var Repository\ServiceRepository */
+    /** @var Repository\DockerServiceRepository */
     protected $serviceRepo;
 
-    /** @var Repository\ServiceCategoryRepository */
+    /** @var Repository\DockerServiceCategoryRepository */
     protected $serviceCatRepo;
 
-    /** @var Repository\ServiceTypeRepository */
+    /** @var Repository\DockerServiceTypeRepository */
     protected $serviceTypeRepo;
 
     public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
 
-        $this->projectRepo     = $em->getRepository('DashtainerBundle:Project');
-        $this->serviceRepo     = $em->getRepository('DashtainerBundle:Service');
-        $this->serviceCatRepo  = $em->getRepository('DashtainerBundle:ServiceCategory');
-        $this->serviceTypeRepo = $em->getRepository('DashtainerBundle:ServiceType');
+        $this->projectRepo     = $em->getRepository('DockerProject');
+        $this->serviceRepo     = $em->getRepository('DockerService');
+        $this->serviceCatRepo  = $em->getRepository('DockerServiceCategory');
+        $this->serviceTypeRepo = $em->getRepository('DockerServiceType');
     }
 
     /**
@@ -78,7 +78,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = new Entity\Service();
+        $service = new Entity\DockerService();
         $service->fromArray($form->toArray());
 
         $this->em->persist($service);
