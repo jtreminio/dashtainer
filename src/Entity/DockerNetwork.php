@@ -4,6 +4,7 @@ namespace Dashtainer\Entity;
 
 use Dashtainer\Util;
 
+use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -29,6 +30,11 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="networks")
+     */
+    protected $services;
 
     /**
      * @ORM\Column(name="name", type="string", length=64)
@@ -67,6 +73,11 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
      * @see https://docs.docker.com/compose/compose-file/#labels-4
      */
     protected $labels = [];
+
+    public function __construct()
+    {
+        $this->services = new Collections\ArrayCollection();
+    }
 
     public function getProject() : ?DockerProject
     {
@@ -180,5 +191,29 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
     public function removeLabel(string $key)
     {
         unset($this->labels[$key]);
+    }
+
+    /**
+     * @param DockerService $service
+     * @return $this
+     */
+    public function addService(DockerService $service)
+    {
+        $this->services[] = $service;
+
+        return $this;
+    }
+
+    public function removeService(DockerService $service)
+    {
+        $this->services->removeElement($service);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getServices()
+    {
+        return $this->services;
     }
 }

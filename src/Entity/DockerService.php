@@ -5,6 +5,7 @@ namespace Dashtainer\Entity;
 use Dashtainer\Util;
 
 use Behat\Transliterator\Transliterator;
+use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -40,16 +41,23 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     ];
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
-     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerNetwork", inversedBy="services")
+     * @ORM\JoinTable(name="docker_services_networks")
+     * @see https://docs.docker.com/compose/compose-file/#networks
      */
-    protected $service_type;
+    protected $networks;
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="services")
      * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
     protected $project;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
+     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
+     */
+    protected $service_type;
 
     /**
      * @ORM\Column(name="name", type="string", length=255)
@@ -169,12 +177,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $network_mode;
 
     /**
-     * @ORM\Column(name="networks", type="simple_array", nullable=true)
-     * @see https://docs.docker.com/compose/compose-file/#networks
-     */
-    protected $networks = [];
-
-    /**
      * @ORM\Column(name="pid", type="string", length=4, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#pid
      */
@@ -234,6 +236,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
      * @see https://docs.docker.com/compose/compose-file/#volumes
      */
     protected $volumes = [];
+
+    public function __construct()
+    {
+        $this->networks = new Collections\ArrayCollection();
+    }
 
     public function getServiceType() : ?DockerServiceType
     {
@@ -642,20 +649,28 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
-    public function getNetworks() : array
+    /**
+     * @param DockerNetwork $network
+     * @return $this
+     */
+    public function addNetwork(DockerNetwork $network)
     {
-        return $this->networks;
+        $this->networks[] = $network;
+
+        return $this;
+    }
+
+    public function removeNetwork(DockerNetwork $network)
+    {
+        $this->networks->removeElement($network);
     }
 
     /**
-     * @param array $networks
-     * @return $this
+     * @return DockerNetwork[]|Collections\ArrayCollection
      */
-    public function setNetworks(array $networks)
+    public function getNetworks()
     {
-        $this->networks = $networks;
-
-        return $this;
+        return $this->networks;
     }
 
     public function getPid() : ?string
