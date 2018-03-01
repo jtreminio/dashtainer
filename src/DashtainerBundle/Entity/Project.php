@@ -25,16 +25,22 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     protected $user;
 
     /**
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Network", mappedBy="project")
+     * @ORM\OrderBy({"created_at" = "DESC"})
+     */
+    protected $networks;
+
+    /**
      * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Service", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $services;
 
     /**
-     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Network", mappedBy="project")
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\Volume", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
-    protected $networks;
+    protected $volumes;
 
     /**
      * @ORM\Column(name="name", type="string", length=255)
@@ -43,8 +49,9 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
 
     public function __construct()
     {
-        $this->services = new Collections\ArrayCollection();
         $this->networks = new Collections\ArrayCollection();
+        $this->services = new Collections\ArrayCollection();
+        $this->volumes  = new Collections\ArrayCollection();
     }
 
     public function getUser() : ?User
@@ -61,6 +68,30 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
         $this->user = $user;
 
         return $this;
+    }
+
+    /**
+     * @param Network $network
+     * @return $this
+     */
+    public function addNetwork(Network $network)
+    {
+        $this->networks[] = $network;
+
+        return $this;
+    }
+
+    public function removeNetwork(Network $network)
+    {
+        $this->networks->removeElement($network);
+    }
+
+    /**
+     * @return Network[]|Collections\ArrayCollection
+     */
+    public function getNetworks()
+    {
+        return $this->networks;
     }
 
     /**
@@ -88,27 +119,27 @@ class Project implements Util\HydratorInterface, EntityBaseInterface, SlugInterf
     }
 
     /**
-     * @param Network $network
+     * @param Volume $volume
      * @return $this
      */
-    public function addNetwork(Network $network)
+    public function addVolume(Volume $volume)
     {
-        $this->networks[] = $network;
+        $this->volumes[] = $volume;
 
         return $this;
     }
 
-    public function removeNetwork(Network $network)
+    public function removeVolume(Volume $volume)
     {
-        $this->networks->removeElement($network);
+        $this->volumes->removeElement($volume);
     }
 
     /**
-     * @return Network[]|Collections\ArrayCollection
+     * @return Volume[]|Collections\ArrayCollection
      */
-    public function getNetworks()
+    public function getVolumes()
     {
-        return $this->networks;
+        return $this->volumes;
     }
 
     public function getName() : ?string

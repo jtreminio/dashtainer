@@ -63,9 +63,6 @@ class Network implements Util\HydratorInterface, EntityBaseInterface
     protected $external;
 
     /**
-     * To be saved as array, not hash:
-     * "com.example.description=Financial transaction network"
-     *
      * @ORM\Column(name="labels", type="json_array", nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#labels-4
      */
@@ -153,27 +150,35 @@ class Network implements Util\HydratorInterface, EntityBaseInterface
     }
 
     /**
-     * @return array
+     * @param string      $key
+     * @param string|null $value
+     * @return $this
      */
+    public function addLabel(string $key, string $value = null)
+    {
+        $this->labels[$key] = $value;
+
+        return $this;
+    }
+
     public function getLabels() : array
     {
         return $this->labels;
     }
 
     /**
-     * @param array $labels
+     * @param array $arr
      * @return $this
      */
-    public function setLabels(array $labels)
+    public function setLabels(array $arr)
     {
-        foreach ($labels as $key => $value) {
-            $string = trim($value) == ''
-                ? "{$key}"
-                : "{$key}={$value}";
-
-            $this->labels[] = $string;
-        }
+        $this->labels = $arr;
 
         return $this;
+    }
+
+    public function removeLabel(string $key)
+    {
+        unset($this->labels[$key]);
     }
 }
