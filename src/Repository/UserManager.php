@@ -81,6 +81,15 @@ class UserManager extends Doctrine\UserManager implements ObjectPersistInterface
         $this->em->flush();
     }
 
+    public function delete(object ...$entity)
+    {
+        foreach ($entity as $ent) {
+            $this->em->remove($ent);
+        }
+
+        $this->em->flush();
+    }
+
     public function getClassName() : string
     {
         return self::ENTITY_CLASS;
