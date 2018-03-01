@@ -144,7 +144,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $image;
 
     /**
-     * @ORM\Column(name="isolation", type="string", length=255, nullable=true)
+     * @ORM\Column(name="isolation", type="string", length=32, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#isolation
      */
     protected $isolation;
@@ -175,7 +175,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $networks = [];
 
     /**
-     * @ORM\Column(name="pid", type="string", length=255, nullable=true)
+     * @ORM\Column(name="pid", type="string", length=4, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#pid
      */
     protected $pid;
@@ -187,7 +187,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $ports = [];
 
     /**
-     * @ORM\Column(name="restart", type="string", length=255, nullable=true)
+     * @ORM\Column(name="restart", type="string", length=14, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#restart
      */
     protected $restart = 'no';
@@ -199,13 +199,13 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $secrets = [];
 
     /**
-     * @ORM\Column(name="stop_grace_period", type="string", length=255, nullable=true)
+     * @ORM\Column(name="stop_grace_period", type="string", length=12, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#stop_grace_period
      */
     protected $stop_grace_period = '10s';
 
     /**
-     * @ORM\Column(name="stop_signal", type="string", length=255, nullable=true)
+     * @ORM\Column(name="stop_signal", type="string", length=12, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#stop_signal
      */
     protected $stop_signal = 'SIGTERM';
@@ -224,7 +224,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $ulimits = [];
 
     /**
-     * @ORM\Column(name="userns_mode", type="string", length=255, nullable=true)
+     * @ORM\Column(name="userns_mode", type="string", length=4, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#userns_mode
      */
     protected $userns_mode;

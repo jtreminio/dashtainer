@@ -29,7 +29,7 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     protected $name;
 
     /**
-     * @ORM\Column(name="driver", type="string", length=255, nullable=true)
+     * @ORM\Column(name="driver", type="string", length=16, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#driver
      */
     protected $driver;
@@ -41,7 +41,20 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     protected $driver_opts = [];
 
     /**
-     * @ORM\Column(name="external", type="boolean", nullable=true)
+     * If false|null, not used in docker file
+     *
+     * If true:
+     * volumes:
+     *   data:
+     *     external: true
+     *
+     * If string:
+     * volumes:
+     *   data:
+     *     external:
+     *       name: actual-name-of-volume
+     *
+     * @ORM\Column(name="external", type="string", length=64, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#external
      */
     protected $external;
@@ -117,18 +130,31 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
         unset($this->driver_opts[$key]);
     }
 
-    public function getExternal() : ?bool
+    /**
+     * @return bool|string
+     */
+    public function getExternal()
     {
+        if (empty($this->external)) {
+            return null;
+        }
+
+        if ($this->external === true || $this->external === 'true') {
+            return true;
+        }
+
         return $this->external;
     }
 
     /**
-     * @param bool $external
+     * @param bool|string $external
      * @return $this
      */
-    public function setExternal(bool $external = null)
+    public function setExternal($external = null)
     {
-        $this->external = $external;
+        $this->external = empty($external)
+            ? null
+            : $external;
 
         return $this;
     }
