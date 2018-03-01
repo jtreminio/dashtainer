@@ -31,6 +31,12 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $networks;
 
     /**
+     * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerSecret", mappedBy="project")
+     * @ORM\OrderBy({"created_at" = "DESC"})
+     */
+    protected $secrets;
+
+    /**
      * @ORM\OneToMany(targetEntity="DashtainerBundle\Entity\DockerService", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
@@ -50,6 +56,7 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function __construct()
     {
         $this->networks = new Collections\ArrayCollection();
+        $this->secrets  = new Collections\ArrayCollection();
         $this->services = new Collections\ArrayCollection();
         $this->volumes  = new Collections\ArrayCollection();
     }
@@ -92,6 +99,30 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function getNetworks()
     {
         return $this->networks;
+    }
+
+    /**
+     * @param DockerSecret $secret
+     * @return $this
+     */
+    public function addSecret(DockerSecret $secret)
+    {
+        $this->secrets[] = $secret;
+
+        return $this;
+    }
+
+    public function removeSecret(DockerSecret $secret)
+    {
+        $this->secrets->removeElement($secret);
+    }
+
+    /**
+     * @return DockerSecret[]|Collections\ArrayCollection
+     */
+    public function getSecrets()
+    {
+        return $this->secrets;
     }
 
     /**
