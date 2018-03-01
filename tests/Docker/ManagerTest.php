@@ -1,12 +1,12 @@
 <?php
 
-namespace DashtainerBundle\Tests\Docker;
+namespace Dashtainer\Tests\Docker;
 
-use DashtainerBundle\Docker\HandlerInterface;
-use DashtainerBundle\Docker\Manager;
-use DashtainerBundle\Tests\Docker\Handler\MockPrivateHandler;
-use DashtainerBundle\Tests\Docker\Handler\MockPublicHandler;
-use DashtainerBundle\Tests\Docker\Handler\MockPublicHandlerWithPrivateHandler;
+use Dashtainer\Docker\HandlerInterface;
+use Dashtainer\Docker\Manager;
+use Dashtainer\Tests\Docker\Handler\MockPrivateHandler;
+use Dashtainer\Tests\Docker\Handler\MockPublicHandler;
+use Dashtainer\Tests\Docker\Handler\MockPublicHandlerWithPrivateHandler;
 
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Symfony\Bundle\FrameworkBundle\Templating;

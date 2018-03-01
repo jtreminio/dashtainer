@@ -1,5 +1,5 @@
 dashtainer:
-    resource: "@DashtainerBundle/Controller/"
+    resource: "@Dashtainer/Controller/"
     type:     annotation
     prefix:   /
 

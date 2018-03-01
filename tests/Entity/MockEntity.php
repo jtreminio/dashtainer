@@ -1,9 +1,9 @@
 <?php
 
-namespace DashtainerBundle\Tests\Entity;
+namespace Dashtainer\Tests\Entity;
 
-use DashtainerBundle\Util\HydratorInterface;
-use DashtainerBundle\Util\HydratorTrait;
+use Dashtainer\Util\HydratorInterface;
+use Dashtainer\Util\HydratorTrait;
 
 class MockEntity implements HydratorInterface
 {

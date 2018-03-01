@@ -1,0 +1,133 @@
+parameters:
+    locale: 'en'
+    bin_dir: '%kernel.project_dir%/bin'
+    docker_source_dir: '%kernel.project_dir%/docker-source'
+
+services:
+    dashtainer.docker.manager:
+        class: Dashtainer\Docker\Manager
+        calls:
+            -
+                method: setHandlers
+                arguments: [!tagged docker.handler]
+            -
+                method: setPrivateHandlers
+                arguments: [!tagged docker.private_handler]
+
+    dashtainer.migrations.dataloader:
+        class: Dashtainer\Migrations\DataLoader
+        arguments:
+            - "@serializer"
+            - '%kernel.environment%'
+
+    ## Public handlers
+
+    dashtainer.docker.handler.apache:
+        class: Dashtainer\Docker\Handler\Apache
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.nginx:
+        class: Dashtainer\Docker\Handler\Nginx
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.php-fpm:
+        class: Dashtainer\Docker\Handler\PhpFpm
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.mariadb:
+        class: Dashtainer\Docker\Handler\MariaDB
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.mysql:
+        class: Dashtainer\Docker\Handler\MySQL
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.postgresql:
+        class: Dashtainer\Docker\Handler\PostgreSQL
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.mongodb:
+        class: Dashtainer\Docker\Handler\MongoDB
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.redis:
+        class: Dashtainer\Docker\Handler\Redis
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.mailhog:
+        class: Dashtainer\Docker\Handler\MailHog
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.beanstalkd:
+        class: Dashtainer\Docker\Handler\Beanstalkd
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    dashtainer.docker.handler.elasticsearch:
+        class: Dashtainer\Docker\Handler\Elasticsearch
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.handler
+
+    ## Private handlers
+
+    dashtainer.docker.handler.blackfire:
+        class: Dashtainer\Docker\Handler\Blackfire
+        arguments:
+            - "@templating"
+            - '%bin_dir%'
+            - '%docker_source_dir%'
+        tags:
+            - docker.private_handler

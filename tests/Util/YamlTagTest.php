@@ -1,8 +1,8 @@
 <?php
 
-namespace DashtainerBundle\Tests\Util;
+namespace Dashtainer\Tests\Util;
 
-use DashtainerBundle\Util\YamlTag;
+use Dashtainer\Util\YamlTag;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Yaml\Yaml;

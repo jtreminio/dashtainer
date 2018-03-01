@@ -1,8 +1,8 @@
 <?php
 
-namespace DashtainerBundle\Tests\Twig;
+namespace Dashtainer\Tests\Twig;
 
-use DashtainerBundle\Twig\DashtainerExtension;
+use Dashtainer\Twig\DashtainerExtension;
 
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 

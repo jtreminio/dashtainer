@@ -1,0 +1,180 @@
+<?php
+
+namespace Dashtainer\Controller;
+
+use Dashtainer\Domain;
+use Dashtainer\Entity;
+use Dashtainer\Form;
+use Dashtainer\Repository;
+use Dashtainer\Response\AjaxResponse;
+use Dashtainer\Validator;
+
+use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class ProjectController extends Controller
+{
+    /** @var Domain\DockerProject */
+    protected $dockerProjectDomain;
+
+    /** @var EntityManagerInterface */
+    protected $em;
+
+    /** @var Repository\DockerProjectRepository */
+    protected $projectRepo;
+
+    /** @var Repository\DockerServiceCategoryRepository */
+    protected $serviceCatRepo;
+
+    /** @var Validator\Validator */
+    protected $validator;
+
+    public function __construct(
+        EntityManagerInterface $em,
+        Domain\DockerProject $dockerProjectDomain,
+        Validator\Validator $validator
+    ) {
+        $this->em = $em;
+        $this->dockerProjectDomain = $dockerProjectDomain;
+        $this->validator = $validator;
+
+        $this->serviceCatRepo = $em->getRepository('Dashtainer:DockerServiceCategory');
+        $this->projectRepo    = $em->getRepository('Dashtainer:DockerProject');
+    }
+
+    /**
+     * @Route(name="project.index.get",
+     *     path="/project",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @return Response
+     */
+    public function getIndexAction(Entity\User $user) : Response
+    {
+        return $this->render('@Dashtainer/project/index.html.twig', [
+        ]);
+    }
+
+    /**
+     * @Route(name="project.create.post",
+     *     path="/project/create",
+     *     methods={"POST"}
+     * )
+     * @param Request     $request
+     * @param Entity\User $user
+     * @return AjaxResponse
+     */
+    public function postCreateAction(Request $request, Entity\User $user) : AjaxResponse
+    {
+        $form = new Form\DockerProjectCreateForm();
+        $form->fromArray($request->request->all());
+
+        $this->validator->setSource($form);
+
+        if (!$this->validator->isValid()) {
+            return new AjaxResponse([
+                'type'   => AjaxResponse::AJAX_ERROR,
+                'errors' => $this->validator->getErrors(true),
+            ], AjaxResponse::HTTP_BAD_REQUEST);
+        }
+
+        $project = $this->dockerProjectDomain->createProjectFromForm($form, $user);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_REDIRECT,
+            'data' => $this->generateUrl('project.view.get', [
+                'projectId' => $project->getId(),
+            ]),
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.view.get",
+     *     path="/project/{projectId}",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getViewAction(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
+        ]);
+    }
+
+    /**
+     * @Route(name="project.update.get",
+     *     path="/project/{projectId}/update",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getUpdateAction(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
+        ]);
+    }
+
+    /**
+     * @Route(name="project.delete.get",
+     *     path="/project/{projectId}/delete",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getDeleteAction(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        $project = $this->projectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        if (!$project) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        // todo implement
+        return $this->render('@Dashtainer/project/view.html.twig', [
+            'project'           => $project,
+            'serviceCategories' => $this->serviceCatRepo->findAll(),
+        ]);
+    }
+}

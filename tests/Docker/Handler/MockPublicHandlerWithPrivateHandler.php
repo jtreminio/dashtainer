@@ -1,9 +1,9 @@
 <?php
 
-namespace DashtainerBundle\Tests\Docker\Handler;
+namespace Dashtainer\Tests\Docker\Handler;
 
-use DashtainerBundle\Docker;
-use DashtainerBundle\Entity;
+use Dashtainer\Docker;
+use Dashtainer\Entity;
 
 class MockPublicHandlerWithPrivateHandler extends Docker\HandlerAbstract implements Docker\HandlerInterface
 {

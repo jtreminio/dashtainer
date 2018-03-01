@@ -23,7 +23,7 @@
 
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">src/DashtainerBundle</directory>
+            <directory suffix=".php">src</directory>
         </whitelist>
     </filter>
 

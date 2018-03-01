@@ -28,21 +28,21 @@ services:
                 db_username: '%database_user%'
                 db_password: '%database_password%'
 
-    DashtainerBundle\:
-        resource: '../../src/DashtainerBundle/*'
-        exclude: '../../src/DashtainerBundle/{Entity,Repository,Tests}'
+    Dashtainer\:
+        resource: '../../src/*'
+        exclude: '../../src/{Entity,Tests}'
 
-    DashtainerBundle\ArgumentResolver\UserValueResolver:
+    Dashtainer\ArgumentResolver\UserValueResolver:
         tags:
             - { name: controller.argument_value_resolver, priority: 50 }
 
-    DashtainerBundle\Controller\:
-        resource: '../../src/DashtainerBundle/Controller'
+    Dashtainer\Controller\:
+        resource: '../../src/Controller'
         public: true
         tags: ['controller.service_arguments']
 
     fos_user.user_manager.default:
-        class: DashtainerBundle\Repository\UserManager
+        class: Dashtainer\Repository\UserManager
         arguments:
             - "@fos_user.util.password_updater"
             - "@fos_user.util.canonical_fields_updater"

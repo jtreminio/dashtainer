@@ -2,7 +2,7 @@
     "name": "Dashtainer.com",
     "autoload": {
         "psr-4": {
-            "DashtainerBundle\\": "src/DashtainerBundle"
+            "Dashtainer\\": "src/"
         },
         "classmap": [
             "app/AppKernel.php",
@@ -11,7 +11,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DashtainerBundle\\Tests\\": "tests/"
+            "Dashtainer\\Tests\\": "tests/"
         },
         "files": [
             "vendor/symfony/symfony/src/Symfony/Component/VarDumper/Resources/functions/dump.php"

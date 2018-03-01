@@ -1,10 +1,10 @@
 <?php
 
-namespace DashtainerBundle\Tests\Docker\Handler;
+namespace Dashtainer\Tests\Docker\Handler;
 
-use DashtainerBundle\Docker\HandlerInterface;
-use DashtainerBundle\Docker\Handler\Elasticsearch;
-use DashtainerBundle\Docker\Manager;
+use Dashtainer\Docker\HandlerInterface;
+use Dashtainer\Docker\Handler\Elasticsearch;
+use Dashtainer\Docker\Manager;
 
 use PHPUnit\Framework\MockObject\MockBuilder;
 use Symfony\Bundle\FrameworkBundle\Templating;
