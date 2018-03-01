@@ -2,10 +2,12 @@
 
 namespace DashtainerBundle\Controller;
 
+use DashtainerBundle\Domain;
 use DashtainerBundle\Entity;
 use DashtainerBundle\Form;
 use DashtainerBundle\Repository;
 use DashtainerBundle\Response\AjaxResponse;
+use DashtainerBundle\Validator;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -15,6 +17,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProjectController extends Controller
 {
+    /** @var Domain\DockerProject */
+    protected $dockerProjectDomain;
+
     /** @var EntityManagerInterface */
     protected $em;
 
@@ -24,9 +29,17 @@ class ProjectController extends Controller
     /** @var Repository\DockerServiceCategoryRepository */
     protected $serviceCatRepo;
 
-    public function __construct(EntityManagerInterface $em)
-    {
+    /** @var Validator\Validator */
+    protected $validator;
+
+    public function __construct(
+        EntityManagerInterface $em,
+        Domain\DockerProject $dockerProjectDomain,
+        Validator\Validator $validator
+    ) {
         $this->em = $em;
+        $this->dockerProjectDomain = $dockerProjectDomain;
+        $this->validator = $validator;
 
         $this->projectRepo    = $em->getRepository('DashtainerBundle:DockerProject');
         $this->serviceCatRepo = $em->getRepository('DashtainerBundle:DockerServiceCategory');
@@ -60,22 +73,16 @@ class ProjectController extends Controller
         $form = new Form\DockerProjectCreateForm();
         $form->fromArray($request->request->all());
 
-        $validator = $this->get('dashtainer.domain.validator');
-        $validator->setSource($form);
+        $this->validator->setSource($form);
 
-        if (!$validator->isValid()) {
+        if (!$this->validator->isValid()) {
             return new AjaxResponse([
                 'type'   => AjaxResponse::AJAX_ERROR,
-                'errors' => $validator->getErrors(true),
+                'errors' => $this->validator->getErrors(true),
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $project = new Entity\DockerProject();
-        $project->fromArray($form->toArray());
-        $project->setUser($user);
-
-        $this->em->persist($project);
-        $this->em->flush();
+        $project = $this->dockerProjectDomain->createProjectFromForm($form, $user);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
