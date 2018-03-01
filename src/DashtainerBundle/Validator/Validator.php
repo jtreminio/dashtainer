@@ -1,6 +1,6 @@
 <?php
 
-namespace DashtainerBundle\Domain;
+namespace DashtainerBundle\Validator;
 
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\Validator as SymfonyValidator;
