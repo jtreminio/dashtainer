@@ -2,12 +2,13 @@
 
 namespace Dashtainer\Controller\Project;
 
+use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
+use Dashtainer\Validator;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,29 +16,35 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ServiceController extends Controller
 {
-    /** @var EntityManagerInterface */
-    protected $em;
+    /** @var Domain\DockerService */
+    protected $dockerServiceDomain;
 
     /** @var Repository\DockerProjectRepository */
-    protected $projectRepo;
+    protected $dProjectRepo;
 
     /** @var Repository\DockerServiceRepository */
-    protected $serviceRepo;
-
-    /** @var Repository\DockerServiceCategoryRepository */
-    protected $serviceCatRepo;
+    protected $dServiceRepo;
 
     /** @var Repository\DockerServiceTypeRepository */
-    protected $serviceTypeRepo;
+    protected $dServiceTypeRepo;
 
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
+    /** @var Validator\Validator */
+    protected $validator;
 
-        $this->projectRepo     = $em->getRepository('Dashtainer:DockerProject');
-        $this->serviceRepo     = $em->getRepository('Dashtainer:DockerService');
-        $this->serviceCatRepo  = $em->getRepository('Dashtainer:DockerServiceCategory');
-        $this->serviceTypeRepo = $em->getRepository('Dashtainer:DockerServiceType');
+    public function __construct(
+        Domain\DockerService $dockerServiceDomain,
+        Repository\DockerProjectRepository $dProjectRepo,
+        Repository\DockerServiceRepository $dServiceRepo,
+        Repository\DockerServiceTypeRepository $dServiceTypeRepo,
+        Validator\Validator $validator
+    ) {
+        $this->dockerServiceDomain = $dockerServiceDomain;
+
+        $this->dProjectRepo     = $dProjectRepo;
+        $this->dServiceRepo     = $dServiceRepo;
+        $this->dServiceTypeRepo = $dServiceTypeRepo;
+
+        $this->validator = $validator;
     }
 
     /**
@@ -55,34 +62,29 @@ class ServiceController extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        $form = new Form\ServiceCreateForm();
+        $form = new Form\DockerServiceCreateForm();
         $form->fromArray($request->request->all());
 
-        $form->project = $this->projectRepo->findOneBy([
+        $form->project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user
         ]);
 
-        $form->service_type = $this->serviceTypeRepo->findOneBy([
+        $form->service_type = $this->dServiceTypeRepo->findOneBy([
             'id'        => $form->service_type,
             'is_public' => true,
         ]);
 
-        $validator = $this->get('dashtainer.domain.validator');
-        $validator->setSource($form);
+        $this->validator->setSource($form);
 
-        if (!$validator->isValid()) {
+        if (!$this->validator->isValid()) {
             return new AjaxResponse([
                 'type'   => AjaxResponse::AJAX_ERROR,
-                'errors' => $validator->getErrors(true),
+                'errors' => $this->validator->getErrors(true),
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = new Entity\DockerService();
-        $service->fromArray($form->toArray());
-
-        $this->em->persist($service);
-        $this->em->flush();
+        $service = $this->dockerServiceDomain->createServiceFromForm($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -108,7 +110,7 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user,
         ]);
@@ -117,7 +119,7 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/service/not-found.html.twig');
         }
 
-        $service = $this->serviceRepo->findOneBy([
+        $service = $this->dServiceRepo->findOneBy([
             'id'      => $serviceId,
             'project' => $project,
         ]);
@@ -152,7 +154,7 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user,
         ]);
@@ -161,7 +163,7 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/service/not-found.html.twig');
         }
 
-        $service = $this->serviceRepo->findOneBy([
+        $service = $this->dServiceRepo->findOneBy([
             'id'      => $serviceId,
             'project' => $project,
         ]);
@@ -192,7 +194,7 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user,
         ]);
@@ -201,7 +203,7 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/service/not-found.html.twig');
         }
 
-        $service = $this->serviceRepo->findOneBy([
+        $service = $this->dServiceRepo->findOneBy([
             'id'      => $serviceId,
             'project' => $project,
         ]);

@@ -7,7 +7,7 @@ use Dashtainer\Util;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class ServiceCreateForm
+class DockerServiceCreateForm
 {
     use Util\HydratorTrait;
 

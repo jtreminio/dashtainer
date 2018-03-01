@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Table(name="docker_service")
- * @ORM\Entity(repositoryClass="Dashtainer\Repository\DockerServiceRepository")
+ * @ORM\Entity()
  */
 class DockerService implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {

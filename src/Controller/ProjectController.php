@@ -9,7 +9,6 @@ use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 use Dashtainer\Validator;
 
-use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,29 +19,27 @@ class ProjectController extends Controller
     /** @var Domain\DockerProject */
     protected $dockerProjectDomain;
 
-    /** @var EntityManagerInterface */
-    protected $em;
-
     /** @var Repository\DockerProjectRepository */
-    protected $projectRepo;
+    protected $dProjectRepo;
 
     /** @var Repository\DockerServiceCategoryRepository */
-    protected $serviceCatRepo;
+    protected $dServiceCatRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        EntityManagerInterface $em,
         Domain\DockerProject $dockerProjectDomain,
+        Repository\DockerProjectRepository $dProjectRepo,
+        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Validator\Validator $validator
     ) {
-        $this->em = $em;
         $this->dockerProjectDomain = $dockerProjectDomain;
-        $this->validator = $validator;
 
-        $this->serviceCatRepo = $em->getRepository('Dashtainer:DockerServiceCategory');
-        $this->projectRepo    = $em->getRepository('Dashtainer:DockerProject');
+        $this->dProjectRepo    = $dProjectRepo;
+        $this->dServiceCatRepo = $dServiceCatRepo;
+
+        $this->validator = $validator;
     }
 
     /**
@@ -50,10 +47,9 @@ class ProjectController extends Controller
      *     path="/project",
      *     methods={"GET"}
      * )
-     * @param Entity\User $user
      * @return Response
      */
-    public function getIndexAction(Entity\User $user) : Response
+    public function getIndexAction() : Response
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
         ]);
@@ -105,7 +101,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user
         ]);
@@ -116,7 +112,7 @@ class ProjectController extends Controller
 
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project'           => $project,
-            'serviceCategories' => $this->serviceCatRepo->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 
@@ -133,7 +129,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user
         ]);
@@ -145,7 +141,7 @@ class ProjectController extends Controller
         // todo implement
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project'           => $project,
-            'serviceCategories' => $this->serviceCatRepo->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 
@@ -162,7 +158,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->projectRepo->findOneBy([
+        $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
             'user' => $user
         ]);
@@ -174,7 +170,7 @@ class ProjectController extends Controller
         // todo implement
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project'           => $project,
-            'serviceCategories' => $this->serviceCatRepo->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 }
