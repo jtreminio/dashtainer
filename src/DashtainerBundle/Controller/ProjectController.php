@@ -28,8 +28,8 @@ class ProjectController extends Controller
     {
         $this->em = $em;
 
-        $this->projectRepo    = $em->getRepository('DockerProject');
-        $this->serviceCatRepo = $em->getRepository('DockerServiceCategory');
+        $this->projectRepo    = $em->getRepository('DashtainerBundle:DockerProject');
+        $this->serviceCatRepo = $em->getRepository('DashtainerBundle:DockerServiceCategory');
     }
 
     /**

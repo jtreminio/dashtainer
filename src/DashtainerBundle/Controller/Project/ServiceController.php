@@ -34,10 +34,10 @@ class ServiceController extends Controller
     {
         $this->em = $em;
 
-        $this->projectRepo     = $em->getRepository('DockerProject');
-        $this->serviceRepo     = $em->getRepository('DockerService');
-        $this->serviceCatRepo  = $em->getRepository('DockerServiceCategory');
-        $this->serviceTypeRepo = $em->getRepository('DockerServiceType');
+        $this->projectRepo     = $em->getRepository('DashtainerBundle:DockerProject');
+        $this->serviceRepo     = $em->getRepository('DashtainerBundle:DockerService');
+        $this->serviceCatRepo  = $em->getRepository('DashtainerBundle:DockerServiceCategory');
+        $this->serviceTypeRepo = $em->getRepository('DashtainerBundle:DockerServiceType');
     }
 
     /**
