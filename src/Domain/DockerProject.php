@@ -4,28 +4,27 @@ namespace Dashtainer\Domain;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-
-use Doctrine\ORM\EntityManagerInterface;
+use Dashtainer\Repository;
 
 class DockerProject
 {
-    /** @var EntityManagerInterface */
-    protected $em;
+    /** @var Repository\DockerProjectRepository */
+    protected $repo;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(Repository\DockerProjectRepository $repo)
     {
-        $this->em = $em;
+        $this->repo = $repo;
     }
 
     public function createProjectFromForm(
-        Form\DockerProjectCreateForm $form,
+        Form\DockerProjectCreateUpdateForm $form,
         Entity\User $user
     ) : Entity\DockerProject {
         $project = new Entity\DockerProject();
         $project->fromArray($form->toArray());
         $project->setUser($user);
 
-        $this->em->persist($project);
+        $this->repo->save($project);
 
         $webNetwork = new Entity\DockerNetwork();
         $webNetwork->setName('web')
@@ -39,10 +38,7 @@ class DockerProject
         $project->addNetwork($webNetwork)
             ->addNetwork($projectNetwork);
 
-        $this->em->persist($webNetwork);
-        $this->em->persist($projectNetwork);
-        $this->em->persist($project);
-        $this->em->flush();
+        $this->repo->save($webNetwork, $projectNetwork, $project);
 
         return $project;
     }

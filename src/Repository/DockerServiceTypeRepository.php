@@ -7,16 +7,20 @@ use Dashtainer\Entity;
 use Doctrine\ORM;
 use Doctrine\Common\Persistence;
 
-class DockerServiceTypeRepository implements Persistence\ObjectRepository
+class DockerServiceTypeRepository implements ObjectPersistInterface
 {
     protected const ENTITY_CLASS = Entity\DockerServiceType::class;
 
     /** @var ORM\EntityManagerInterface */
-    protected $repository;
+    protected $em;
 
-    public function __construct(ORM\EntityManagerInterface $entityManager)
+    /** @var Persistence\ObjectRepository */
+    protected $repo;
+
+    public function __construct(ORM\EntityManagerInterface $em)
     {
-        $this->repository = $entityManager->getRepository(self::ENTITY_CLASS);
+        $this->em   = $em;
+        $this->repo = $em->getRepository(self::ENTITY_CLASS);
     }
 
     /**
@@ -25,7 +29,7 @@ class DockerServiceTypeRepository implements Persistence\ObjectRepository
      */
     public function find($id) : ?Entity\DockerServiceType
     {
-        return $this->repository->find($id);
+        return $this->repo->find($id);
     }
 
     /**
@@ -34,7 +38,7 @@ class DockerServiceTypeRepository implements Persistence\ObjectRepository
      */
     public function findAll() : array
     {
-        return $this->repository->findAll();
+        return $this->repo->findAll();
     }
 
     /**
@@ -47,7 +51,7 @@ class DockerServiceTypeRepository implements Persistence\ObjectRepository
         $limit = null,
         $offset = null
     ) : array {
-        return $this->repository->findBy($criteria, $orderBy, $limit, $offset);
+        return $this->repo->findBy($criteria, $orderBy, $limit, $offset);
     }
 
     /**
@@ -56,7 +60,16 @@ class DockerServiceTypeRepository implements Persistence\ObjectRepository
      */
     public function findOneBy(array $criteria) : ?Entity\DockerServiceType
     {
-        return $this->repository->findOneBy($criteria);
+        return $this->repo->findOneBy($criteria);
+    }
+
+    public function save(object ...$entity)
+    {
+        foreach ($entity as $ent) {
+            $this->em->persist($ent);
+        }
+
+        $this->em->flush();
     }
 
     public function getClassName() : string
