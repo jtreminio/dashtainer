@@ -1,6 +1,6 @@
 <?php
 
-namespace DashtainerBundle\Domain;
+namespace DashtainerBundle\Repository;
 
 use DashtainerBundle\Entity;
 
