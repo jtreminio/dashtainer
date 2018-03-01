@@ -9,9 +9,7 @@ use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 
-class DataFixtures
-    extends AbstractFixture
-    implements OrderedFixtureInterface
+class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
 {
     /** @var ObjectManager */
     protected $em;
