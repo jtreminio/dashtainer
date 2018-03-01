@@ -1,6 +1,6 @@
 <?php
 
-namespace DashtainerBundle\Entity\Service\Deploy;
+namespace DashtainerBundle\Entity\DockerService\Deploy;
 
 use DashtainerBundle\Util;
 
