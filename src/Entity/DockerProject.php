@@ -19,10 +19,9 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\User", inversedBy="projects")
-     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
+     * @ORM\Column(name="name", type="string", length=255)
      */
-    protected $user;
+    protected $name;
 
     /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerNetwork", mappedBy="project")
@@ -43,15 +42,16 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $services;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\User", inversedBy="projects")
+     * @ORM\JoinColumn(name="user_id", referencedColumnName="id", nullable=false)
+     */
+    protected $user;
+
+    /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerVolume", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $volumes;
-
-    /**
-     * @ORM\Column(name="name", type="string", length=255)
-     */
-    protected $name;
 
     public function __construct()
     {
@@ -61,18 +61,18 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
         $this->volumes  = new Collections\ArrayCollection();
     }
 
-    public function getUser() : ?User
+    public function getName() : ?string
     {
-        return $this->user;
+        return $this->name;
     }
 
     /**
-     * @param User $user
+     * @param string $name
      * @return $this
      */
-    public function setUser(User $user)
+    public function setName(string $name)
     {
-        $this->user = $user;
+        $this->name = $name;
 
         return $this;
     }
@@ -149,6 +149,27 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this->services;
     }
 
+    public function getSlug() : string
+    {
+        return Transliterator::urlize($this->getName());
+    }
+
+    public function getUser() : ?User
+    {
+        return $this->user;
+    }
+
+    /**
+     * @param User $user
+     * @return $this
+     */
+    public function setUser(User $user)
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
     /**
      * @param DockerVolume $volume
      * @return $this
@@ -171,26 +192,5 @@ class DockerProject implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function getVolumes()
     {
         return $this->volumes;
-    }
-
-    public function getName() : ?string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getSlug(): string
-    {
-        return Transliterator::urlize($this->getName());
     }
 }

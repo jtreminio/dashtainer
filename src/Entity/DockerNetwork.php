@@ -26,17 +26,6 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
     ];
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="networks")
-     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
-     */
-    protected $project;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="networks")
-     */
-    protected $services;
-
-    /**
      * @ORM\Column(name="name", type="string", length=64)
      */
     protected $name;
@@ -74,41 +63,20 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
      */
     protected $labels = [];
 
+    /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="networks")
+     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
+     */
+    protected $project;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="networks")
+     */
+    protected $services;
+
     public function __construct()
     {
         $this->services = new Collections\ArrayCollection();
-    }
-
-    public function getProject() : ?DockerProject
-    {
-        return $this->project;
-    }
-
-    /**
-     * @param DockerProject $project
-     * @return $this
-     */
-    public function setProject(DockerProject $project)
-    {
-        $this->project = $project;
-
-        return $this;
-    }
-
-    public function getName() : ?string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getDriver() : ?string
@@ -191,6 +159,38 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
     public function removeLabel(string $key)
     {
         unset($this->labels[$key]);
+    }
+
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getProject() : ?DockerProject
+    {
+        return $this->project;
+    }
+
+    /**
+     * @param DockerProject $project
+     * @return $this
+     */
+    public function setProject(DockerProject $project)
+    {
+        $this->project = $project;
+
+        return $this;
     }
 
     /**

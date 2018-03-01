@@ -18,12 +18,6 @@ class DockerSecret implements Util\HydratorInterface, EntityBaseInterface, SlugI
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="secrets")
-     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
-     */
-    protected $project;
-
-    /**
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
@@ -47,37 +41,11 @@ class DockerSecret implements Util\HydratorInterface, EntityBaseInterface, SlugI
      */
     protected $external;
 
-    public function getProject() : ?DockerProject
-    {
-        return $this->project;
-    }
-
     /**
-     * @param DockerProject $project
-     * @return $this
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="secrets")
+     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
-    public function setProject(DockerProject $project)
-    {
-        $this->project = $project;
-
-        return $this;
-    }
-
-    public function getName() : ?string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
+    protected $project;
 
     /**
      * @return bool|string
@@ -108,7 +76,39 @@ class DockerSecret implements Util\HydratorInterface, EntityBaseInterface, SlugI
         return $this;
     }
 
-    public function getSlug(): string
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getProject() : ?DockerProject
+    {
+        return $this->project;
+    }
+
+    /**
+     * @param DockerProject $project
+     * @return $this
+     */
+    public function setProject(DockerProject $project)
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
+    public function getSlug() : string
     {
         return Transliterator::urlize($this->getName());
     }

@@ -18,12 +18,6 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="volumes")
-     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
-     */
-    protected $project;
-
-    /**
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
@@ -65,21 +59,11 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
      */
     protected $labels = [];
 
-    public function getName() : ?string
-    {
-        return $this->name;
-    }
-
     /**
-     * @param string $name
-     * @return $this
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="volumes")
+     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
      */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
+    protected $project;
 
     public function getDriver() : ?string
     {
@@ -192,7 +176,23 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
         unset($this->labels[$key]);
     }
 
-    public function getSlug(): string
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getSlug() : string
     {
         return Transliterator::urlize($this->getName());
     }

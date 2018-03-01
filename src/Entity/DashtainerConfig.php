@@ -60,7 +60,7 @@ class DashtainerConfig
     /**
      * @return DashtainerServiceConfig[]
      */
-    public function getServices(): array
+    public function getServices() : array
     {
         return $this->services;
     }

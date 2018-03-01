@@ -18,15 +18,51 @@ class Healthcheck implements Util\HydratorInterface
         self::TEST_TYPE_NONE,
     ];
 
-    protected $test = [];
-
     protected $interval = '1m30s';
-
-    protected $timeout = '10s';
 
     protected $retries = '3';
 
-    public function getTest(): array
+    protected $test = [];
+
+    protected $timeout = '10s';
+
+    public function getInterval() : string
+    {
+        return $this->interval;
+    }
+
+    /**
+     * @param string $interval
+     * @return $this
+     */
+    public function setInterval($interval)
+    {
+        $this->interval = empty($interval)
+            ? '0'
+            : $interval;
+
+        return $this;
+    }
+
+    public function getRetries() : string
+    {
+        return $this->retries;
+    }
+
+    /**
+     * @param string $retries
+     * @return $this
+     */
+    public function setRetries($retries)
+    {
+        $this->retries = empty($retries)
+            ? '0'
+            : (string) $retries;
+
+        return $this;
+    }
+
+    public function getTest() : array
     {
         return $this->test;
     }
@@ -49,31 +85,7 @@ class Healthcheck implements Util\HydratorInterface
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getInterval()
-    {
-        return $this->interval;
-    }
-
-    /**
-     * @param string $interval
-     * @return $this
-     */
-    public function setInterval($interval)
-    {
-        $this->interval = empty($interval)
-            ? '0'
-            : $interval;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTimeout()
+    public function getTimeout() : string
     {
         return $this->timeout;
     }
@@ -86,28 +98,7 @@ class Healthcheck implements Util\HydratorInterface
     {
         $this->timeout = empty($timeout)
             ? '0'
-            : $timeout;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRetries()
-    {
-        return $this->retries;
-    }
-
-    /**
-     * @param string $retries
-     * @return $this
-     */
-    public function setRetries($retries)
-    {
-        $this->retries = empty($retries)
-            ? '0'
-            : $retries;
+            : (string) $timeout;
 
         return $this;
     }

@@ -8,27 +8,11 @@ class Ulimits implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
-    protected $nproc;
-
     protected $nofile = [];
 
-    public function getNproc() : ?int
-    {
-        return $this->nproc;
-    }
+    protected $nproc;
 
-    /**
-     * @param int $nproc
-     * @return $this
-     */
-    public function setNproc(int $nproc)
-    {
-        $this->nproc = $nproc;
-
-        return $this;
-    }
-
-    public function getNofile(): array
+    public function getNofile() : array
     {
         return $this->nofile;
     }
@@ -44,6 +28,22 @@ class Ulimits implements Util\HydratorInterface
             'soft' => $soft,
             'hard' => $hard,
         ];
+
+        return $this;
+    }
+
+    public function getNproc() : ?int
+    {
+        return $this->nproc;
+    }
+
+    /**
+     * @param int $nproc
+     * @return $this
+     */
+    public function setNproc(int $nproc)
+    {
+        $this->nproc = $nproc;
 
         return $this;
     }

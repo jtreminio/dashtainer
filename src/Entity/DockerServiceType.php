@@ -17,18 +17,6 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
     use EntityBaseTrait;
 
     /**
-     * @ORM\ManyToOne(targetEntity="DockerServiceCategory", inversedBy="service_types")
-     * @ORM\JoinColumn(name="service_category_id", referencedColumnName="id", nullable=false)
-     */
-    protected $service_category;
-
-    /**
-     * @ORM\OneToMany(targetEntity="DockerService", mappedBy="service_type")
-     * @ORM\OrderBy({"created_at" = "DESC"})
-     */
-    protected $services;
-
-    /**
      * @ORM\Column(name="name", type="string", length=255, unique=true)
      */
     protected $name;
@@ -43,38 +31,21 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
      */
     protected $order;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="DockerServiceCategory", inversedBy="service_types")
+     * @ORM\JoinColumn(name="service_category_id", referencedColumnName="id", nullable=false)
+     */
+    protected $service_category;
+
+    /**
+     * @ORM\OneToMany(targetEntity="DockerService", mappedBy="service_type")
+     * @ORM\OrderBy({"created_at" = "DESC"})
+     */
+    protected $services;
+
     public function __construct()
     {
         $this->services = new Collections\ArrayCollection();
-    }
-
-    /**
-     * @param DockerService $service
-     * @return $this
-     */
-    public function addService(DockerService $service)
-    {
-        $this->services[] = $service;
-
-        return $this;
-    }
-
-    public function removeService(DockerService $service)
-    {
-        $this->services->removeElement($service);
-    }
-
-    /**
-     * @return DockerService[]|Collections\ArrayCollection
-     */
-    public function getServices()
-    {
-        return $this->services;
-    }
-
-    public function getName() : ?string
-    {
-        return $this->name;
     }
 
     /**
@@ -118,5 +89,34 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
         $this->order = $order;
 
         return $this;
+    }
+
+    /**
+     * @param DockerService $service
+     * @return $this
+     */
+    public function addService(DockerService $service)
+    {
+        $this->services[] = $service;
+
+        return $this;
+    }
+
+    public function removeService(DockerService $service)
+    {
+        $this->services->removeElement($service);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getServices()
+    {
+        return $this->services;
+    }
+
+    public function getName() : ?string
+    {
+        return $this->name;
     }
 }

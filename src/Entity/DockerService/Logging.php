@@ -12,7 +12,7 @@ class Logging implements Util\HydratorInterface
 
     protected $options = [];
 
-    public function getDriver(): string
+    public function getDriver() : string
     {
         return $this->driver;
     }

@@ -41,25 +41,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     ];
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerNetwork", inversedBy="services")
-     * @ORM\JoinTable(name="docker_services_networks")
-     * @see https://docs.docker.com/compose/compose-file/#networks
-     */
-    protected $networks;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="services")
-     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
-     */
-    protected $project;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
-     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
-     */
-    protected $service_type;
-
-    /**
      * @ORM\Column(name="name", type="string", length=255)
      */
     protected $name;
@@ -177,6 +158,13 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $network_mode;
 
     /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerNetwork", inversedBy="services")
+     * @ORM\JoinTable(name="docker_services_networks")
+     * @see https://docs.docker.com/compose/compose-file/#networks
+     */
+    protected $networks;
+
+    /**
      * @ORM\Column(name="pid", type="string", length=4, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#pid
      */
@@ -189,6 +177,12 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $ports = [];
 
     /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerProject", inversedBy="services")
+     * @ORM\JoinColumn(name="project_id", referencedColumnName="id", nullable=false)
+     */
+    protected $project;
+
+    /**
      * @ORM\Column(name="restart", type="string", length=14, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#restart
      */
@@ -199,6 +193,12 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
      * @see https://docs.docker.com/compose/compose-file/#secrets
      */
     protected $secrets = [];
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
+     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
+     */
+    protected $service_type;
 
     /**
      * @ORM\Column(name="stop_grace_period", type="string", length=12, nullable=true)
@@ -240,54 +240,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function __construct()
     {
         $this->networks = new Collections\ArrayCollection();
-    }
-
-    public function getServiceType() : ?DockerServiceType
-    {
-        return $this->service_type;
-    }
-
-    /**
-     * @param DockerServiceType $serviceType
-     * @return $this
-     */
-    public function setServiceType(DockerServiceType $serviceType)
-    {
-        $this->service_type = $serviceType;
-
-        return $this;
-    }
-
-    public function getProject() : ?DockerProject
-    {
-        return $this->project;
-    }
-
-    /**
-     * @param DockerProject $project
-     * @return $this
-     */
-    public function setProject(DockerProject $project)
-    {
-        $this->project = $project;
-
-        return $this;
-    }
-
-    public function getName() : ?string
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     * @return $this
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getBuild() : DockerService\Build
@@ -633,6 +585,22 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
     public function getNetworkMode() : ?string
     {
         return $this->network_mode;
@@ -705,6 +673,22 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
+    public function getProject() : ?DockerProject
+    {
+        return $this->project;
+    }
+
+    /**
+     * @param DockerProject $project
+     * @return $this
+     */
+    public function setProject(DockerProject $project)
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
     public function getRestart() : string
     {
         return $this->restart;
@@ -739,6 +723,27 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         $this->secrets = $secrets;
 
         return $this;
+    }
+
+    public function getServiceType() : ?DockerServiceType
+    {
+        return $this->service_type;
+    }
+
+    /**
+     * @param DockerServiceType $serviceType
+     * @return $this
+     */
+    public function setServiceType(DockerServiceType $serviceType)
+    {
+        $this->service_type = $serviceType;
+
+        return $this;
+    }
+
+    public function getSlug() : string
+    {
+        return Transliterator::urlize($this->getName());
     }
 
     public function getStopGracePeriod() : string
@@ -890,10 +895,5 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function removeVolume(string $source)
     {
         unset($this->volumes[$source]);
-    }
-
-    public function getSlug(): string
-    {
-        return Transliterator::urlize($this->getName());
     }
 }

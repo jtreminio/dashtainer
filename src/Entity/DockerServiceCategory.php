@@ -17,12 +17,6 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
     use EntityBaseTrait;
 
     /**
-     * @ORM\OneToMany(targetEntity="DockerServiceType", mappedBy="service_category")
-     * @ORM\OrderBy({"order" = "ASC"})
-     */
-    protected $service_types;
-
-    /**
      * @ORM\Column(name="name", type="string", length=255, unique=true)
      */
     protected $name;
@@ -32,33 +26,15 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
      */
     protected $order;
 
+    /**
+     * @ORM\OneToMany(targetEntity="DockerServiceType", mappedBy="service_category")
+     * @ORM\OrderBy({"order" = "ASC"})
+     */
+    protected $service_types;
+
     public function __construct()
     {
         $this->service_types = new Collections\ArrayCollection();
-    }
-
-    /**
-     * @param DockerServiceType $serviceType
-     * @return $this
-     */
-    public function addServiceType(DockerServiceType $serviceType)
-    {
-        $this->service_types[] = $serviceType;
-
-        return $this;
-    }
-
-    public function removeServiceType(DockerServiceType $serviceType)
-    {
-        $this->service_types->removeElement($serviceType);
-    }
-
-    /**
-     * @return DockerService[]|Collections\ArrayCollection
-     */
-    public function getServiceTypes()
-    {
-        return $this->service_types;
     }
 
     public function getName() : ?string
@@ -91,5 +67,29 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
         $this->order = $order;
 
         return $this;
+    }
+
+    /**
+     * @param DockerServiceType $serviceType
+     * @return $this
+     */
+    public function addServiceType(DockerServiceType $serviceType)
+    {
+        $this->service_types[] = $serviceType;
+
+        return $this;
+    }
+
+    public function removeServiceType(DockerServiceType $serviceType)
+    {
+        $this->service_types->removeElement($serviceType);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getServiceTypes()
+    {
+        return $this->service_types;
     }
 }

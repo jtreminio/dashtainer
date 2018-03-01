@@ -50,7 +50,7 @@ class RestartPolicy implements Util\HydratorInterface
     /**
      * @return string
      */
-    public function getDelay(): string
+    public function getDelay() : string
     {
         return $this->delay;
     }
