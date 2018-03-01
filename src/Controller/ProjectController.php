@@ -189,15 +189,15 @@ class ProjectController extends Controller
     }
 
     /**
-     * @Route(name="project.delete.get",
+     * @Route(name="project.delete.post",
      *     path="/project/{projectId}/delete",
-     *     methods={"GET"}
+     *     methods={"POST"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
      * @return Response
      */
-    public function getDelete(
+    public function postDelete(
         Entity\User $user,
         string $projectId
     ) : Response {
@@ -206,14 +206,13 @@ class ProjectController extends Controller
             'user' => $user
         ]);
 
-        if (!$project) {
-            return $this->render('@Dashtainer/project/not-found.html.twig');
+        if ($project) {
+            $this->dockerProjectDomain->delete($project);
         }
 
-        // todo implement
-        return $this->render('@Dashtainer/project/view.html.twig', [
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
-        ]);
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_REDIRECT,
+            'data' => $this->generateUrl('project.index.get'),
+        ], AjaxResponse::HTTP_OK);
     }
 }

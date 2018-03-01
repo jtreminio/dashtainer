@@ -42,4 +42,59 @@ class DockerProject
 
         return $project;
     }
+
+    public function delete(Entity\DockerProject $project)
+    {
+        $deleted = [];
+        $saved   = [];
+
+        foreach ($project->getServices() as $service) {
+            foreach ($service->getNetworks() as $network) {
+                $service->removeNetwork($network);
+                $network->removeService($service);
+
+                $saved []= $network;
+            }
+
+            foreach ($service->getSecrets() as $secret) {
+                $service->removeSecret($secret);
+                $secret->removeService($service);
+
+                $saved []= $secret;
+            }
+
+            foreach ($service->getVolumes() as $volume) {
+                $service->removeVolume($volume);
+                $volume->removeService($service);
+
+                $saved []= $volume;
+            }
+
+            $service->setProject(null);
+            $project->removeService($service);
+
+            $saved []= $service;
+            $deleted []= $service;
+        }
+
+        foreach ($project->getNetworks() as $network) {
+            $project->removeNetwork($network);
+            $deleted []= $network;
+        }
+
+        foreach ($project->getSecrets() as $secret) {
+            $project->removeSecret($secret);
+            $deleted []= $secret;
+        }
+
+        foreach ($project->getVolumes() as $volume) {
+            $project->removeVolume($volume);
+            $deleted []= $volume;
+        }
+
+        $deleted []= $project;
+
+        $this->repo->save(...$saved);
+        $this->repo->delete(...$deleted);
+    }
 }
