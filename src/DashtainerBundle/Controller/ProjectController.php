@@ -75,13 +75,6 @@ class ProjectController extends Controller
         $project->setUser($user);
 
         $this->em->persist($project);
-
-        $network = new Entity\Network();
-        $network->setName($project->getSlug())
-            ->setExternal('traefik_webgateway')
-            ->setProject($project);
-
-        $this->em->persist($network);
         $this->em->flush();
 
         return new AjaxResponse([
