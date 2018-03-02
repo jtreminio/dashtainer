@@ -1,7 +1,8 @@
 require('../css/app.scss');
 require('bootstrap/scss/bootstrap.scss');
 
-var $ = require('jquery');
+const $ = require('jquery');
+global.$ = global.jQuery = $;
 require('bootstrap');
 require('font-awesome/scss/font-awesome.scss');
 
