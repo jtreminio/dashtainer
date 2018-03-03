@@ -3,8 +3,12 @@
     "@symfony/webpack-encore": "^0.19.0",
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
+    "jquery-mask-plugin": "^1.14.13",
+    "misbehave": "^0.3.0",
     "node-sass": "^4.7.2",
+    "prismjs": "^1.11.0",
     "sass-loader": "^6.0.6",
+    "selectize": "^0.12.4",
     "webpack-notifier": "^1.5.1"
   },
   "dependencies": {

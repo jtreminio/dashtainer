@@ -26,3 +26,33 @@
 .invalid-feedback:before {
     content: '* ';
 }
+
+[data-code-highlight] {
+    height: 30em;
+    resize: vertical;
+    cursor: text;
+}
+
+[data-code-highlight]:after {
+    content: "(edit me)";
+    position: absolute;
+    top: 50px;
+    right: 30px;
+    color: #aaa;
+    text-align: right;
+    font-size: .75em;
+    padding: 5px 10px 0;
+    line-height: 15px;
+    height: 15px;
+    font-weight: 600;
+}
+
+[data-code-highlight] code {
+    cursor: text;
+    display: inline-block;
+    width: 100%;
+}
+
+code {
+    outline: none;
+}
