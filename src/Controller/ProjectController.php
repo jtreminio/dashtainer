@@ -22,22 +22,17 @@ class ProjectController extends Controller
     /** @var Repository\DockerProjectRepository */
     protected $dProjectRepo;
 
-    /** @var Repository\DockerServiceCategoryRepository */
-    protected $dServiceCatRepo;
-
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
         Domain\DockerProject $dockerProjectDomain,
         Repository\DockerProjectRepository $dProjectRepo,
-        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Validator\Validator $validator
     ) {
         $this->dockerProjectDomain = $dockerProjectDomain;
 
-        $this->dProjectRepo    = $dProjectRepo;
-        $this->dServiceCatRepo = $dServiceCatRepo;
+        $this->dProjectRepo = $dProjectRepo;
 
         $this->validator = $validator;
     }
@@ -47,11 +42,13 @@ class ProjectController extends Controller
      *     path="/project",
      *     methods={"GET"}
      * )
+     * @param Entity\User $user
      * @return Response
      */
-    public function getIndex() : Response
+    public function getIndex(Entity\User $user) : Response
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
+            'user' => $user,
         ]);
     }
 
@@ -101,18 +98,12 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        if (!$project) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         return $this->render('@Dashtainer/project/view.html.twig', [
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'project' => $project,
         ]);
     }
 
@@ -129,12 +120,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        if (!$project) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -158,10 +144,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
+        $project = $this->dProjectRepo->findByUser($user, $projectId);
 
         $form = new Form\DockerProjectCreateUpdateForm();
         $form->fromArray($project->toArray());
@@ -201,12 +184,7 @@ class ProjectController extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        if ($project) {
+        if ($project = $this->dProjectRepo->findByUser($user, $projectId)) {
             $this->dockerProjectDomain->delete($project);
         }
 

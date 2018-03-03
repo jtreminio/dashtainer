@@ -85,4 +85,12 @@ class DockerProjectRepository implements ObjectPersistInterface
     {
         return self::ENTITY_CLASS;
     }
+
+    public function findByUser(Entity\User $user, string $id) : ?Entity\DockerProject
+    {
+        return $this->findOneBy([
+            'id'   => $id,
+            'user' => $user
+        ]);
+    }
 }
