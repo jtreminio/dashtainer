@@ -11,22 +11,21 @@
 </div>
 
 <div class="container">
-    {% if app.user.getProjects is not empty %}
-        <p>Created projects</p>
+    <p>Projects:</p>
+    {% for project in user.getProjects %}
+        <p><a href="{{ path('project.view.get', {
+                'projectId': project.id,
+            }) }}">{{ project.name }}</a></p>
+    {% endfor %}
 
-        {% for project in app.user.getProjects %}
-            <p><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></p>
-        {% endfor %}
-
-        <hr />
-    {% else %}
+    {% if user.getProjects is empty %}
         <p>You have no projects.</p>
     {% endif %}
 
     <p><a href="#" data-toggle="modal"
           data-target="#project-create-modal">Create a new project</a></p>
+
+    <hr />
 </div>
 
 <div class="modal fade" id="project-create-modal" tabindex="-1" role="dialog"
