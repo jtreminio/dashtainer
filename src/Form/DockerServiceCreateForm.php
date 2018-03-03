@@ -13,6 +13,13 @@ class DockerServiceCreateForm
 
     /**
      * @Assert\NotBlank(message = "Please enter a service name.")
+     * @Assert\Length(
+     *      min = 1,
+     *      max = 64,
+     *      minMessage = "Please enter a service name.",
+     *      maxMessage = Project service max length is {{ limit }} characters."
+     * )
+     * @todo enforce hostname regex
      */
     public $name;
 

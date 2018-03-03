@@ -29,7 +29,7 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     ];
 
     /**
-     * @ORM\Column(name="name", type="string", length=255)
+     * @ORM\Column(name="name", type="string", length=64)
      */
     protected $name;
 

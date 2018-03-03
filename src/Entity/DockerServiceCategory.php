@@ -17,7 +17,7 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
     use EntityBaseTrait;
 
     /**
-     * @ORM\Column(name="name", type="string", length=255, unique=true)
+     * @ORM\Column(name="name", type="string", length=64, unique=true)
      */
     protected $name;
 

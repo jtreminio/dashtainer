@@ -31,7 +31,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     ];
 
     /**
-     * @ORM\Column(name="name", type="string", length=255)
+     * @ORM\Column(name="name", type="string", length=64)
      */
     protected $name;
 

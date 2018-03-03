@@ -11,15 +11,20 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name="docker_service_type")
  * @ORM\Entity()
  */
-class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
+class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use EntityBaseTrait;
 
     /**
-     * @ORM\Column(name="name", type="string", length=255, unique=true)
+     * @ORM\Column(name="name", type="string", length=64, unique=true)
      */
     protected $name;
+
+    /**
+     * @ORM\Column(name="slug", type="string", length=255, unique=true)
+     */
+    protected $slug;
 
     /**
      * @ORM\Column(name="is_public", type="boolean")
@@ -46,6 +51,11 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
     public function __construct()
     {
         $this->services = new Collections\ArrayCollection();
+    }
+
+    public function getName() : ?string
+    {
+        return $this->name;
     }
 
     /**
@@ -115,8 +125,19 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface
         return $this->services;
     }
 
-    public function getName() : ?string
+    public function getSlug() : string
     {
-        return $this->name;
+        return $this->slug;
+    }
+
+    /**
+     * @param string $slug
+     * @return $this
+     */
+    public function setSlug(string $slug)
+    {
+        $this->slug = $slug;
+
+        return $this;
     }
 }
