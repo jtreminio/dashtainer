@@ -2,17 +2,11 @@
     name: Web Server
     order: 1
 -
-    name: Programming Language
+    name: Application Engine
     order: 2
 -
-    name: Database
+    name: Database Engine
     order: 3
 -
-    name: Mail Tool
+    name: Other
     order: 4
--
-    name: Work Queue
-    order: 5
--
-    name: Search Server
-    order: 6
