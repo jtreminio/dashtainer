@@ -21,7 +21,7 @@ class DockerServiceTypeMeta implements Util\HydratorInterface, EntityBaseInterfa
     protected $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="DockerServiceType", inversedBy="service_type_meta")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="service_type_meta")
      * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
      */
     protected $service_type;
