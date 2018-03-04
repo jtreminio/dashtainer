@@ -629,14 +629,24 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
      */
     public function addNetwork(DockerNetwork $network)
     {
-        $this->networks[] = $network;
+        if ($this->networks->contains($network)) {
+            return $this;
+        }
+
+        $this->networks->add($network);
+        $network->addService($this);
 
         return $this;
     }
 
     public function removeNetwork(DockerNetwork $network)
     {
+        if (!$this->networks->contains($network)) {
+            return;
+        }
+
         $this->networks->removeElement($network);
+        $network->removeService($this);
     }
 
     /**

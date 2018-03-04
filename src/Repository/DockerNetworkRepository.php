@@ -85,4 +85,22 @@ class DockerNetworkRepository implements ObjectPersistInterface
     {
         return self::ENTITY_CLASS;
     }
+
+    public function getPrimaryPublicNetwork(
+        Entity\DockerProject $project
+    ) : ?Entity\DockerNetwork {
+        return $this->findOneBy([
+            'project'           => $project,
+            'is_primary_public' => true,
+        ]);
+    }
+
+    public function getPrimaryPrivateNetwork(
+        Entity\DockerProject $project
+    ) : ?Entity\DockerNetwork {
+        return $this->findOneBy([
+            'project'            => $project,
+            'is_primary_private' => true,
+        ]);
+    }
 }

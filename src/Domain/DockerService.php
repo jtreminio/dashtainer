@@ -12,9 +12,15 @@ class DockerService
     /** @var Repository\DockerServiceRepository */
     protected $repo;
 
-    public function __construct(Repository\DockerServiceRepository $repo)
-    {
-        $this->repo = $repo;
+    /** @var Repository\DockerNetworkRepository */
+    protected $networkRepo;
+
+    public function __construct(
+        Repository\DockerServiceRepository $repo,
+        Repository\DockerNetworkRepository $networkRepo
+    ) {
+        $this->repo        = $repo;
+        $this->networkRepo = $networkRepo;
     }
 
     public function createServiceFromForm(
@@ -49,8 +55,7 @@ class DockerService
         ]);
 
         $version  = $version ? "-{$version}" : '';
-        $hostname = str_replace('.', '', "{$serviceType->getSlug()}{$version}");
-        $hostname = str_replace('_', '-', $hostname);
+        $hostname = Util\Strings::hostname("{$serviceType->getSlug()}{$version}");
 
         if (empty($services)) {
             return $hostname;
@@ -106,9 +111,13 @@ class DockerService
             ]);
         }
 
-        $this->repo->save($service);
+        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+            $service->getProject()
+        );
 
-        // @todo handle $service->addNetwork()
+        $service->addNetwork($privateNetwork);
+
+        $this->repo->save($service, $privateNetwork);
 
         $cliIni = new Entity\DockerServiceVolume();
         $cliIni->setSource("\$PWD/{$service->getSlug()}/php.ini")

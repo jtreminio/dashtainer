@@ -58,6 +58,21 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
     protected $external;
 
     /**
+     * @ORM\Column(name="is_primary_public", type="boolean")
+     */
+    protected $is_primary_public = false;
+
+    /**
+     * @ORM\Column(name="is_primary_private", type="boolean")
+     */
+    protected $is_primary_private = false;
+
+    /**
+     * @ORM\Column(name="is_removable", type="boolean")
+     */
+    protected $is_removable = true;
+
+    /**
      * @ORM\Column(name="labels", type="json_array", nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#labels-4
      */
@@ -124,6 +139,54 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
         $this->external = empty($external)
             ? null
             : $external;
+
+        return $this;
+    }
+
+    public function getIsPrimaryPublic() : bool
+    {
+        return $this->is_primary_public;
+    }
+
+    /**
+     * @param bool $is_primary_public
+     * @return $this
+     */
+    public function setIsPrimaryPublic(bool $is_primary_public)
+    {
+        $this->is_primary_public = $is_primary_public;
+
+        return $this;
+    }
+
+    public function getIsPrimaryPrivate() : bool
+    {
+        return $this->is_primary_private;
+    }
+
+    /**
+     * @param bool $is_primary_private
+     * @return $this
+     */
+    public function setIsPrimaryPrivate(bool $is_primary_private)
+    {
+        $this->is_primary_private = $is_primary_private;
+
+        return $this;
+    }
+
+    public function getIsRemovable() : bool
+    {
+        return $this->is_removable;
+    }
+
+    /**
+     * @param bool $is_removable
+     * @return $this
+     */
+    public function setIsRemovable(bool $is_removable)
+    {
+        $this->is_removable = $is_removable;
 
         return $this;
     }
@@ -199,14 +262,24 @@ class DockerNetwork implements Util\HydratorInterface, EntityBaseInterface
      */
     public function addService(DockerService $service)
     {
-        $this->services[] = $service;
+        if ($this->services->contains($service)) {
+            return $this;
+        }
+
+        $this->services->add($service);
+        $service->addNetwork($this);
 
         return $this;
     }
 
     public function removeService(DockerService $service)
     {
+        if (!$this->services->contains($service)) {
+            return;
+        }
+
         $this->services->removeElement($service);
+        $service->removeNetwork($this);
     }
 
     /**

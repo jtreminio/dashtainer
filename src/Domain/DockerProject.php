@@ -5,6 +5,7 @@ namespace Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
+use Dashtainer\Util;
 
 class DockerProject
 {
@@ -26,19 +27,25 @@ class DockerProject
 
         $this->repo->save($project);
 
-        $webNetwork = new Entity\DockerNetwork();
-        $webNetwork->setName('web')
+        $hostname = Util\Strings::hostname($project->getSlug());
+
+        $publicNetwork = new Entity\DockerNetwork();
+        $publicNetwork->setName("{$hostname}-public")
+            ->setIsRemovable(false)
+            ->setIsPrimaryPublic(true)
             ->setExternal('traefik_webgateway')
             ->setProject($project);
 
-        $projectNetwork = new Entity\DockerNetwork();
-        $projectNetwork->setName($project->getSlug())
+        $privateNetwork = new Entity\DockerNetwork();
+        $privateNetwork->setName("{$hostname}-private")
+            ->setIsRemovable(false)
+            ->setIsPrimaryPrivate(true)
             ->setProject($project);
 
-        $project->addNetwork($webNetwork)
-            ->addNetwork($projectNetwork);
+        $project->addNetwork($publicNetwork)
+            ->addNetwork($privateNetwork);
 
-        $this->repo->save($webNetwork, $projectNetwork, $project);
+        $this->repo->save($publicNetwork, $privateNetwork, $project);
 
         return $project;
     }
