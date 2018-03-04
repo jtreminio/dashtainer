@@ -31,13 +31,14 @@
     height: 30em;
     resize: vertical;
     cursor: text;
+    position: relative;
 }
 
 [data-code-highlight]:after {
     content: "(edit me)";
     position: absolute;
-    top: 50px;
-    right: 30px;
+    top: 0;
+    right: 0;
     color: #aaa;
     text-align: right;
     font-size: .75em;
@@ -55,4 +56,20 @@
 
 code {
     outline: none;
+}
+
+.custom-control.lg {
+    .custom-control-label::before,
+    .custom-control-label::after {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    label {
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    min-height: 2.5rem;
+    padding-left: 3rem;
 }
