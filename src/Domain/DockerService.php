@@ -25,7 +25,7 @@ class DockerService
             return $this->createPhpFpmServiceFromForm($form);
         }
 
-        throw new \Exception('Service not created');
+        return null;
     }
 
     public function getCreateForm(
@@ -35,7 +35,7 @@ class DockerService
             return new Form\DockerServiceCreate\PhpFpm();
         }
 
-        throw new \Exception('Form type not found');
+        return null;
     }
 
     public function generateServiceName(
@@ -48,10 +48,12 @@ class DockerService
             'service_type' => $serviceType,
         ]);
 
-        $version = $version ? "-{$version}" : '';
+        $version  = $version ? "-{$version}" : '';
+        $hostname = str_replace('.', '', "{$serviceType->getSlug()}{$version}");
+        $hostname = str_replace('_', '-', $hostname);
 
         if (empty($services)) {
-            return "{$serviceType->getSlug()}{$version}";
+            return $hostname;
         }
 
         $usedNames = [];
@@ -60,14 +62,14 @@ class DockerService
         }
 
         for ($i = 1; $i <= count($usedNames); $i++) {
-            $name = "{$serviceType->getSlug()}{$version}-{$i}";
+            $name = "{$hostname}-{$i}";
 
             if (!in_array($name, $usedNames)) {
                 return $name;
             }
         }
 
-        return "{$serviceType->getSlug()}{$version}-" . uniqid();
+        return "{$hostname}-" . uniqid();
     }
 
     protected function createPhpFpmServiceFromForm(
