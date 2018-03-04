@@ -1,0 +1,53 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Projects</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <h3>Create a new service</h3>
+
+    {% for category in serviceCategories %}
+    <div class="card mb-4">
+        <h5 class="card-header">{{ category.name }}</h5>
+        <div class="card-body">
+            <div class="row">
+                {% for type in category.serviceTypes %}
+                    <div class="col-sm-6 col-lg-3 mb-4">
+                        {% if type.versions is not empty %}
+                            <div class="dropdown">
+                                <button class="btn btn-primary btn-block dropdown-toggle"
+                                        type="button" id="{{ type.slug }}-dropdown"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {{ type.name }}
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="{{ type.slug }}-dropdown">
+                                    {% for version in type.versions %}
+                                        <a href="{{ path('project.service.create.type.get', {
+                                            'projectId': project.id,
+                                            'serviceTypeSlug': type.slug,
+                                            'version': version,
+                                        }) }}" class="dropdown-item">{{ type.name }} {{ version }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{{ path('project.service.create.type.get', {
+                                'projectId': project.id,
+                                'serviceTypeSlug': type.slug,
+                            }) }}" class="btn btn-primary btn-block">{{ type.name }}</a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

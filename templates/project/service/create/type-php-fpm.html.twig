@@ -1,0 +1,301 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                }) }}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Create Service: PHP-FPM {{ version }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="text-center">
+        <h2>PHP-FPM {{ version }}</h2>
+    </div>
+
+    <form class="mb-5" action="{{ path('project.service.create.type.post', {
+        'projectId': project.id,
+        'serviceTypeSlug': serviceType.slug,
+        'version': version,
+    }) }}" method="post" data-ajax>
+        <div class="row">
+            <div class="form-group col col-md-10 col-lg-6">
+                <label for="name">Service Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ serviceName }}" required data-mask-type="dns"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+            <div class="form-group col-12">
+                <small class="text-muted">
+                    This is the name your Nginx or Apache webserver will use to
+                    communicate with PHP-FPM.<br />
+                    Apache Example: <code>SetHandler proxy:fcgi://{service-name-here}:9000</code><br />
+                    Nginx Example: <code>fastcgi_pass {service-name-here}:9000</code><br />
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col col-md-10 col-lg-6">
+                <label for="directory">Path to PHP Files</label>
+                <input type="text" class="form-control" maxlength="255"
+                       id="directory" name="directory" placeholder=""
+                       value="/path/to/your/project" required
+                       data-error-container="directory" />
+                <div class="invalid-feedback" data-error-container-name="directory"></div>
+            </div>
+            <div class="form-group col-12">
+                <small class="text-muted">
+                    Location of your PHP project's files on host machine.
+                    This will be automatically mounted inside the container as
+                    <code>/var/www</code>.<br />
+                    Windows users: You must use forward-slash
+                    <code>c:/dev/my-project/webroot</code> or double back-slash
+                    <code>c:\\dev\\my-project\\webroot</code>.
+                </small>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Packages</h4>
+
+        {% set phpVersionedPackages = serviceType.getServiceTypeMeta("packages-#{version}") %}
+        {% set phpGeneralPackages = serviceType.getServiceTypeMeta('packages-general') %}
+        <div class="row">
+            <div class="form-group col">
+                <label for="php-packages">PHP Packages</label>
+                <select class="form-control" id="php-packages" name="php_packages[]"
+                        multiple data-error-container="php-packages" data-selectize-tags>
+                    {% if phpVersionedPackages %}
+                        {% for package in phpVersionedPackages.value.default %}
+                            <option value="{{ package }}" selected>{{ package }}</option>
+                        {% endfor %}
+                        {% for package in phpVersionedPackages.value.available %}
+                            <option value="{{ package }}">{{ package }}</option>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% for package in phpGeneralPackages.value.default %}
+                        <option value="{{ package }}" selected>{{ package }}</option>
+                    {% endfor %}
+                    {% for package in phpGeneralPackages.value.available %}
+                        <option value="{{ package }}">{{ package }}</option>
+                    {% endfor %}
+                </select>
+                <div class="invalid-feedback" data-error-container-name="php-packages"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="pear-packages">PEAR Packages</label>
+                <select class="form-control" id="pear-packages" name="pear_packages[]"
+                        multiple data-error-container="pear-packages" data-selectize-tags>
+                </select>
+                <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="pecl-packages">PECL Packages</label>
+                <select class="form-control" id="pecl-packages" name="pecl_packages[]"
+                        multiple data-error-container="pecl-packages" data-selectize-tags>
+                </select>
+                <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="system-packages">System Packages</label>
+                <select class="form-control" id="system-packages" name="system_packages[]"
+                        multiple data-error-container="system-packages" data-selectize-tags>
+                </select>
+                <div class="invalid-feedback" data-error-container-name="system-packages"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        {% set iniMeta = serviceType.getServiceTypeMeta("ini-#{version}") %}
+        {% if iniMeta %}
+            <h4 class="mb-3">INI Settings</h4>
+            <div class="row">
+                <div class="col">
+                    <nav class="mb-1">
+                        <div class="nav nav-tabs" id="nav-file-tab" role="tablist">
+                            {% for key, value in iniMeta.value %}
+                                <a class="nav-item nav-link {{ loop.first ? 'active' }}"
+                                   data-toggle="tab" role="tab"
+                                   id="nav-file-{{ key }}-tab" href="#file-{{ key }}"
+                                   aria-controls="file-{{ key }}"
+                                   aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
+                            {% endfor %}
+                        </div>
+                    </nav>
+                    <div class="tab-content" id="nav-file-content">
+                        {% for key, value in iniMeta.value %}
+                            <div class="tab-pane fade {{ loop.first ? 'show active' }}"
+                                 role="tabpanel"
+                                 id="file-{{ key }}" aria-labelledby="nav-file-{{ key }}-tab">
+                                <div class="row">
+                                    <div class="col">
+                                        <pre class="language-ini" data-code-highlight><code
+                                                contenteditable autocorrect="off" autocapitalize="off"
+                                                spellcheck="false"
+                                                id="file-{{ key }}-source">{{ value }}</code></pre>
+                                        <input type="hidden" value="" name="file[{{ key }}]"
+                                               data-get-value-source="file-{{ key }}-source" />
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <hr class="mb-4" />
+        {% endif %}
+
+        {% set iniXdebug = serviceType.getServiceTypeMeta('ini-xdebug') %}
+        <h4 class="mb-3">Additional Tools</h4>
+        <div class="row">
+            <div class="col">
+                <nav class="mb-3">
+                    <div class="nav nav-tabs" id="nav-file-tab" role="tablist">
+                        <a class="nav-item nav-link active"
+                           data-toggle="tab" role="tab"
+                           id="nav-addons-composer-tab" href="#addons-composer"
+                           aria-controls="addons-composer"
+                           aria-selected="true">Composer</a>
+                        <a class="nav-item nav-link"
+                           data-toggle="tab" role="tab"
+                           id="nav-addons-xdebug-tab" href="#addons-xdebug"
+                           aria-controls="addons-xdebug"
+                           aria-selected="true">Xdebug</a>
+                        <a class="nav-item nav-link"
+                           data-toggle="tab" role="tab"
+                           id="nav-addons-blackfire-tab" href="#addons-blackfire"
+                           aria-controls="addons-blackfire"
+                           aria-selected="true">Blackfire</a>
+                    </div>
+                </nav>
+                <div class="tab-content" id="nav-file-content">
+                    <div class="tab-pane fade show active" role="tabpanel"
+                         id="addons-composer" aria-labelledby="nav-addons-composer-tab">
+                        <div class="row">
+                            <div class="form-group col">
+                                <div class="custom-control custom-checkbox lg">
+                                    <input type="checkbox" class="custom-control-input"
+                                           value="1" checked
+                                           id="composer-install" name="composer[install]">
+                                    <label class="custom-control-label" for="composer-install">
+                                        Install Composer</label>
+                                </div>
+                                <small class="text-muted">
+                                    Composer will be available as a system service as
+                                    <code>$ composer</code>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade"
+                         role="tabpanel"
+                         id="addons-xdebug" aria-labelledby="nav-addons-xdebug-tab">
+                        <div class="row">
+                            <div class="form-group col">
+                                <div class="custom-control custom-checkbox lg">
+                                    <input type="checkbox" class="custom-control-input"
+                                           value="1"
+                                           id="xdebug-install" name="xdebug[install]">
+                                    <label class="custom-control-label" for="xdebug-install">
+                                        Install Xdebug</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-primary" role="alert">
+                                    On <strong>Windows</strong>? Change
+                                    <code>docker.for.mac.host.internal</code> below to
+                                    <code>docker.for.win.host.internal</code>
+                                </div>
+                                <div class="alert alert-secondary" role="alert">
+                                    On <strong>Linux</strong>? Change
+                                    <code>docker.for.mac.host.internal</code> below to
+                                    <code>localhost</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <pre class="language-ini" data-code-highlight><code
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false"
+                                        id="xdebug-ini">{{ iniXdebug.value.data }}</code></pre>
+                                <input type="hidden" value="" name="xdebug[ini]"
+                                       data-get-value-source="xdebug-ini" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" role="tabpanel"
+                         id="addons-blackfire" aria-labelledby="nav-addons-blackfire-tab">
+                        <div class="row">
+                            <div class="form-group col">
+                                <div class="custom-control custom-checkbox lg">
+                                    <input type="checkbox" class="custom-control-input"
+                                           value="1"
+                                           id="blackfire-install" name="blackfire[install]">
+                                    <label class="custom-control-label" for="blackfire-install">
+                                        Install Blackfire</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group col">
+                                <label for="blackfire-server_id">Blackfire Server ID</label>
+                                <input type="text" class="form-control" maxlength="64"
+                                       id="blackfire-server_id" name="blackfire[server_id]"
+                                       placeholder="" value=""
+                                       data-error-container="blackfire-server_id" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_id"></div>
+                            </div>
+
+                            <div class="form-group col">
+                                <label for="blackfire-server_token">Blackfire Server Token</label>
+                                <input type="text" class="form-control" maxlength="64"
+                                       id="blackfire-server_token" name="blackfire[server_token]"
+                                       placeholder="" value=""
+                                       data-error-container="blackfire-server_token" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_token"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <input type="hidden" id="version" name="version" value="{{ version }}" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+    </form>
+</div>
+{% endblock %}

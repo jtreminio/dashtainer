@@ -22,6 +22,9 @@ class ServiceController extends Controller
     /** @var Repository\DockerProjectRepository */
     protected $dProjectRepo;
 
+    /** @var Repository\DockerServiceCategoryRepository */
+    protected $dServiceCatRepo;
+
     /** @var Repository\DockerServiceRepository */
     protected $dServiceRepo;
 
@@ -33,6 +36,7 @@ class ServiceController extends Controller
 
     public function __construct(
         Domain\DockerService $dockerServiceDomain,
+        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Repository\DockerProjectRepository $dProjectRepo,
         Repository\DockerServiceRepository $dServiceRepo,
         Repository\DockerServiceTypeRepository $dServiceTypeRepo,
@@ -41,10 +45,57 @@ class ServiceController extends Controller
         $this->dockerServiceDomain = $dockerServiceDomain;
 
         $this->dProjectRepo     = $dProjectRepo;
+        $this->dServiceCatRepo  = $dServiceCatRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceTypeRepo = $dServiceTypeRepo;
 
         $this->validator = $validator;
+    }
+
+    /**
+     * @Route(name="project.service.index.get",
+     *     path="/project/{projectId}/service",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getIndex(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/service/index.html.twig', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * @Route(name="project.service.create.get",
+     *     path="/project/{projectId}/service/create",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getCreate(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/service/create.html.twig', [
+            'user'              => $user,
+            'project'           => $project,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+        ]);
     }
 
     /**
@@ -93,6 +144,77 @@ class ServiceController extends Controller
                 'serviceId' => $service->getId(),
             ]),
         ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.create.type.get",
+     *     path="/project/{projectId}/service/create/{serviceTypeSlug}/{version}",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceTypeSlug
+     * @param string|null $version
+     * @return Response
+     */
+    public function getCreateType(
+        Entity\User $user,
+        string $projectId,
+        string $serviceTypeSlug,
+        string $version = null
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        if (!$serviceType = $this->dServiceTypeRepo->findOneBy([
+            'slug' => $serviceTypeSlug,
+        ])) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        $serviceName = $this->dockerServiceDomain->generateServiceName(
+            $project,
+            $serviceType,
+            $version
+        );
+
+        $template = sprintf('@Dashtainer/project/service/create/type-%s.html.twig',
+            strtolower($serviceTypeSlug)
+        );
+
+        return $this->render($template, [
+            'user'        => $user,
+            'project'     => $project,
+            'serviceName' => $serviceName,
+            'serviceType' => $serviceType,
+            'version'     => $version,
+        ]);
+    }
+
+    /**
+     * @Route(name="project.service.create.type.post",
+     *     path="/project/{projectId}/service/create/{serviceTypeSlug}/{version}",
+     *     methods={"POST"}
+     * )
+     * @param Request     $request
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $serviceTypeSlug
+     * @param string|null $version
+     * @return AjaxResponse
+     */
+    public function postCreateType(
+        Request $request,
+        Entity\User $user,
+        string $projectId,
+        string $serviceTypeSlug,
+        string $version = null
+    ) : AjaxResponse {
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_REDIRECT,
+            'data' => '',
+        ], AjaxResponse::HTTP_BAD_REQUEST);
     }
 
     /**

@@ -4,17 +4,16 @@ namespace Dashtainer\Domain;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-
-use Doctrine\ORM\EntityManagerInterface;
+use Dashtainer\Repository;
 
 class DockerService
 {
-    /** @var EntityManagerInterface */
-    protected $em;
+    /** @var Repository\DockerServiceRepository */
+    protected $repo;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(Repository\DockerServiceRepository $repo)
     {
-        $this->em = $em;
+        $this->repo = $repo;
     }
 
     public function createServiceFromForm(
@@ -23,9 +22,40 @@ class DockerService
         $service = new Entity\DockerService();
         $service->fromArray($form->toArray());
 
-        $this->em->persist($service);
-        $this->em->flush();
+        $this->repo->save($service);
 
         return $service;
+    }
+
+    public function generateServiceName(
+        Entity\DockerProject $project,
+        Entity\DockerServiceType $serviceType,
+        string $version = null
+    ) : string {
+        $services = $this->repo->findBy([
+            'project'      => $project,
+            'service_type' => $serviceType,
+        ]);
+
+        $version = $version ? "-{$version}" : '';
+
+        if (empty($services)) {
+            return "{$serviceType->getSlug()}{$version}";
+        }
+
+        $usedNames = [];
+        foreach ($services as $service) {
+            $usedNames []= $service->getName();
+        }
+
+        for ($i = 1; $i <= count($usedNames); $i++) {
+            $name = "{$serviceType->getSlug()}{$version}-{$i}";
+
+            if (!in_array($name, $usedNames)) {
+                return $name;
+            }
+        }
+
+        return "{$serviceType->getSlug()}{$version}-" . uniqid();
     }
 }

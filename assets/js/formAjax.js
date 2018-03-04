@@ -2,6 +2,8 @@ $(document).on('submit', 'form[data-ajax]', function (e) {
     e.preventDefault();
     e.stopPropagation();
 
+    getNonFormElementData($(this));
+
     var url      = $(this).attr('action');
     var $spinner = $('#ajax-spinner');
 
@@ -104,4 +106,11 @@ function handleFormAjaxResponse(response) {
 
         return true;
     }
+}
+
+function getNonFormElementData($form) {
+    $.each($form.find('[data-get-value-source]'), function(_, element) {
+        var $source = $('[id="' + $(element).data('get-value-source') + '"]');
+        $(element).val($source.text());
+    });
 }

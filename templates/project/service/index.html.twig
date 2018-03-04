@@ -1,0 +1,63 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Projects</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+
+    <p>Projects:</p>
+    {% for project in user.getProjects %}
+        <p><a href="{{ path('project.view.get', {
+                'projectId': project.id,
+            }) }}">{{ project.name }}</a></p>
+    {% endfor %}
+
+    {% if user.getProjects is empty %}
+        <p>You have no projects.</p>
+    {% endif %}
+
+    <p><a href="#" data-toggle="modal"
+          data-target="#project-create-modal">Create a new project</a></p>
+
+    <hr />
+</div>
+
+<div class="modal fade" id="project-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="project-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="project-create-modal-title">Create a new project</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.create.post') }}" method="post" data-ajax>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row form-group">
+                            <label for="name">Project Name</label>
+                            <input type="text" class="form-control"
+                                   id="name" name="name" placeholder=""
+                                   value="" required data-error-container="name" />
+                            <div class="invalid-feedback"
+                                 data-error-container-name="name"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

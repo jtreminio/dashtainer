@@ -32,8 +32,8 @@
         <p>You have no services.</p>
     {% endif %}
 
-    <p><a href="#" data-toggle="modal"
-          data-target="#service-create-modal">Create a new service</a></p>
+    <p><a href="{{ path('project.service.create.get', {'projectId': project.id}) }}" >
+            Create a new service</a></p>
 
     <hr />
 
@@ -85,58 +85,6 @@
 
     <p><a href="#" data-toggle="modal"
           data-target="#volume-create-modal">Create a new volume</a></p>
-</div>
-
-<div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
-     aria-labelledby="service-create-modal-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="service-create-modal-title">Create a new service</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form action="{{ path('project.service.create.post', {
-                    'projectId': project.id,
-                }) }}" method="post" data-ajax>
-                <div class="modal-body">
-                    <div class="container">
-                        <div class="row form-group">
-                            <label for="service-name">Name</label>
-                            <input type="text" class="form-control"
-                                   id="service-name" name="name" placeholder=""
-                                   value="" required data-error-container="service-name" />
-                            <div class="invalid-feedback"
-                                 data-error-container-name="service-name"></div>
-                        </div>
-
-                        <div class="row form-group">
-                            <label for="service-service_type">Type</label>
-                            <select class="form-control"
-                                    id="service-service_type" name="service_type" required
-                                    data-error-container="service-service_type">
-                                <option value="" disabled selected hidden>Select your option</option>
-                                {% for category in serviceCategories %}
-                                    <optgroup label="{{ category.name }}">
-                                        {% for type in category.serviceTypes %}
-                                            <option value="{{ type.id }}">{{ type.name }}</option>
-                                        {% endfor %}
-                                    </optgroup>
-                                {% endfor %}
-                            </select>
-                            <div class="invalid-feedback"
-                                 data-error-container-name="service-service_type"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <div class="modal fade" id="network-create-modal" tabindex="-1" role="dialog"
