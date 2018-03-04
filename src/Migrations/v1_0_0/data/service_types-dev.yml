@@ -3,65 +3,80 @@
     service_category: Web Server
     is_public: true
     slug: apache
+    versions: []
     order: 1
 -
     name: Nginx
     service_category: Web Server
     is_public: true
     slug: nginx
+    versions: []
     order: 2
 -
     name: PHP-FPM
     service_category: Application Engine
     is_public: true
     slug: php-fpm
+    versions:
+        - '7.2'
+        - '7.1'
+        - '7.0'
+        - '5.6'
     order: 1
 -
     name: MariaDB
     service_category: Database Engine
     is_public: true
     slug: mariadb
+    versions: []
     order: 1
 -
     name: MySQL
     service_category: Database Engine
     is_public: true
     slug: mysql
+    versions: []
     order: 2
 -
     name: PostgreSQL
     service_category: Database Engine
     is_public: true
     slug: postgresql
+    versions: []
     order: 3
 -
     name: MongoDB
     service_category: Database Engine
     is_public: true
     slug: mongodb
+    versions: []
     order: 4
 -
     name: Redis
     service_category: Database Engine
     is_public: true
     slug: redis
+    versions: []
     order: 5
 -
     name: Elasticsearch
     service_category: Other
     is_public: true
     slug: elasticsearch
+    versions: []
     order: 1
 -
     name: MailHog
     service_category: Other
     is_public: true
     slug: mailhog
+    versions: []
     order: 2
 -
     name: Beanstalkd
     service_category: Other
     is_public: true
     slug: beanstalkd
+    versions: []
     order: 3
 
