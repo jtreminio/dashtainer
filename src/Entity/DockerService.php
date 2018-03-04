@@ -192,6 +192,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $service_type;
 
     /**
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceVolume", mappedBy="service")
+     */
+    protected $service_volumes;
+
+    /**
      * @ORM\Column(name="stop_grace_period", type="string", length=12, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#stop_grace_period
      */
@@ -231,9 +236,10 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
 
     public function __construct()
     {
-        $this->networks = new Collections\ArrayCollection();
-        $this->secrets  = new Collections\ArrayCollection();
-        $this->volumes  = new Collections\ArrayCollection();
+        $this->networks        = new Collections\ArrayCollection();
+        $this->secrets         = new Collections\ArrayCollection();
+        $this->service_volumes = new Collections\ArrayCollection();
+        $this->volumes         = new Collections\ArrayCollection();
     }
 
     public function getBuild() : DockerService\Build
@@ -741,6 +747,30 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         $this->service_type = $serviceType;
 
         return $this;
+    }
+
+    /**
+     * @param DockerServiceVolume $volume
+     * @return $this
+     */
+    public function addServiceVolume(DockerServiceVolume $volume)
+    {
+        $this->service_volumes[] = $volume;
+
+        return $this;
+    }
+
+    public function removeServiceVolume(DockerServiceVolume $volume)
+    {
+        $this->service_volumes->removeElement($volume);
+    }
+
+    /**
+     * @return DockerServiceVolume[]|Collections\ArrayCollection
+     */
+    public function getServiceVolumes()
+    {
+        return $this->service_volumes;
     }
 
     public function getSlug() : string
