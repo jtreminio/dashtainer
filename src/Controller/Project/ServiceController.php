@@ -70,8 +70,9 @@ class ServiceController extends Controller
         }
 
         return $this->render('@Dashtainer/project/service/index.html.twig', [
-            'user'    => $user,
-            'project' => $project,
+            'user'              => $user,
+            'project'           => $project,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 

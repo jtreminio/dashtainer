@@ -32,8 +32,18 @@
         <p>You have no services.</p>
     {% endif %}
 
-    <p><a href="{{ path('project.service.create.get', {'projectId': project.id}) }}" >
-            Create a new service</a></p>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" aria-expanded="false"
+            data-target="#services-list" aria-controls="services-list">
+        Create a new service
+    </button>
+
+    <div class="row mt-3">
+        <div class="col">
+            <div class="collapse" id="services-list">
+                {% include '@Dashtainer/project/service/_create_service.html.twig' %}
+            </div>
+        </div>
+    </div>
 
     <hr />
 

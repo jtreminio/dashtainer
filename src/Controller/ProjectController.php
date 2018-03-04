@@ -22,17 +22,22 @@ class ProjectController extends Controller
     /** @var Repository\DockerProjectRepository */
     protected $dProjectRepo;
 
+    /** @var Repository\DockerServiceCategoryRepository */
+    protected $dServiceCatRepo;
+
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
         Domain\DockerProject $dockerProjectDomain,
         Repository\DockerProjectRepository $dProjectRepo,
+        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Validator\Validator $validator
     ) {
         $this->dockerProjectDomain = $dockerProjectDomain;
 
-        $this->dProjectRepo = $dProjectRepo;
+        $this->dProjectRepo    = $dProjectRepo;
+        $this->dServiceCatRepo = $dServiceCatRepo;
 
         $this->validator = $validator;
     }
@@ -104,6 +109,7 @@ class ProjectController extends Controller
 
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project' => $project,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 
