@@ -70,7 +70,8 @@ class ServiceController extends Controller
         }
 
         return $this->render('@Dashtainer/project/service/index.html.twig', [
-            'user' => $user,
+            'user'    => $user,
+            'project' => $project,
         ]);
     }
 
