@@ -141,11 +141,12 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
 
     public function removeServiceTypeMeta(DockerServiceTypeMeta $service_type_meta)
     {
-        $this->services->removeElement($service_type_meta);
+        $this->service_type_meta->removeElement($service_type_meta);
     }
 
     public function getServiceTypeMeta(string $name) : ?DockerServiceTypeMeta
-    {/** @var DockerServiceTypeMeta $meta */
+    {
+        /** @var DockerServiceTypeMeta $meta */
         foreach ($this->service_type_meta as $meta) {
             if ($meta->getName() === $name) {
                 return $meta;
