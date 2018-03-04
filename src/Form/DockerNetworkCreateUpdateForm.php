@@ -6,7 +6,7 @@ use Dashtainer\Util;
 
 use Symfony\Component\Validator\Constraints as Assert;
 
-class DockerNetworkCreateUpdateForm
+class DockerNetworkCreateUpdateForm implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 

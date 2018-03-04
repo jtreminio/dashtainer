@@ -113,7 +113,7 @@ class ServiceController extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        $form = new Form\DockerServiceCreateForm();
+        $form = new Form\DockerServiceCreateAbstract();
         $form->fromArray($request->request->all());
 
         $form->project = $this->dProjectRepo->findOneBy([
@@ -211,10 +211,45 @@ class ServiceController extends Controller
         string $serviceTypeSlug,
         string $version = null
     ) : AjaxResponse {
+        $project = $this->dProjectRepo->findOneBy([
+            'id'   => $projectId,
+            'user' => $user
+        ]);
+
+        $service_type = $this->dServiceTypeRepo->findOneBy([
+            'slug' => $serviceTypeSlug,
+        ]);
+
+        if (!$form = $this->dockerServiceDomain->getCreateForm($service_type)) {
+            return new AjaxResponse([
+                'type' => AjaxResponse::AJAX_REDIRECT,
+                'data' => '',
+            ], AjaxResponse::HTTP_BAD_REQUEST);
+        }
+
+        $form->fromArray($request->request->all());
+
+        $form->project      = $project;
+        $form->service_type = $service_type;
+
+        $this->validator->setSource($form);
+
+        if (!$this->validator->isValid()) {
+            return new AjaxResponse([
+                'type'   => AjaxResponse::AJAX_ERROR,
+                'errors' => $this->validator->getErrors(true),
+            ], AjaxResponse::HTTP_BAD_REQUEST);
+        }
+
+        $service = $this->dockerServiceDomain->createServiceFromForm($form);
+
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
-            'data' => '',
-        ], AjaxResponse::HTTP_BAD_REQUEST);
+            'data' => $this->generateUrl('project.service.view.get', [
+                'projectId' => $form->project->getId(),
+                'serviceId' => $service->getId(),
+            ]),
+        ], AjaxResponse::HTTP_OK);
     }
 
     /**

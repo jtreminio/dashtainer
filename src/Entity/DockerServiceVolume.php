@@ -109,6 +109,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
+    public function getPropogation() : ?string
+    {
+        return $this->propogation;
+    }
+
+    /**
+     * @param string $propogation
+     * @return $this
+     */
+    public function setPropogation(string $propogation)
+    {
+        $this->propogation = $propogation;
+
+        return $this;
+    }
+
     public function getService() : ?DockerService
     {
         return $this->service;
