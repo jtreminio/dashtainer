@@ -44,6 +44,7 @@ $(document).ready(function() {
 
     $('[data-selectize-tags]').selectize({
         allowEmptyOption: true,
-        create: true
+        create: true,
+        plugins: ['remove_button'],
     });
 });
