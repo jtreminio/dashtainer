@@ -4,21 +4,21 @@ namespace Dashtainer\Form\DockerServiceCreate;
 
 use Dashtainer\Form;
 use Dashtainer\Util;
+use Dashtainer\Validator\Constraints as DashAssert;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
     /**
-     * @Assert\NotBlank(message = "Version must be chosen")
+     * @DashAssert\NonBlankString(message = "Version must be chosen")
      */
     public $version;
 
     /**
-     * @Assert\NotBlank(message = "Please enter the source of your project files")
+     * @DashAssert\NonBlankString(message = "Please enter the source of your project files")
      */
     public $directory;
 
@@ -37,13 +37,4 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
     public $xdebug = [];
 
     public $blackfire = [];
-
-    /**
-     * @Assert\Callback
-     * @param ExecutionContextInterface $context
-     * @param $payload
-     */
-    public function validate(ExecutionContextInterface $context, $payload)
-    {
-    }
 }
