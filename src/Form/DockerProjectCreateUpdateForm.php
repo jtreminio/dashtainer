@@ -16,7 +16,7 @@ class DockerProjectCreateUpdateForm
      *      min = 1,
      *      max = 64,
      *      minMessage = "Please enter a project name.",
-     *      maxMessage = Project name max length is {{ limit }} characters."
+     *      maxMessage = "Project name max length is {{ limit }} characters."
      * )
      * @todo enforce hostname regex
      */
