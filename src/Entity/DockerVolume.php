@@ -223,6 +223,22 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
         return $this;
     }
 
+    public function getProject() : ?DockerProject
+    {
+        return $this->project;
+    }
+
+    /**
+     * @param DockerProject $project
+     * @return $this
+     */
+    public function setProject(DockerProject $project)
+    {
+        $this->project = $project;
+
+        return $this;
+    }
+
     public function getPropogation() : ?string
     {
         return $this->propogation;
