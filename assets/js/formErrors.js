@@ -28,7 +28,7 @@ module.exports = function(errors) {
         // First search for form field element by its name="{element}" attribute
         var $formElementByName = $('[name="' + element + '"]');
         // If form field element not found by name attribute, search by id="{element}"
-        var $formElementById   = $('#' + element);
+        var $formElementById   = $('[id="' + element + '"]');
         var $formElement       = ($formElementByName.length > 0)
             ? $formElementByName
             : $formElementById;
@@ -57,7 +57,7 @@ module.exports = function(errors) {
         }
 
         $.each(messages, function(index, message) {
-            var msg = message + '<br />';
+            var msg = '* ' + message + '<br />';
 
             // Internal message type; we want to remove existing message
             if (message === 0) {

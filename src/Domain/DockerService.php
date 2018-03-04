@@ -94,8 +94,8 @@ class DockerService
                 'PHP_PACKAGES'      => array_unique($phpPackages),
                 'PEAR_PACKAGES'     => array_unique($form->pear_packages),
                 'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-                'INSTALL_COMPOSER'  => $form->composer['install'] ?? false,
-                'INSTALL_BLACKFIRE' => $form->blackfire['install'] ?? false,
+                'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
+                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
             ]);
 
         $service->setBuild($build);
@@ -114,7 +114,7 @@ class DockerService
         $cliIni->setSource("\$PWD/{$service->getSlug()}/php.ini")
             ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
-            ->setData($form->file['php.ini'])
+            ->setData($form->file['php.ini'] ?? '')
             ->setIsRemovable(false)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -123,7 +123,7 @@ class DockerService
         $fpmIni->setSource("\$PWD/{$service->getSlug()}/php.ini")
             ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
-            ->setData($form->file['php.ini'])
+            ->setData($form->file['php.ini'] ?? '')
             ->setIsRemovable(false)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
