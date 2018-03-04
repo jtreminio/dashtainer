@@ -78,78 +78,6 @@ class ServiceController extends Controller
 
     /**
      * @Route(name="project.service.create.get",
-     *     path="/project/{projectId}/service/create",
-     *     methods={"GET"}
-     * )
-     * @param Entity\User $user
-     * @param string      $projectId
-     * @return Response
-     */
-    public function getCreate(
-        Entity\User $user,
-        string $projectId
-    ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
-            return $this->render('@Dashtainer/project/not-found.html.twig');
-        }
-
-        return $this->render('@Dashtainer/project/service/create.html.twig', [
-            'user'              => $user,
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
-        ]);
-    }
-
-    /**
-     * @Route(name="project.service.create.post",
-     *     path="/project/{projectId}/service/create",
-     *     methods={"POST"}
-     * )
-     * @param Request     $request
-     * @param Entity\User $user
-     * @param string      $projectId
-     * @return AjaxResponse
-     */
-    public function postCreate(
-        Request $request,
-        Entity\User $user,
-        string $projectId
-    ) : AjaxResponse {
-        $form = new Form\DockerServiceCreateAbstract();
-        $form->fromArray($request->request->all());
-
-        $form->project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        $form->service_type = $this->dServiceTypeRepo->findOneBy([
-            'id'        => $form->service_type,
-            'is_public' => true,
-        ]);
-
-        $this->validator->setSource($form);
-
-        if (!$this->validator->isValid()) {
-            return new AjaxResponse([
-                'type'   => AjaxResponse::AJAX_ERROR,
-                'errors' => $this->validator->getErrors(true),
-            ], AjaxResponse::HTTP_BAD_REQUEST);
-        }
-
-        $service = $this->dockerServiceDomain->createServiceFromForm($form);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_REDIRECT,
-            'data' => $this->generateUrl('project.service.view.get', [
-                'projectId' => $form->project->getId(),
-                'serviceId' => $service->getId(),
-            ]),
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.create.type.get",
      *     path="/project/{projectId}/service/create/{serviceTypeSlug}/{version}",
      *     methods={"GET"}
      * )
@@ -159,7 +87,7 @@ class ServiceController extends Controller
      * @param string|null $version
      * @return Response
      */
-    public function getCreateType(
+    public function getCreate(
         Entity\User $user,
         string $projectId,
         string $serviceTypeSlug,
@@ -195,23 +123,21 @@ class ServiceController extends Controller
     }
 
     /**
-     * @Route(name="project.service.create.type.post",
-     *     path="/project/{projectId}/service/create/{serviceTypeSlug}/{version}",
+     * @Route(name="project.service.create.post",
+     *     path="/project/{projectId}/service/create/{serviceTypeSlug}",
      *     methods={"POST"}
      * )
      * @param Request     $request
      * @param Entity\User $user
      * @param string      $projectId
      * @param string      $serviceTypeSlug
-     * @param string|null $version
      * @return AjaxResponse
      */
-    public function postCreateType(
+    public function postCreate(
         Request $request,
         Entity\User $user,
         string $projectId,
-        string $serviceTypeSlug,
-        string $version = null
+        string $serviceTypeSlug
     ) : AjaxResponse {
         $project = $this->dProjectRepo->findOneBy([
             'id'   => $projectId,
@@ -230,6 +156,11 @@ class ServiceController extends Controller
         }
 
         $form->fromArray($request->request->all());
+
+        $form->service_name_used = $this->dServiceRepo->findOneBy([
+            'project' => $project,
+            'name'    => $form->name,
+        ]);
 
         $form->project      = $project;
         $form->service_type = $service_type;

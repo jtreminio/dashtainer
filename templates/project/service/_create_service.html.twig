@@ -14,7 +14,7 @@
                                 </button>
                                 <div class="dropdown-menu" aria-labelledby="{{ type.slug }}-dropdown">
                                     {% for version in type.versions %}
-                                        <a href="{{ path('project.service.create.type.get', {
+                                        <a href="{{ path('project.service.create.get', {
                                             'projectId': project.id,
                                             'serviceTypeSlug': type.slug,
                                             'version': version,
@@ -23,7 +23,7 @@
                                 </div>
                             </div>
                         {% else %}
-                            <a href="{{ path('project.service.create.type.get', {
+                            <a href="{{ path('project.service.create.get', {
                                 'projectId': project.id,
                                 'serviceTypeSlug': type.slug,
                             }) }}" class="btn btn-primary btn-block">{{ type.name }}</a>
