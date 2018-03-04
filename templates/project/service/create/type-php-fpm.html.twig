@@ -75,18 +75,18 @@
                 <select class="form-control" id="php-packages" name="php_packages[]"
                         multiple data-error-container="php-packages" data-selectize-tags>
                     {% if phpVersionedPackages %}
-                        {% for package in phpVersionedPackages.value.default %}
+                        {% for package in phpVersionedPackages.data.default %}
                             <option value="{{ package }}" selected>{{ package }}</option>
                         {% endfor %}
-                        {% for package in phpVersionedPackages.value.available %}
+                        {% for package in phpVersionedPackages.data.available %}
                             <option value="{{ package }}">{{ package }}</option>
                         {% endfor %}
                     {% endif %}
 
-                    {% for package in phpGeneralPackages.value.default %}
+                    {% for package in phpGeneralPackages.data.default %}
                         <option value="{{ package }}" selected>{{ package }}</option>
                     {% endfor %}
-                    {% for package in phpGeneralPackages.value.available %}
+                    {% for package in phpGeneralPackages.data.available %}
                         <option value="{{ package }}">{{ package }}</option>
                     {% endfor %}
                 </select>
@@ -133,7 +133,7 @@
                 <div class="col">
                     <nav class="mb-1">
                         <div class="nav nav-tabs" id="nav-file-tab" role="tablist">
-                            {% for key, value in iniMeta.value %}
+                            {% for key, value in iniMeta.data %}
                                 <a class="nav-item nav-link {{ loop.first ? 'active' }}"
                                    data-toggle="tab" role="tab"
                                    id="nav-file-{{ key }}-tab" href="#file-{{ key }}"
@@ -143,7 +143,7 @@
                         </div>
                     </nav>
                     <div class="tab-content" id="nav-file-content">
-                        {% for key, value in iniMeta.value %}
+                        {% for key, value in iniMeta.data %}
                             <div class="tab-pane fade {{ loop.first ? 'show active' }}"
                                  role="tabpanel"
                                  id="file-{{ key }}" aria-labelledby="nav-file-{{ key }}-tab">
@@ -244,7 +244,7 @@
                                 <pre class="language-ini" data-code-highlight><code
                                         contenteditable autocorrect="off" autocapitalize="off"
                                         spellcheck="false"
-                                        id="xdebug-ini">{{ iniXdebug.value.data }}</code></pre>
+                                        id="xdebug-ini">{{ iniXdebug.data.data }}</code></pre>
                                 <input type="hidden" value="" name="xdebug[ini]"
                                        data-get-value-source="xdebug-ini" />
                             </div>

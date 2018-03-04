@@ -7,7 +7,7 @@ use Dashtainer\Util;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Table(name="docker_service_type_meta")
+ * @ORM\Table(name="docker_service_meta")
  * @ORM\Entity()
  */
 class DockerServiceMeta implements Util\HydratorInterface, EntityBaseInterface
@@ -21,15 +21,31 @@ class DockerServiceMeta implements Util\HydratorInterface, EntityBaseInterface
     protected $name;
 
     /**
+     * @ORM\Column(name="data", type="json_array", nullable=true)
+     */
+    protected $data = [];
+
+    /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="service_meta")
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id", nullable=false)
      */
     protected $service;
 
+    public function getData() : ?array
+    {
+        return $this->data;
+    }
+
     /**
-     * @ORM\Column(name="value", type="json_array", nullable=true)
+     * @param array $data
+     * @return $this
      */
-    protected $value = [];
+    public function setData(array $data = null)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
 
     public function getName() : ?string
     {
@@ -59,22 +75,6 @@ class DockerServiceMeta implements Util\HydratorInterface, EntityBaseInterface
     public function setDockerService(DockerService $service)
     {
         $this->service = $service;
-
-        return $this;
-    }
-
-    public function getValue() : ?array
-    {
-        return $this->value;
-    }
-
-    /**
-     * @param array $value
-     * @return $this
-     */
-    public function setValue(array $value = null)
-    {
-        $this->value = $value;
 
         return $this;
     }

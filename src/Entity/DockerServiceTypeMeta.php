@@ -21,15 +21,31 @@ class DockerServiceTypeMeta implements Util\HydratorInterface, EntityBaseInterfa
     protected $name;
 
     /**
+     * @ORM\Column(name="data", type="json_array", nullable=true)
+     */
+    protected $data = [];
+
+    /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="service_type_meta")
      * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
      */
     protected $service_type;
 
+    public function getData() : ?array
+    {
+        return $this->data;
+    }
+
     /**
-     * @ORM\Column(name="value", type="json_array", nullable=true)
+     * @param array $data
+     * @return $this
      */
-    protected $value = [];
+    public function setData(array $data = null)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
 
     public function getName() : ?string
     {
@@ -59,22 +75,6 @@ class DockerServiceTypeMeta implements Util\HydratorInterface, EntityBaseInterfa
     public function setServiceType(DockerServiceType $serviceType)
     {
         $this->service_type = $serviceType;
-
-        return $this;
-    }
-
-    public function getValue() : ?array
-    {
-        return $this->value;
-    }
-
-    /**
-     * @param array $value
-     * @return $this
-     */
-    public function setValue(array $value = null)
-    {
-        $this->value = $value;
 
         return $this;
     }

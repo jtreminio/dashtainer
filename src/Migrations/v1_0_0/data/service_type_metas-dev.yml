@@ -1,7 +1,7 @@
 -
     service_type: PHP-FPM
     name: packages-5.6
-    value:
+    data:
         available:
             - php5.6-bcmath
             - php5.6-bz2
@@ -42,7 +42,7 @@
 -
     service_type: PHP-FPM
     name: packages-7.0
-    value:
+    data:
         available:
             - php7.0-bcmath
             - php7.0-bz2
@@ -83,7 +83,7 @@
 -
     service_type: PHP-FPM
     name: packages-7.1
-    value:
+    data:
         available:
             - php7.1-bcmath
             - php7.1-bz2
@@ -124,7 +124,7 @@
 -
     service_type: PHP-FPM
     name: packages-7.2
-    value:
+    data:
         available:
             - php7.2-bcmath
             - php7.2-bz2
@@ -164,7 +164,7 @@
 -
     service_type: PHP-FPM
     name: packages-general
-    value:
+    data:
         available:
             - php-all-dev
             - php-amqp
@@ -220,7 +220,7 @@
 -
     service_type: PHP-FPM
     name: ini-5.6
-    value:
+    data:
         php.ini: |
             [custom]
             display_errors = "On"
@@ -252,7 +252,7 @@
 -
     service_type: PHP-FPM
     name: ini-7.0
-    value:
+    data:
         php.ini: |
             [custom]
             display_errors = "On"
@@ -284,7 +284,7 @@
 -
     service_type: PHP-FPM
     name: ini-7.1
-    value:
+    data:
         php.ini: |
             [custom]
             display_errors = "On"
@@ -316,7 +316,7 @@
 -
     service_type: PHP-FPM
     name: ini-7.2
-    value:
+    data:
         php.ini: |
             [custom]
             display_errors = "On"
@@ -348,7 +348,7 @@
 -
     service_type: PHP-FPM
     name: ini-xdebug
-    value:
+    data:
         data: |
             [xdebug]
             xdebug.remote_host = "docker.for.mac.host.internal"
