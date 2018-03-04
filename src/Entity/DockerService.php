@@ -186,6 +186,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $secrets;
 
     /**
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceMeta", mappedBy="service", fetch="EAGER")
+     */
+    protected $service_meta;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
      * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
      */
@@ -238,6 +243,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     {
         $this->networks        = new Collections\ArrayCollection();
         $this->secrets         = new Collections\ArrayCollection();
+        $this->service_meta    = new Collections\ArrayCollection();
         $this->service_volumes = new Collections\ArrayCollection();
         $this->volumes         = new Collections\ArrayCollection();
     }
@@ -731,6 +737,42 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function getSecrets()
     {
         return $this->secrets;
+    }
+
+    /**
+     * @param DockerServiceMeta $service_meta
+     * @return $this
+     */
+    public function addServiceMeta(DockerServiceMeta $service_meta)
+    {
+        $this->service_meta[] = $service_meta;
+
+        return $this;
+    }
+
+    public function removeServiceMeta(DockerServiceMeta $service_meta)
+    {
+        $this->service_meta->removeElement($service_meta);
+    }
+
+    public function getServiceMeta(string $name) : ?DockerServiceMeta
+    {
+        /** @var DockerServiceMeta $meta */
+        foreach ($this->service_meta as $meta) {
+            if ($meta->getName() === $name) {
+                return $meta;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return DockerServiceMeta[]|Collections\ArrayCollection
+     */
+    public function getServiceMetas()
+    {
+        return $this->service_meta;
     }
 
     public function getServiceType() : ?DockerServiceType
