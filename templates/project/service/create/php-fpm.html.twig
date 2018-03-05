@@ -68,8 +68,8 @@
 
         <h4 class="mb-3">Packages</h4>
 
-        {% set phpVersionedPackages = serviceType.getServiceTypeMeta("packages-#{version}") %}
-        {% set phpGeneralPackages = serviceType.getServiceTypeMeta('packages-general') %}
+        {% set phpVersionedPackages = serviceType.meta("packages-#{version}") %}
+        {% set phpGeneralPackages = serviceType.meta('packages-general') %}
         <div class="row">
             <div class="form-group col">
                 <label for="php-packages">PHP Packages</label>
@@ -127,7 +127,7 @@
 
         <hr class="mb-4" />
 
-        {% set iniMeta = serviceType.getServiceTypeMeta("ini-#{version}") %}
+        {% set iniMeta = serviceType.meta("ini-#{version}") %}
         {% if iniMeta %}
             <h4 class="mb-3">INI Settings</h4>
             <div class="row">
@@ -171,7 +171,7 @@
             <hr class="mb-4" />
         {% endif %}
 
-        {% set iniXdebug = serviceType.getServiceTypeMeta('ini-xdebug') %}
+        {% set iniXdebug = serviceType.meta('ini-xdebug') %}
         <h4 class="mb-3">Additional Tools</h4>
         <div class="row">
             <div class="col">
@@ -249,7 +249,7 @@
                                 <pre class="language-ini" data-code-highlight><code
                                         contenteditable autocorrect="off" autocapitalize="off"
                                         spellcheck="false"
-                                        id="xdebug-ini">{{ iniXdebug.data.data }}</code></pre>
+                                        id="xdebug-ini">{{ iniXdebug.data|first }}</code></pre>
                                 <input type="hidden" value="" name="xdebug[ini]"
                                        data-error-container="additional-tools"
                                        data-get-value-source="xdebug-ini" />

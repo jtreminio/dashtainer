@@ -109,7 +109,7 @@ class ServiceController extends Controller
             $version
         );
 
-        $template = sprintf('@Dashtainer/project/service/create/type-%s.html.twig',
+        $template = sprintf('@Dashtainer/project/service/create/%s.html.twig',
             strtolower($serviceTypeSlug)
         );
 
@@ -162,8 +162,8 @@ class ServiceController extends Controller
             'name'    => $form->name,
         ]);
 
-        $form->project      = $project;
-        $form->service_type = $service_type;
+        $form->project = $project;
+        $form->type    = $service_type;
 
         $this->validator->setSource($form);
 
@@ -206,7 +206,7 @@ class ServiceController extends Controller
         ]);
 
         if (!$project) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+            return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         $service = $this->dServiceRepo->findOneBy([
@@ -215,11 +215,13 @@ class ServiceController extends Controller
         ]);
 
         if (!$service) {
-            return $this->render('@Dashtainer/project/service/not-found.html.twig');
+            return $this->render('@Dashtainer/project/service/not-found.html.twig', [
+                'project' => $project,
+            ]);
         }
 
-        $serviceType = $service->getServiceType();
-        $template    = sprintf('@Dashtainer/project/service/type/%s.html.twig',
+        $serviceType = $service->getType();
+        $template    = sprintf('@Dashtainer/project/service/view/%s.html.twig',
             strtolower($serviceType->getName())
         );
 

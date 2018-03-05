@@ -1,6 +1,7 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
+{% set version = service.meta('version').data|first %}
 <div class="container py-2">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -9,21 +10,13 @@
             <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
                     'projectId': project.id,
                 }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+            <li class="breadcrumb-item active" aria-current="page">
         </ol>
     </nav>
 </div>
 
 <div class="container">
-    <p>Service details:</p>
-
-    <hr />
-
-    <p>ID: {{ service.id }}</p>
-    <p>Name: {{ service.name }}</p>
-
-    <hr />
-
-    {% block service %}{% endblock %}
+    <div class="text-center">
+    </div>
 </div>
 {% endblock %}
