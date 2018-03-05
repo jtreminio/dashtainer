@@ -947,6 +947,17 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         $this->volumes->removeElement($volume);
     }
 
+    public function getVolume(string $name) : ?DockerServiceVolume
+    {
+        foreach ($this->getVolumes() as $volume) {
+            if ($volume->getName() === $name) {
+                return $volume;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @return DockerServiceVolume[]|Collections\ArrayCollection
      */
