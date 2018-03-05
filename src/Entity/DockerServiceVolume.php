@@ -61,7 +61,7 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     /**
      * Only set if $type is file
      *
-     * @ORM\Column(name="data", type="blob", nullable=true)
+     * @ORM\Column(name="data", type="text", nullable=true)
      */
     protected $data;
 
