@@ -225,10 +225,12 @@ class ServiceController extends Controller
             strtolower($serviceType->getName())
         );
 
-        return $this->render($template, [
+        $params = $this->dockerServiceDomain->getViewParams($service);
+
+        return $this->render($template, array_merge([
             'service' => $service,
             'project' => $project,
-        ]);
+        ], $params));
     }
 
     /**

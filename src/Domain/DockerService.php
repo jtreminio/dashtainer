@@ -77,6 +77,83 @@ class DockerService
         return "{$hostname}-" . uniqid();
     }
 
+    public function getViewParams(Entity\DockerService $service) : array
+    {
+        if ($service->getType()->getSlug() == 'php-fpm') {
+            return $this->getViewParamsPhpFpm($service);
+        }
+
+        return [];
+    }
+
+    protected function getViewParamsPhpFpm(Entity\DockerService $service) : array
+    {
+        $version    = $service->getMeta('version')->getData()[0];
+        $projectVol = $service->getVolume('project_directory');
+
+        $phpPackagesSelected = $service->getBuild()->getArgs()['PHP_PACKAGES'];
+
+        $availablePhpPackages = [];
+        if ($phpVersionedPackages = $service->getType()->getMeta("packages-${version}")) {
+            $availablePhpPackages += $phpVersionedPackages->getData()['default'];
+            $availablePhpPackages += $phpVersionedPackages->getData()['available'];
+        }
+
+        if ($phpGeneralPackages = $service->getType()->getMeta('packages-general')) {
+            $availablePhpPackages += $phpGeneralPackages->getData()['default'];
+            $availablePhpPackages += $phpGeneralPackages->getData()['available'];
+        }
+
+        $availablePhpPackages = array_diff($availablePhpPackages, $phpPackagesSelected);
+
+        $pearPackagesSelected   = $service->getBuild()->getArgs()['PEAR_PACKAGES'];
+        $peclPackagesSelected   = $service->getBuild()->getArgs()['PECL_PACKAGES'];
+        $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
+
+        $phpIni     = $service->getVolume('fpm-php.ini');
+        $fpmIni     = $service->getVolume('fpm.conf');
+        $fpmPoolIni = $service->getVolume('fpm_pool.conf');
+
+        $composer = [
+            'install' => $service->getBuild()->getArgs()['COMPOSER_INSTALL'],
+        ];
+
+        if ($xdebugVol = $service->getVolume('xdebug.ini')) {
+            $xdebugIni = $xdebugVol->getData();
+        } else {
+            $xdebugIni = $service->getType()->getMeta('ini-xdebug')->getData()[0];
+        }
+
+        $xdebug = [
+            'install' => in_array('php-xdebug', $phpPackagesSelected),
+            'ini'     => $xdebugIni,
+        ];
+
+        $blackfire = [
+            'install'      => $service->getBuild()->getArgs()['BLACKFIRE_INSTALL'],
+            'server_id'    => '', // @todo grab from separate blackfire service
+            'server_token' => '', // @todo grab from separate blackfire service
+        ];
+
+        return [
+            'version'                => $version,
+            'projectVol'             => $projectVol,
+            'phpPackagesSelected'    => $phpPackagesSelected,
+            'availablePhpPackages'   => $availablePhpPackages,
+            'pearPackagesSelected'   => $pearPackagesSelected,
+            'peclPackagesSelected'   => $peclPackagesSelected,
+            'systemPackagesSelected' => $systemPackagesSelected,
+            'iniFiles'               => [
+                'php.ini'       => $phpIni,
+                'fpm.conf'      => $fpmIni,
+                'fpm_pool.conf' => $fpmPoolIni,
+            ],
+            'composer'               => $composer,
+            'xdebug'                 => $xdebug,
+            'blackfire'              => $blackfire,
+        ];
+    }
+
     protected function createPhpFpmServiceFromForm(
         Form\DockerServiceCreate\PhpFpm $form
     ) : Entity\DockerService {
@@ -187,8 +264,9 @@ class DockerService
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = new Entity\DockerServiceVolume();
-            $xdebugIni->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
-            ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
+            $xdebugIni->setName('xdebug.ini')
+                ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
+                ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
                 ->setPropogation('delegated')
                 ->setData($form->xdebug['ini'])
                 ->setIsRemovable(false)
