@@ -4,13 +4,14 @@ namespace Dashtainer\Entity;
 
 use Dashtainer\Util;
 
+use Behat\Transliterator\Transliterator;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Table(name="docker_service_volume")
  * @ORM\Entity()
  */
-class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
+class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface, SlugInterface
 {
     use Util\HydratorTrait;
     use RandomIdTrait;
@@ -33,6 +34,11 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         self::TYPE_DIR,
         self::TYPE_FILE,
     ];
+
+    /**
+     * @ORM\Column(name="name", type="string", length=64)
+     */
+    protected $name;
 
     /**
      * @ORM\Column(name="source", type="string", length=255)
@@ -65,7 +71,7 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     protected $is_removable = true;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="service_volumes")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="volumes")
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id", nullable=false)
      */
     protected $service;
@@ -109,6 +115,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
     public function getPropogation() : ?string
     {
         return $this->propogation;
@@ -139,6 +161,11 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         $this->service = $service;
 
         return $this;
+    }
+
+    public function getSlug() : string
+    {
+        return Transliterator::urlize($this->getName());
     }
 
     public function getSource() : ?string

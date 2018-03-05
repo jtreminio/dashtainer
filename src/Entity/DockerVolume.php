@@ -87,7 +87,7 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     protected $propogation;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="volumes")
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="project_volumes")
      */
     protected $services;
 

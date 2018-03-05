@@ -26,7 +26,7 @@ class DockerServiceMeta implements Util\HydratorInterface, EntityBaseInterface
     protected $data = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="service_meta")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="meta")
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id", nullable=false)
      */
     protected $service;
@@ -72,7 +72,7 @@ class DockerServiceMeta implements Util\HydratorInterface, EntityBaseInterface
      * @param DockerService $service
      * @return $this
      */
-    public function setDockerService(DockerService $service)
+    public function setService(DockerService $service)
     {
         $this->service = $service;
 

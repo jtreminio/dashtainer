@@ -17,16 +17,16 @@ abstract class DockerServiceCreateAbstract implements Util\HydratorInterface
     public $name;
 
     /**
-     * @Assert\NotBlank(message = "Please choose a service type")
-     */
-    public $service_type;
-
-    /**
      * @Assert\NotBlank(message = "Invalid project selected")
      */
     public $project;
 
     public $service_name_used = false;
+
+    /**
+     * @Assert\NotBlank(message = "Please choose a service type")
+     */
+    public $type;
 
     /**
      * @Assert\Callback

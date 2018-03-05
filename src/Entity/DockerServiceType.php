@@ -22,9 +22,10 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
     protected $name;
 
     /**
-     * @ORM\Column(name="slug", type="string", length=255, unique=true)
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceCategory", inversedBy="types")
+     * @ORM\JoinColumn(name="service_category_id", referencedColumnName="id", nullable=false)
      */
-    protected $slug;
+    protected $category;
 
     /**
      * @ORM\Column(name="is_public", type="boolean")
@@ -32,26 +33,25 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
     protected $is_public;
 
     /**
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceTypeMeta", mappedBy="type", fetch="EAGER")
+     */
+    protected $meta;
+
+    /**
      * @ORM\Column(name="`order`", type="smallint")
      */
     protected $order;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceCategory", inversedBy="service_types")
-     * @ORM\JoinColumn(name="service_category_id", referencedColumnName="id", nullable=false)
-     */
-    protected $service_category;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceTypeMeta", mappedBy="service_type", fetch="EAGER")
-     */
-    protected $service_type_meta;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="service_type")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="type")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
     protected $services;
+
+    /**
+     * @ORM\Column(name="slug", type="string", length=255, unique=true)
+     */
+    protected $slug;
 
     /**
      * @ORM\Column(name="versions", type="simple_array", nullable=true)
@@ -60,8 +60,8 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
 
     public function __construct()
     {
-        $this->services          = new Collections\ArrayCollection();
-        $this->service_type_meta = new Collections\ArrayCollection();
+        $this->meta     = new Collections\ArrayCollection();
+        $this->services = new Collections\ArrayCollection();
     }
 
     public function getName() : ?string
@@ -112,18 +112,18 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
         return $this;
     }
 
-    public function getServiceCategory() : ?DockerServiceCategory
+    public function getCategory() : ?DockerServiceCategory
     {
-        return $this->service_category;
+        return $this->category;
     }
 
     /**
      * @param DockerServiceCategory $service_category
      * @return $this
      */
-    public function setServiceCategory(DockerServiceCategory $service_category)
+    public function setCategory(DockerServiceCategory $service_category)
     {
-        $this->service_category = $service_category;
+        $this->category = $service_category;
 
         return $this;
     }
@@ -132,22 +132,21 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
      * @param DockerServiceTypeMeta $service_type_meta
      * @return $this
      */
-    public function addServiceTypeMeta(DockerServiceTypeMeta $service_type_meta)
+    public function addMeta(DockerServiceTypeMeta $service_type_meta)
     {
-        $this->service_type_meta[] = $service_type_meta;
+        $this->meta[] = $service_type_meta;
 
         return $this;
     }
 
-    public function removeServiceTypeMeta(DockerServiceTypeMeta $service_type_meta)
+    public function removeMeta(DockerServiceTypeMeta $service_type_meta)
     {
-        $this->service_type_meta->removeElement($service_type_meta);
+        $this->meta->removeElement($service_type_meta);
     }
 
-    public function getServiceTypeMeta(string $name) : ?DockerServiceTypeMeta
+    public function getMeta(string $name) : ?DockerServiceTypeMeta
     {
-        /** @var DockerServiceTypeMeta $meta */
-        foreach ($this->service_type_meta as $meta) {
+        foreach ($this->getMetas() as $meta) {
             if ($meta->getName() === $name) {
                 return $meta;
             }
@@ -159,9 +158,9 @@ class DockerServiceType implements Util\HydratorInterface, EntityBaseInterface, 
     /**
      * @return DockerServiceTypeMeta[]|Collections\ArrayCollection
      */
-    public function getServiceTypeMetas()
+    public function getMetas()
     {
-        return $this->service_type_meta;
+        return $this->meta;
     }
 
     /**

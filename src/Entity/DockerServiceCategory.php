@@ -27,14 +27,14 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
     protected $order;
 
     /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceType", mappedBy="service_category")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceType", mappedBy="category")
      * @ORM\OrderBy({"order" = "ASC"})
      */
-    protected $service_types;
+    protected $types;
 
     public function __construct()
     {
-        $this->service_types = new Collections\ArrayCollection();
+        $this->types = new Collections\ArrayCollection();
     }
 
     public function getName() : ?string
@@ -73,23 +73,23 @@ class DockerServiceCategory implements Util\HydratorInterface, EntityBaseInterfa
      * @param DockerServiceType $serviceType
      * @return $this
      */
-    public function addServiceType(DockerServiceType $serviceType)
+    public function addType(DockerServiceType $serviceType)
     {
-        $this->service_types[] = $serviceType;
+        $this->types[] = $serviceType;
 
         return $this;
     }
 
-    public function removeServiceType(DockerServiceType $serviceType)
+    public function removeType(DockerServiceType $serviceType)
     {
-        $this->service_types->removeElement($serviceType);
+        $this->types->removeElement($serviceType);
     }
 
     /**
      * @return DockerService[]|Collections\ArrayCollection
      */
-    public function getServiceTypes()
+    public function getTypes()
     {
-        return $this->service_types;
+        return $this->types;
     }
 }

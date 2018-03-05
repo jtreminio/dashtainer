@@ -142,6 +142,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $logging = [];
 
     /**
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceMeta", mappedBy="service", fetch="EAGER")
+     */
+    protected $meta;
+
+    /**
      * @ORM\Column(name="network_mode", type="string", length=255, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#network_mode
      */
@@ -173,6 +178,13 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $project;
 
     /**
+     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerVolume", inversedBy="services")
+     * @ORM\JoinTable(name="docker_services_project_volumes")
+     * @see https://docs.docker.com/compose/compose-file/#volumes
+     */
+    protected $project_volumes;
+
+    /**
      * @ORM\Column(name="restart", type="string", length=14, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#restart
      */
@@ -184,22 +196,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
      * @see https://docs.docker.com/compose/compose-file/#secrets
      */
     protected $secrets;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceMeta", mappedBy="service", fetch="EAGER")
-     */
-    protected $service_meta;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
-     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
-     */
-    protected $service_type;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceVolume", mappedBy="service")
-     */
-    protected $service_volumes;
 
     /**
      * @ORM\Column(name="stop_grace_period", type="string", length=12, nullable=true)
@@ -220,6 +216,12 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $sysctls = [];
 
     /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="services")
+     * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
+     */
+    protected $type;
+
+    /**
      * @ORM\Column(name="ulimits", type="json_array", nullable=true)
      * @uses \Dashtainer\Entity\DockerService\Ulimits
      * @see https://docs.docker.com/compose/compose-file/#ulimits
@@ -233,9 +235,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $userns_mode;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerVolume", inversedBy="services")
-     * @ORM\JoinTable(name="docker_services_volumes")
-     * @see https://docs.docker.com/compose/compose-file/#volumes
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceVolume", mappedBy="service")
      */
     protected $volumes;
 
@@ -243,8 +243,8 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     {
         $this->networks        = new Collections\ArrayCollection();
         $this->secrets         = new Collections\ArrayCollection();
-        $this->service_meta    = new Collections\ArrayCollection();
-        $this->service_volumes = new Collections\ArrayCollection();
+        $this->meta            = new Collections\ArrayCollection();
+        $this->project_volumes = new Collections\ArrayCollection();
         $this->volumes         = new Collections\ArrayCollection();
     }
 
@@ -591,6 +591,41 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
+    /**
+     * @param DockerServiceMeta $service_meta
+     * @return $this
+     */
+    public function addMeta(DockerServiceMeta $service_meta)
+    {
+        $this->meta[] = $service_meta;
+
+        return $this;
+    }
+
+    public function removeMeta(DockerServiceMeta $service_meta)
+    {
+        $this->meta->removeElement($service_meta);
+    }
+
+    public function getMeta(string $name) : ?DockerServiceMeta
+    {
+        foreach ($this->getMetas() as $meta) {
+            if ($meta->getName() === $name) {
+                return $meta;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return DockerServiceMeta[]|Collections\ArrayCollection
+     */
+    public function getMetas()
+    {
+        return $this->meta;
+    }
+
     public function getName() : ?string
     {
         return $this->name;
@@ -705,6 +740,30 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         return $this;
     }
 
+    /**
+     * @param DockerVolume $project_volume
+     * @return $this
+     */
+    public function addProjectVolume(DockerVolume $project_volume)
+    {
+        $this->project_volumes[] = $project_volume;
+
+        return $this;
+    }
+
+    public function removeProjectVolume(DockerVolume $project_volume)
+    {
+        $this->project_volumes->removeElement($project_volume);
+    }
+
+    /**
+     * @return DockerVolume[]|Collections\ArrayCollection
+     */
+    public function getProjectVolumes()
+    {
+        return $this->project_volumes;
+    }
+
     public function getRestart() : string
     {
         return $this->restart;
@@ -747,82 +806,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function getSecrets()
     {
         return $this->secrets;
-    }
-
-    /**
-     * @param DockerServiceMeta $service_meta
-     * @return $this
-     */
-    public function addServiceMeta(DockerServiceMeta $service_meta)
-    {
-        $this->service_meta[] = $service_meta;
-
-        return $this;
-    }
-
-    public function removeServiceMeta(DockerServiceMeta $service_meta)
-    {
-        $this->service_meta->removeElement($service_meta);
-    }
-
-    public function getServiceMeta(string $name) : ?DockerServiceMeta
-    {
-        /** @var DockerServiceMeta $meta */
-        foreach ($this->service_meta as $meta) {
-            if ($meta->getName() === $name) {
-                return $meta;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @return DockerServiceMeta[]|Collections\ArrayCollection
-     */
-    public function getServiceMetas()
-    {
-        return $this->service_meta;
-    }
-
-    public function getServiceType() : ?DockerServiceType
-    {
-        return $this->service_type;
-    }
-
-    /**
-     * @param DockerServiceType $serviceType
-     * @return $this
-     */
-    public function setServiceType(DockerServiceType $serviceType)
-    {
-        $this->service_type = $serviceType;
-
-        return $this;
-    }
-
-    /**
-     * @param DockerServiceVolume $volume
-     * @return $this
-     */
-    public function addServiceVolume(DockerServiceVolume $volume)
-    {
-        $this->service_volumes[] = $volume;
-
-        return $this;
-    }
-
-    public function removeServiceVolume(DockerServiceVolume $volume)
-    {
-        $this->service_volumes->removeElement($volume);
-    }
-
-    /**
-     * @return DockerServiceVolume[]|Collections\ArrayCollection
-     */
-    public function getServiceVolumes()
-    {
-        return $this->service_volumes;
     }
 
     public function getSlug() : string
@@ -895,6 +878,22 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         unset($this->sysctls[$key]);
     }
 
+    public function getType() : ?DockerServiceType
+    {
+        return $this->type;
+    }
+
+    /**
+     * @param DockerServiceType $serviceType
+     * @return $this
+     */
+    public function setType(DockerServiceType $serviceType)
+    {
+        $this->type = $serviceType;
+
+        return $this;
+    }
+
     public function getUlimits() : DockerService\Ulimits
     {
         $ulimits = new DockerService\Ulimits();
@@ -933,23 +932,23 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     }
 
     /**
-     * @param DockerVolume $volume
+     * @param DockerServiceVolume $volume
      * @return $this
      */
-    public function addVolume(DockerVolume $volume)
+    public function addVolume(DockerServiceVolume $volume)
     {
         $this->volumes[] = $volume;
 
         return $this;
     }
 
-    public function removeVolume(DockerVolume $volume)
+    public function removeVolume(DockerServiceVolume $volume)
     {
         $this->volumes->removeElement($volume);
     }
 
     /**
-     * @return DockerVolume[]|Collections\ArrayCollection
+     * @return DockerServiceVolume[]|Collections\ArrayCollection
      */
     public function getVolumes()
     {

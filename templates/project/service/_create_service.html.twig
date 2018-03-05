@@ -3,7 +3,7 @@
         <h5 class="card-header">{{ category.name }}</h5>
         <div class="card-body">
             <div class="row">
-                {% for type in category.serviceTypes %}
+                {% for type in category.types %}
                     <div class="col-sm-6 col-lg-3 mb-4">
                         {% if type.versions is not empty %}
                             <div class="dropdown">

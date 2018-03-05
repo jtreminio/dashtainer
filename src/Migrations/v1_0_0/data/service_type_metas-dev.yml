@@ -1,5 +1,5 @@
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: packages-5.6
     data:
         available:
@@ -40,7 +40,7 @@
             - php5.6-opcache
             - php5.6-xml
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: packages-7.0
     data:
         available:
@@ -81,7 +81,7 @@
             - php7.0-opcache
             - php7.0-xml
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: packages-7.1
     data:
         available:
@@ -122,7 +122,7 @@
             - php7.1-opcache
             - php7.1-xml
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: packages-7.2
     data:
         available:
@@ -162,7 +162,7 @@
             - php7.2-opcache
             - php7.2-xml
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: packages-general
     data:
         available:
@@ -218,7 +218,7 @@
         default:
             - php-pear
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: ini-5.6
     data:
         php.ini: |
@@ -250,7 +250,7 @@
             pm.max_spare_servers = 3
             security.limit_extensions = ".php"
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: ini-7.0
     data:
         php.ini: |
@@ -282,7 +282,7 @@
             pm.max_spare_servers = 3
             security.limit_extensions = ".php"
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: ini-7.1
     data:
         php.ini: |
@@ -314,7 +314,7 @@
             pm.max_spare_servers = 3
             security.limit_extensions = ".php"
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: ini-7.2
     data:
         php.ini: |
@@ -346,10 +346,10 @@
             pm.max_spare_servers = 3
             security.limit_extensions = ".php"
 -
-    service_type: PHP-FPM
+    type: PHP-FPM
     name: ini-xdebug
     data:
-        data: |
+        - |
             [xdebug]
             xdebug.remote_host = "docker.for.mac.host.internal"
             xdebug.default_enable = 1

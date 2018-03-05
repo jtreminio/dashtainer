@@ -50,8 +50,8 @@ class DockerService
         string $version = null
     ) : string {
         $services = $this->repo->findBy([
-            'project'      => $project,
-            'service_type' => $serviceType,
+            'project' => $project,
+            'type'    => $serviceType,
         ]);
 
         $version  = $version ? "-{$version}" : '';
@@ -82,7 +82,7 @@ class DockerService
     ) : Entity\DockerService {
         $service = new Entity\DockerService();
         $service->setName($form->name)
-            ->setServiceType($form->service_type)
+            ->setType($form->type)
             ->setProject($form->project);
 
         $phpPackages = $form->php_packages;
@@ -119,8 +119,18 @@ class DockerService
 
         $this->repo->save($service, $privateNetwork);
 
+        $versionMeta = new Entity\DockerServiceMeta();
+        $versionMeta->setName('version')
+            ->setData([$form->version])
+            ->setService($service);
+
+        $service->addMeta($versionMeta);
+
+        $this->repo->save($versionMeta, $service);
+
         $cliIni = new Entity\DockerServiceVolume();
-        $cliIni->setSource("\$PWD/{$service->getSlug()}/php.ini")
+        $cliIni->setName('cli-php.ini')
+            ->setSource("\$PWD/{$service->getSlug()}/php.ini")
             ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['php.ini'] ?? '')
@@ -129,7 +139,8 @@ class DockerService
             ->setService($service);
 
         $fpmIni = new Entity\DockerServiceVolume();
-        $fpmIni->setSource("\$PWD/{$service->getSlug()}/php.ini")
+        $fpmIni->setName('fpm-php.ini')
+            ->setSource("\$PWD/{$service->getSlug()}/php.ini")
             ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['php.ini'] ?? '')
@@ -138,7 +149,8 @@ class DockerService
             ->setService($service);
 
         $fpmConf = new Entity\DockerServiceVolume();
-        $fpmConf->setSource("\$PWD/{$service->getSlug()}/fpm.conf")
+        $fpmConf->setName('fpm.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/fpm.conf")
             ->setTarget("/etc/php/{$form->version}/fpm/php-fpm.conf")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['fpm.conf'])
@@ -147,7 +159,8 @@ class DockerService
             ->setService($service);
 
         $fpmPoolConf = new Entity\DockerServiceVolume();
-        $fpmPoolConf->setSource("\$PWD/{$service->getSlug()}/fpm_pool.conf")
+        $fpmPoolConf->setName('fpm_pool.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/fpm_pool.conf")
             ->setTarget("/etc/php/{$form->version}/fpm/pool.d/www.conf")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['fpm_pool.conf'])
@@ -156,18 +169,19 @@ class DockerService
             ->setService($service);
 
         $directory = new Entity\DockerServiceVolume();
-        $directory->setSource($form->directory)
+        $directory->setName('project_directory')
+            ->setSource($form->directory)
             ->setTarget('/var/www')
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_CACHED)
             ->setIsRemovable(false)
             ->setType(Entity\DockerServiceVolume::TYPE_DIR)
             ->setService($service);
 
-        $service->addServiceVolume($cliIni)
-            ->addServiceVolume($fpmIni)
-            ->addServiceVolume($fpmConf)
-            ->addServiceVolume($fpmPoolConf)
-            ->addServiceVolume($directory);
+        $service->addVolume($cliIni)
+            ->addVolume($fpmIni)
+            ->addVolume($fpmConf)
+            ->addVolume($fpmPoolConf)
+            ->addVolume($directory);
 
         $this->repo->save($cliIni, $fpmIni, $fpmConf, $fpmPoolConf, $directory, $service);
 
@@ -181,7 +195,7 @@ class DockerService
                 ->setType('file')
                 ->setService($service);
 
-            $service->addServiceVolume($xdebugIni);
+            $service->addVolume($xdebugIni);
 
             $this->repo->save($xdebugIni, $service);
         }

@@ -63,8 +63,8 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
     protected function loadServiceTypes()
     {
         foreach ($this->dataLoader->getData('service_types') as $row) {
-            $row['service_category'] = $this->getReference(
-                "service_category-{$row['service_category']}"
+            $row['category'] = $this->getReference(
+                "service_category-{$row['category']}"
             );
 
             $entity = new Entity\DockerServiceType();
@@ -82,8 +82,8 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
     protected function loadServiceTypeMetas()
     {
         foreach ($this->dataLoader->getData('service_type_metas') as $row) {
-            $row['service_type'] = $this->getReference(
-                "service_type-{$row['service_type']}"
+            $row['type'] = $this->getReference(
+                "service_type-{$row['type']}"
             );
 
             $entity = new Entity\DockerServiceTypeMeta();
@@ -91,7 +91,7 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
 
             $this->em->persist($entity);
 
-            $serviceTypeName = $row['service_type']->getName();
+            $serviceTypeName = $row['type']->getName();
 
             $referenceName = "service_type_meta-{$serviceTypeName}-{$entity->getName()}";
             $this->addReference($referenceName, $entity);

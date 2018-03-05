@@ -26,10 +26,10 @@ class DockerServiceTypeMeta implements Util\HydratorInterface, EntityBaseInterfa
     protected $data = [];
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="service_type_meta")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerServiceType", inversedBy="meta")
      * @ORM\JoinColumn(name="service_type_id", referencedColumnName="id", nullable=false)
      */
-    protected $service_type;
+    protected $type;
 
     public function getData() : ?array
     {
@@ -63,18 +63,18 @@ class DockerServiceTypeMeta implements Util\HydratorInterface, EntityBaseInterfa
         return $this;
     }
 
-    public function getServiceType() : ?DockerServiceType
+    public function getType() : ?DockerServiceType
     {
-        return $this->service_type;
+        return $this->type;
     }
 
     /**
      * @param DockerServiceType $serviceType
      * @return $this
      */
-    public function setServiceType(DockerServiceType $serviceType)
+    public function setType(DockerServiceType $serviceType)
     {
-        $this->service_type = $serviceType;
+        $this->type = $serviceType;
 
         return $this;
     }
