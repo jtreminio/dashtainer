@@ -1,3 +1,5 @@
+@import "~bootstrap/scss/bootstrap";
+
 #ajax-spinner {
     z-index: 9999;
 
@@ -28,26 +30,26 @@
     resize: vertical;
     cursor: text;
     position: relative;
-}
 
-[data-code-highlight]:after {
-    content: "(edit me)";
-    position: absolute;
-    top: 0;
-    right: 0;
-    color: #aaa;
-    text-align: right;
-    font-size: .75em;
-    padding: 5px 10px 0;
-    line-height: 15px;
-    height: 15px;
-    font-weight: 600;
-}
+    &:after {
+        content: "(edit me)";
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: #aaa;
+        text-align: right;
+        font-size: .75em;
+        padding: 5px 10px 0;
+        line-height: 15px;
+        height: 15px;
+        font-weight: 600;
+    }
 
-[data-code-highlight] code {
-    cursor: text;
-    display: inline-block;
-    width: 100%;
+    code {
+        cursor: text;
+        display: inline-block;
+        width: 100%;
+    }
 }
 
 code {
@@ -55,6 +57,9 @@ code {
 }
 
 .custom-control.lg {
+    min-height: 2.5rem;
+    padding-left: 3rem;
+
     .custom-control-label::before,
     .custom-control-label::after {
         width: 2rem;
@@ -65,7 +70,61 @@ code {
         font-size: 1.5rem;
         cursor: pointer;
     }
+}
 
-    min-height: 2.5rem;
-    padding-left: 3rem;
+ul[role="tablist"] {
+    li {
+        padding: 0 5px 5px;
+        cursor: pointer;
+        -webkit-box-shadow: inset 0 -2px 0 transparent;
+        box-shadow: inset 0 -2px 0 transparent;
+
+        &:hover {
+            background-color: #eee;
+            border-color: #eee #eee #ddd;
+        }
+
+        &.active {
+            background-color: #fff;
+            color: #333;
+            -webkit-box-shadow: inset 0 -2px 0 $primary;
+            box-shadow: inset 0 -2px 0 $primary;
+
+            & > a,
+            & > a:hover,
+            & > a:active,
+            & > a:focus {
+                border-color: transparent;
+                background-color: transparent;
+            }
+
+            & > a {
+                color: #000;
+            }
+        }
+
+        a {
+            color: $gray-500;
+            display: inline-block;
+            background-color: transparent !important;
+            border: none;
+
+            &:hover,
+            &:active,
+            &:link,
+            &:visited,
+            &:focus {
+                background-color: transparent !important;
+                border: none;
+            }
+        }
+
+        .btn-group button {
+            border: none;
+        }
+
+        a[data-toggle="add-block"] {
+            color: #000;
+        }
+    }
 }

@@ -9,46 +9,26 @@
             <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
                     'projectId': project.id,
                 }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">
-                Create Service: PHP-FPM {{ version }}</li>
+            <li class="breadcrumb-item active" aria-current="page">PHP-FPM: {{ service.name }}</li>
         </ol>
     </nav>
 </div>
 
 <div class="container">
     <div class="text-center">
-        <h2>PHP-FPM {{ version }}</h2>
+        <h2>PHP-FPM: {{ service.name }}</h2>
     </div>
 
-    <form class="mb-5" action="{{ path('project.service.create.post', {
+    <form class="mb-5" action="{{ path('project.service.update.post', {
         'projectId': project.id,
-        'serviceTypeSlug': serviceType.slug,
+        'serviceId': service.id,
     }) }}" method="post" data-ajax>
-        <div class="row">
-            <div class="form-group col col-md-10 col-lg-6">
-                <label for="name">Service Name</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="name" name="name" placeholder=""
-                       value="{{ serviceName }}" required data-mask-type="dns"
-                       data-error-container="name" />
-                <div class="invalid-feedback" data-error-container-name="name"></div>
-            </div>
-            <div class="form-group col-12">
-                <small class="text-muted">
-                    This is the name your Nginx or Apache webserver will use to
-                    communicate with PHP-FPM.<br />
-                    Apache Example: <code>SetHandler proxy:fcgi://{service-name-here}:9000</code><br />
-                    Nginx Example: <code>fastcgi_pass {service-name-here}:9000</code><br />
-                </small>
-            </div>
-        </div>
-
         <div class="row">
             <div class="form-group col col-md-10 col-lg-6">
                 <label for="directory">Path to PHP Files</label>
                 <input type="text" class="form-control" maxlength="255"
                        id="directory" name="directory" placeholder=""
-                       value="/path/to/your/project" required
+                       value="{{ projectVol.source }}" required
                        data-error-container="directory" />
                 <div class="invalid-feedback" data-error-container-name="directory"></div>
             </div>
@@ -68,35 +48,19 @@
 
         <h4 class="mb-3">Packages</h4>
 
-        {% set phpVersionedPackages = serviceType.meta("packages-#{version}") %}
-        {% set phpGeneralPackages = serviceType.meta('packages-general') %}
         <div class="row">
             <div class="form-group col">
                 <label for="php-packages">PHP Packages</label>
                 <select class="form-control" id="php-packages" name="php_packages[]"
                         multiple data-error-container="php-packages" data-selectize-tags>
-                    {% if phpVersionedPackages %}
-                        {% for package in phpVersionedPackages.data.default %}
-                            <option value="{{ package }}" selected>{{ package }}</option>
-                        {% endfor %}
-                        {% for package in phpVersionedPackages.data.available %}
-                            <option value="{{ package }}">{{ package }}</option>
-                        {% endfor %}
-                    {% endif %}
-
-                    {% for package in phpGeneralPackages.data.default %}
+                    {% for package in phpPackagesSelected %}
                         <option value="{{ package }}" selected>{{ package }}</option>
                     {% endfor %}
-                    {% for package in phpGeneralPackages.data.available %}
+                    {% for package in availablePhpPackages %}
                         <option value="{{ package }}">{{ package }}</option>
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="php-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
-                       target="_blank">available here</a>.
-                </small>
             </div>
         </div>
 
@@ -105,14 +69,11 @@
                 <label for="pear-packages">PEAR Packages</label>
                 <select class="form-control" id="pear-packages" name="pear_packages[]"
                         multiple data-error-container="pear-packages" data-selectize-tags>
+                    {% for package in pearPackagesSelected %}
+                        <option value="{{ package }}" selected>{{ package }}</option>
+                    {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://pear.php.net/packages.php"
-                       target="_blank">available here</a>.
-                    PEAR is deprecated, you should consider something else.
-                </small>
             </div>
         </div>
 
@@ -121,14 +82,11 @@
                 <label for="pecl-packages">PECL Packages</label>
                 <select class="form-control" id="pecl-packages" name="pecl_packages[]"
                         multiple data-error-container="pecl-packages" data-selectize-tags>
+                    {% for package in peclPackagesSelected %}
+                        <option value="{{ package }}" selected>{{ package }}</option>
+                    {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://pecl.php.net/packages.php"
-                       target="_blank">available here</a>.
-                    PECL is deprecated, you should consider something else.
-                </small>
             </div>
         </div>
 
@@ -137,57 +95,55 @@
                 <label for="system-packages">System Packages</label>
                 <select class="form-control" id="system-packages" name="system_packages[]"
                         multiple data-error-container="system-packages" data-selectize-tags>
+                    {% for package in systemPackagesSelected %}
+                        <option value="{{ package }}" selected>{{ package }}</option>
+                    {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-                <small class="text-muted">
-                    Will be installed using <code>apt-get</code>.
-                </small>
             </div>
         </div>
 
         <hr class="mb-4" />
 
-        {% set iniMeta = serviceType.meta("ini-#{version}") %}
-        {% if iniMeta %}
-            <h4 class="mb-3">Config Files</h4>
-            <div class="row">
-                <div class="col">
-                    <ul class="nav nav-tabs mb-3" role="tablist">
-                        {% for key, value in iniMeta.data %}
-                            <li class="nav-item {{ loop.first ? 'active' }}">
-                                <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
-                                   data-toggle="tab" role="tab"
-                                   href="#file-{{ key }}" aria-controls="file-{{ key }}"
-                                   aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <div id="nav-file-content" class="tab-content">
-                        {% for key, value in iniMeta.data %}
-                            <div id="file-{{ key }}" role="tabpanel"
-                                 class="tab-pane fade {{ loop.first ? 'show active' }}">
-                                <div class="row">
-                                    <div class="col">
-                                        <pre class="language-ini" data-code-highlight><code
-                                                id="file-{{ key }}-source"
-                                                contenteditable autocorrect="off" autocapitalize="off"
-                                                spellcheck="false">{{ value }}</code></pre>
-                                        <input type="hidden" value="" name="file[{{ key }}]"
-                                               data-error-container="file-ini"
-                                               data-get-value-source="file-{{ key }}-source" />
-                                    </div>
-                                </div>
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    {% for key, value in configFiles %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" role="tab"
+                               href="#file-{{ key }}" aria-controls="file-{{ key }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div id="nav-file-content" class="tab-content">
+                {% for key, value in configFiles %}
+                    <div id="file-{{ key }}" role="tabpanel"
+                         class="tab-pane fade {{ loop.first ? 'show active' }}">
+                        <div class="row">
+                            <div class="col">
+                                <pre class="language-ini" data-code-highlight><code
+                                        id="file-{{ key }}-source"
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false">{{ value.data }}</code></pre>
+                                <input type="hidden" value="" name="file[{{ key }}]"
+                                       data-error-container="file-ini"
+                                       data-get-value-source="file-{{ key }}-source" />
                             </div>
-                        {% endfor %}
+                        </div>
                     </div>
-
-                    <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                         data-error-container-name="file-ini"></div>
+                {% endfor %}
                 </div>
-            </div>
 
-            <hr class="mb-4" />
-        {% endif %}
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-ini"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
 
         <h4 class="mb-3">Additional Config Files</h4>
 
@@ -203,10 +159,25 @@
                            }) }}">
                             <i class="fa fa-plus"></i> Add</a>
                     </li>
+                    {% for file in userFiles %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-additional_file-{{ file.id }}-tab"
+                               class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" href="#additional_file-{{ file.id }}"
+                               role="tab" aria-controls="additional_file-{{ file.id }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-default"
+                                        data-toggle="delete-block"
+                                        data-target="#additional_file-{{ file.id }}">
+                                    <i class="fa fa-close"></i></button>
+                            </div>
+                        </li>
+                    {% endfor %}
                 </ul>
                 <div id="nav-additional_file-content" class="tab-content">
-                    <div class="tab-pane fade show active" role="tabpanel"
-                         data-role="empty-tab">
+                    <div class="tab-pane fade {{ userFiles is empty ? 'show active'}}"
+                         role="tabpanel" data-role="empty-tab">
                         <div class="row">
                             <div class="col px-5">
                                 <i class="fa fa-share fa-rotate-270" aria-hidden="true"></i>
@@ -214,6 +185,49 @@
                             </div>
                         </div>
                     </div>
+
+                    {% for file in userFiles %}
+                        <div id="additional_file-{{ file.id }}"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}"
+                             role="tabpanel">
+                            <div class="row">
+                                <div class="form-group col">
+                                    <label for="additional_file-{{ file.id }}-filename">Filename</label>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           id="additional_file-{{ file.id }}-filename"
+                                           name="additional_file[{{ file.id }}][filename]"
+                                           placeholder="" value="{{ file.name }}"
+                                           data-update-text="nav-additional_file-{{ file.id }}-tab"
+                                           data-error-container="additional_file" />
+                                    <small class="text-muted">
+                                        Save config into this local file.
+                                    </small>
+                                </div>
+
+                                <div class="form-group col">
+                                    <label for="additional_file-{{ file.id }}-target">Target Path</label>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           id="additional_file-{{ file.id }}-target"
+                                           name="additional_file[{{ file.id }}][target]"
+                                           placeholder="" value="{{ file.target }}"
+                                           data-error-container="additional_file" />
+                                    <small class="text-muted">
+                                        Make file available inside container at this location.
+                                    </small>
+                                </div>
+
+                                <div class="col-12">
+                                    <pre class="language-ini" data-code-highlight><code
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false"
+                                            id="additional_file-{{ file.id }}-data">{{ file.data }}</code></pre>
+                                    <input type="hidden" value="" name="additional_file[{{ file.id }}][data]"
+                                           data-error-container="additional_file"
+                                           data-get-value-source="additional_file-{{ file.id }}-data" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
@@ -223,7 +237,6 @@
 
         <hr class="mb-4" />
 
-        {% set iniXdebug = serviceType.meta('ini-xdebug') %}
         <h4 class="mb-3">Additional Tools</h4>
         <div class="row">
             <div class="col">
@@ -254,7 +267,7 @@
                             <div class="form-group col">
                                 <div class="custom-control custom-checkbox lg">
                                     <input type="checkbox" class="custom-control-input"
-                                           value="1" checked
+                                           value="1" {{ composer.install ? 'checked' }}
                                            id="composer-install" name="composer[install]">
                                     <label class="custom-control-label" for="composer-install">
                                         Install Composer</label>
@@ -273,7 +286,7 @@
                             <div class="form-group col">
                                 <div class="custom-control custom-checkbox lg">
                                     <input type="checkbox" class="custom-control-input"
-                                           value="1"
+                                           value="1" {{ xdebug.install ? 'checked' }}
                                            id="xdebug-install" name="xdebug[install]">
                                     <label class="custom-control-label" for="xdebug-install">
                                         Install Xdebug</label>
@@ -301,7 +314,7 @@
                                 <pre class="language-ini" data-code-highlight><code
                                         contenteditable autocorrect="off" autocapitalize="off"
                                         spellcheck="false"
-                                        id="xdebug-ini">{{ iniXdebug.data|first }}</code></pre>
+                                        id="xdebug-ini">{{ xdebug.ini }}</code></pre>
                                 <input type="hidden" value="" name="xdebug[ini]"
                                        data-error-container="additional-tools"
                                        data-get-value-source="xdebug-ini" />
@@ -315,7 +328,7 @@
                             <div class="form-group col">
                                 <div class="custom-control custom-checkbox lg">
                                     <input type="checkbox" class="custom-control-input"
-                                           value="1"
+                                           value="1" {{ blackfire.install ? 'checked' }}
                                            id="blackfire-install" name="blackfire[install]">
                                     <label class="custom-control-label" for="blackfire-install">
                                         Install Blackfire</label>
@@ -352,7 +365,37 @@
 
         <input type="hidden" id="version" name="version" value="{{ version }}" />
 
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
+
+        <p class="my-3"><a href="#" data-toggle="modal"
+              data-target="#service-delete-modal">Delete service</a></p>
     </form>
+</div>
+
+<div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-delete-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-delete-modal-title">Delete this service?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.service.delete.post', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}"
+                  method="post" data-ajax>
+                <div class="modal-body">
+                    <p>This will also delete all files attached to this service.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

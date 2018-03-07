@@ -959,6 +959,23 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     }
 
     /**
+     * @param string $owner
+     * @return DockerServiceVolume[]
+     */
+    public function getVolumesByOwner(string $owner) : array
+    {
+        $volumes = [];
+
+        foreach ($this->getVolumes() as $volume) {
+            if ($volume->getOwner() === $owner) {
+                $volumes[$volume->getId()] = $volume;
+            }
+        }
+
+        return $volumes;
+    }
+
+    /**
      * @return DockerServiceVolume[]|Collections\ArrayCollection
      */
     public function getVolumes()

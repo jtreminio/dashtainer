@@ -1,0 +1,35 @@
+<div id="{{ id }}" class="tab-pane fade" role="tabpanel">
+    <div class="row">
+        <div class="form-group col">
+            <label for="{{ id }}-filename">Filename</label>
+            <input type="text" class="form-control" maxlength="255"
+                   id="{{ id }}-filename" name="{{ name }}[filename]" placeholder=""
+                   value="" data-update-text="nav-{{ id }}-tab"
+                   data-error-container="{{ errorContainer }}" />
+            <small class="text-muted">
+                Save config into this local file.
+            </small>
+        </div>
+
+        <div class="form-group col">
+            <label for="{{ id }}-target">Target Path</label>
+            <input type="text" class="form-control" maxlength="255"
+                   id="{{ id }}-target" name="{{ name }}[target]" placeholder=""
+                   value=""
+                   data-error-container="{{ errorContainer }}" />
+            <small class="text-muted">
+                Make file available inside container at this location.
+            </small>
+        </div>
+
+        <div class="col-12">
+            <pre class="language-ini" data-code-highlight><code
+                    contenteditable autocorrect="off" autocapitalize="off"
+                    spellcheck="false"
+                    id="{{ id }}-data"># edit me</code></pre>
+            <input type="hidden" value="" name="{{ name }}[data]"
+                   data-error-container="{{ errorContainer }}"
+                   data-get-value-source="{{ id }}-data" />
+        </div>
+    </div>
+</div>

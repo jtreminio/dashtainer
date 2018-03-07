@@ -27,6 +27,14 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         self::PROPOGATION_DELEGATED,
     ];
 
+    public const OWNER_USER   = 'user';
+    public const OWNER_SYSTEM = 'system';
+
+    protected const ALLOWED_OWNERS = [
+        self::OWNER_USER,
+        self::OWNER_SYSTEM,
+    ];
+
     public const TYPE_DIR  = 'directory';
     public const TYPE_FILE = 'file';
 
@@ -66,9 +74,11 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     protected $data;
 
     /**
-     * @ORM\Column(name="is_removable", type="boolean")
+     * One of system, user
+     *
+     * @ORM\Column(name="owner", type="string", length=6)
      */
-    protected $is_removable = true;
+    protected $owner = 'system';
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="volumes")
@@ -99,22 +109,6 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    public function getIsRemovable() : bool
-    {
-        return $this->is_removable;
-    }
-
-    /**
-     * @param bool $is_removable
-     * @return $this
-     */
-    public function setIsRemovable(bool $is_removable)
-    {
-        $this->is_removable = $is_removable;
-
-        return $this;
-    }
-
     public function getName() : ?string
     {
         return $this->name;
@@ -131,6 +125,26 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
+    public function getOwner() : string
+    {
+        return $this->owner;
+    }
+
+    /**
+     * @param string $owner
+     * @return $this
+     */
+    public function setOwner(string $owner)
+    {
+        if (!in_array($owner, static::ALLOWED_OWNERS)) {
+            throw new \UnexpectedValueException();
+        }
+
+        $this->owner = $owner;
+
+        return $this;
+    }
+
     public function getPropogation() : ?string
     {
         return $this->propogation;
@@ -142,6 +156,10 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      */
     public function setPropogation(string $propogation)
     {
+        if (!in_array($propogation, static::ALLOWED_PROPOGATIONS)) {
+            throw new \UnexpectedValueException();
+        }
+
         $this->propogation = $propogation;
 
         return $this;
@@ -211,6 +229,10 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      */
     public function setType(string $type)
     {
+        if (!in_array($type, static::ALLOWED_TYPES)) {
+            throw new \UnexpectedValueException();
+        }
+
         $this->type = $type;
 
         return $this;

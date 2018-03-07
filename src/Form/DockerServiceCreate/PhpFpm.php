@@ -33,6 +33,8 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
 
     public $file = [];
 
+    public $additional_file = [];
+
     public $composer = [];
 
     public $xdebug = [];
@@ -55,6 +57,7 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
         $this->validateFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);
+        $this->validateAdditionalFile($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)
@@ -101,6 +104,49 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
             $context->buildViolation('Blackfire Server Token cannot be empty')
                 ->atPath('blackfire[server_token]')
                 ->addViolation();
+        }
+    }
+
+    protected function validateAdditionalFile(ExecutionContextInterface $context)
+    {
+        $filenames   = [];
+        $fileTargets = [];
+
+        foreach ($this->additional_file as $key => $file) {
+            $filename = trim($file['filename']) ?? '';
+            $target   = trim($file['target'] ?? '');
+
+            if (empty($filename)) {
+                $context->buildViolation('Ensure all additional config files have a filename')
+                    ->atPath("additional_file[{$key}][filename]")
+                    ->addViolation();
+            }
+
+            if (!empty($filename) && in_array($filename, $filenames)) {
+                $context->buildViolation('Ensure all additional config filenames are unique')
+                    ->atPath("additional_file[{$key}][filename]")
+                    ->addViolation();
+            }
+
+            if (!empty($filename)) {
+                $filenames []= $filename;
+            }
+
+            if (empty($target)) {
+                $context->buildViolation('Ensure all additional config files have a target')
+                    ->atPath("additional_file[{$key}][target]")
+                    ->addViolation();
+            }
+
+            if (!empty($target) && in_array($target, $fileTargets)) {
+                $context->buildViolation('Ensure all additional config targets are unique')
+                    ->atPath("additional_file[{$key}][target]")
+                    ->addViolation();
+            }
+
+            if (!empty($target)) {
+                $fileTargets []= $target;
+            }
         }
     }
 }

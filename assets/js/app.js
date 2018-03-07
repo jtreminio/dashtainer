@@ -21,9 +21,14 @@ require('./tabToSpacesInput');
 
 DASHTAINER = {};
 DASHTAINER.formErrors = require('./formErrors');
+DASHTAINER.eventDataToggleTab = require('./eventDataToggleTab');
 
 $(document).ready(function() {
     require('./formAjax');
+    require('./addBlock');
+    require('./removeBlock');
+
+    DASHTAINER.eventDataToggleTab();
 
     $('[data-mask-type="dns"]').mask('X'.repeat(64), {'translation':{
         'X': {pattern: /^[a-zA-Z0-9\-]+$/}
@@ -46,5 +51,14 @@ $(document).ready(function() {
         allowEmptyOption: true,
         create: true,
         plugins: ['remove_button'],
+    });
+
+    $(document).on('change keyup', '[data-update-text]', function(e) {
+        var $target = $('[id="' + $(this).data('update-text') + '"]');
+        $target.text($(this).val());
+
+        if ($target.text() === '') {
+            $target.text('* Needs Data');
+        }
     });
 });

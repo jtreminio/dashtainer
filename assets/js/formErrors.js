@@ -57,15 +57,7 @@ module.exports = function(errors) {
         }
 
         $.each(messages, function(index, message) {
-            var msg = '* ' + message + '<br />';
-
-            // Internal message type; we want to remove existing message
-            if (message === 0) {
-                $errorContainer.removeClass('has-validation-error');
-                $errorContainer.find('.validation-error').remove();
-
-                return;
-            }
+            var msg = '* ' + message + '<br>';
 
             // Already contains error message
             if ($errorContainer.html() !== undefined

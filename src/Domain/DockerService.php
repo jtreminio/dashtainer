@@ -34,6 +34,25 @@ class DockerService
         return null;
     }
 
+    public function deleteService(Entity\DockerService $service)
+    {
+        if ($service->getType()->getSlug() == 'php-fpm') {
+            $this->deletePhpFpmService($service);
+        }
+    }
+
+    public function updateServiceFromForm(
+        Form\DockerServiceCreateAbstract $form,
+        Entity\DockerService $service
+    ) : Entity\DockerService {
+        if (is_a($form, Form\DockerServiceCreate\PhpFpm::class)) {
+            /** @var Form\DockerServiceCreate\PhpFpm $form */
+            return $this->updatePhpFpmServiceFromForm($form, $service);
+        }
+
+        return null;
+    }
+
     public function getCreateForm(
         Entity\DockerServiceType $serviceType = null
     ) : ?Form\DockerServiceCreateAbstract {
@@ -135,6 +154,8 @@ class DockerService
             'server_token' => '', // @todo grab from separate blackfire service
         ];
 
+        $userFiles = $service->getVolumesByOwner(Entity\DockerServiceVolume::OWNER_USER);
+
         return [
             'version'                => $version,
             'projectVol'             => $projectVol,
@@ -143,11 +164,12 @@ class DockerService
             'pearPackagesSelected'   => $pearPackagesSelected,
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
-            'iniFiles'               => [
+            'configFiles'            => [
                 'php.ini'       => $phpIni,
                 'fpm.conf'      => $fpmIni,
                 'fpm_pool.conf' => $fpmPoolIni,
             ],
+            'userFiles'              => $userFiles,
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
@@ -211,7 +233,7 @@ class DockerService
             ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['php.ini'] ?? '')
-            ->setIsRemovable(false)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
@@ -221,7 +243,7 @@ class DockerService
             ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['php.ini'] ?? '')
-            ->setIsRemovable(false)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
@@ -231,7 +253,7 @@ class DockerService
             ->setTarget("/etc/php/{$form->version}/fpm/php-fpm.conf")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['fpm.conf'])
-            ->setIsRemovable(false)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
@@ -241,7 +263,7 @@ class DockerService
             ->setTarget("/etc/php/{$form->version}/fpm/pool.d/www.conf")
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setData($form->file['fpm_pool.conf'])
-            ->setIsRemovable(false)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
@@ -250,7 +272,7 @@ class DockerService
             ->setSource($form->directory)
             ->setTarget('/var/www')
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_CACHED)
-            ->setIsRemovable(false)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_DIR)
             ->setService($service);
 
@@ -267,10 +289,10 @@ class DockerService
             $xdebugIni->setName('xdebug.ini')
                 ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
                 ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
-                ->setPropogation('delegated')
+                ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
                 ->setData($form->xdebug['ini'])
-                ->setIsRemovable(false)
-                ->setType('file')
+                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
                 ->setService($service);
 
             $service->addVolume($xdebugIni);
@@ -278,8 +300,160 @@ class DockerService
             $this->repo->save($xdebugIni, $service);
         }
 
+        $files = [];
+        foreach ($form->additional_file as $fileConfig) {
+            $file = new Entity\DockerServiceVolume();
+            $file->setName($fileConfig['filename'])
+                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+                ->setTarget($fileConfig['target'])
+                ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                ->setData($fileConfig['data'])
+                ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
+                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+                ->setService($service);
+
+            $service->addVolume($file);
+
+            $files []= $file;
+        }
+
+        if (!empty($files)) {
+            $this->repo->save($service, ...$files);
+        }
+
         // @todo add blackfire service if needed
 
         return $service;
+    }
+
+    protected function updatePhpFpmServiceFromForm(
+        Form\DockerServiceCreate\PhpFpm $form,
+        Entity\DockerService $service
+    ) : Entity\DockerService {
+        $phpPackages = $form->php_packages;
+
+        if ($form->xdebug['install'] ?? false) {
+            $phpPackages []= 'php-xdebug';
+        } else {
+            $phpPackages = array_diff($phpPackages, ['php-xdebug']);
+        }
+
+        $build = $service->getBuild();
+        $build->setContext("./{$service->getSlug()}")
+            ->setDockerfile('DockerFile')
+            ->setArgs([
+                'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
+                'PHP_PACKAGES'      => array_unique($phpPackages),
+                'PEAR_PACKAGES'     => array_unique($form->pear_packages),
+                'PECL_PACKAGES'     => array_unique($form->pecl_packages),
+                'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
+                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
+            ]);
+
+        $service->setBuild($build);
+
+        if ($form->blackfire['install'] ?? false) {
+            $service->setEnvironments([
+                'BLACKFIRE_HOST' => "blackfire-{$service->getSlug()}",
+            ]);
+        }
+
+        $this->repo->save($service);
+
+        $cliIni = $service->getVolume('cli-php.ini');
+        $cliIni->setData($form->file['php.ini'] ?? '');
+
+        $fpmIni = $service->getVolume('fpm-php.ini');
+        $fpmIni->setData($form->file['php.ini'] ?? '');
+
+        $fpmConf = $service->getVolume('fpm.conf');
+        $fpmConf->setData($form->file['fpm.conf']);
+
+        $fpmPoolConf = $service->getVolume('fpm_pool.conf');
+        $fpmPoolConf->setData($form->file['fpm_pool.conf']);
+
+        $directory = $service->getVolume('project_directory');
+        $directory->setSource($form->directory);
+
+        $this->repo->save($cliIni, $fpmIni, $fpmConf, $fpmPoolConf, $directory);
+
+        if ($form->xdebug['install'] ?? false) {
+            $xdebugIni = $service->getVolume('xdebug.ini');
+            $xdebugIni->setData($form->xdebug['ini']);
+
+            $this->repo->save($xdebugIni);
+        }
+
+        $existingUserFiles = $service->getVolumesByOwner(
+            Entity\DockerServiceVolume::OWNER_USER
+        );
+        $files = [];
+
+        foreach ($form->additional_file as $id => $fileConfig) {
+            if (empty($existingUserFiles[$id])) {
+                $file = new Entity\DockerServiceVolume();
+                $file->setName($fileConfig['filename'])
+                    ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+                    ->setTarget($fileConfig['target'])
+                    ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                    ->setData($fileConfig['data'])
+                    ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
+                    ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+                    ->setService($service);
+
+                $service->addVolume($file);
+
+                $files []= $file;
+
+                continue;
+            }
+
+            /** @var Entity\DockerServiceVolume $file */
+            $file = $existingUserFiles[$id];
+            unset($existingUserFiles[$id]);
+
+            $file->setName($fileConfig['filename'])
+                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+                ->setTarget($fileConfig['target'])
+                ->setData($fileConfig['data']);
+
+            $files []= $file;
+        }
+
+        if (!empty($files)) {
+            $this->repo->save($service, ...$files);
+        }
+
+        foreach ($existingUserFiles as $file) {
+            $service->removeVolume($file);
+            $this->repo->delete($file);
+            $this->repo->save($service);
+        }
+
+        // @todo add blackfire service if needed
+
+        return $service;
+    }
+
+    protected function deletePhpFpmService(Entity\DockerService $service)
+    {
+        $metas = [];
+        foreach ($service->getMetas() as $meta) {
+            $service->removeMeta($meta);
+
+            $metas []= $meta;
+        }
+
+        $volumes = [];
+        foreach ($service->getVolumes() as $volume) {
+            $service->removeVolume($volume);
+
+            $volumes []= $volume;
+        }
+
+        $this->repo->delete(...$metas, ...$volumes);
+        $this->repo->delete($service);
+
+        // @todo delete blackfire service if needed
     }
 }
