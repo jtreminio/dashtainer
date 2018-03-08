@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 class ServiceController extends Controller
 {
     /** @var Domain\DockerService */
-    protected $dockerServiceDomain;
+    protected $dServiceDomain;
 
     /** @var Repository\DockerProjectRepository */
     protected $dProjectRepo;
@@ -35,14 +35,14 @@ class ServiceController extends Controller
     protected $validator;
 
     public function __construct(
-        Domain\DockerService $dockerServiceDomain,
+        Domain\DockerService $dServiceDomain,
         Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Repository\DockerProjectRepository $dProjectRepo,
         Repository\DockerServiceRepository $dServiceRepo,
         Repository\DockerServiceTypeRepository $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
-        $this->dockerServiceDomain = $dockerServiceDomain;
+        $this->dServiceDomain = $dServiceDomain;
 
         $this->dProjectRepo     = $dProjectRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
@@ -138,7 +138,7 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $serviceName = $this->dockerServiceDomain->generateServiceName(
+        $serviceName = $this->dServiceDomain->generateServiceName(
             $project,
             $serviceType,
             $version
@@ -183,7 +183,7 @@ class ServiceController extends Controller
             'slug' => $serviceTypeSlug,
         ]);
 
-        if (!$form = $this->dockerServiceDomain->getCreateForm($service_type)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($service_type)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -209,7 +209,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dockerServiceDomain->createService($form);
+        $service = $this->dServiceDomain->createService($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -260,7 +260,7 @@ class ServiceController extends Controller
             strtolower($serviceType->getName())
         );
 
-        $params = $this->dockerServiceDomain->getViewParams($service);
+        $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
             'service' => $service,
@@ -308,7 +308,7 @@ class ServiceController extends Controller
             strtolower($serviceType->getName())
         );
 
-        $params = $this->dockerServiceDomain->getViewParams($service);
+        $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
             'service' => $service,
@@ -359,7 +359,7 @@ class ServiceController extends Controller
 
         $service_type = $service->getType();
 
-        if (!$form = $this->dockerServiceDomain->getCreateForm($service_type)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($service_type)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -381,7 +381,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dockerServiceDomain->updateService($service, $form);
+        $service = $this->dServiceDomain->updateService($service, $form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -431,7 +431,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_OK);
         }
 
-        $this->dockerServiceDomain->deleteService($service);
+        $this->dServiceDomain->deleteService($service);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
