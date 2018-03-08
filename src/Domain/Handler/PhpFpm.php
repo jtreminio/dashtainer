@@ -22,6 +22,16 @@ class PhpFpm implements CrudInterface
         $this->networkRepo = $networkRepo;
     }
 
+    public function getCreateFormClass() : string
+    {
+        return Form\DockerServiceCreate\PhpFpm::class;
+    }
+
+    public function getServiceTypeSlug() : string
+    {
+        return 'php-fpm';
+    }
+
     /**
      * @param Form\DockerServiceCreate\PhpFpm $form
      * @return Entity\DockerService
@@ -320,8 +330,8 @@ class PhpFpm implements CrudInterface
         $existingUserFiles = $service->getVolumesByOwner(
             Entity\DockerServiceVolume::OWNER_USER
         );
-        $files = [];
 
+        $files = [];
         foreach ($form->additional_file as $id => $fileConfig) {
             if (empty($existingUserFiles[$id])) {
                 $file = new Entity\DockerServiceVolume();

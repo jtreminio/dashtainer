@@ -7,6 +7,10 @@ use Dashtainer\Form;
 
 interface CrudInterface
 {
+    public function getCreateFormClass() : string;
+
+    public function getServiceTypeSlug() : string;
+
     public function create($form) : Entity\DockerService;
 
     public function getCreateForm(
