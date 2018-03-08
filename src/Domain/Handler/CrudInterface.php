@@ -1,11 +1,9 @@
 <?php
 
-namespace Dashtainer\Domain\DockerService;
+namespace Dashtainer\Domain\Handler;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
-use Dashtainer\Util;
 
 interface CrudInterface
 {

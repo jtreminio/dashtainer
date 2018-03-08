@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Domain\DockerService;
+namespace Dashtainer\Domain\Handler;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;

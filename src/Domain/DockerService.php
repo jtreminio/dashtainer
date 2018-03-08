@@ -15,7 +15,7 @@ class DockerService
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
 
-    /** @var DockerService\PhpFpm */
+    /** @var Handler\PhpFpm */
     protected $handlerPhpFpm;
 
     public function __construct(
@@ -31,7 +31,7 @@ class DockerService
      * @required
      */
     public function setServiceHandlers(
-        DockerService\PhpFpm $phpfpm
+        Handler\PhpFpm $phpfpm
     ) {
         $this->handlerPhpFpm = $phpfpm;
     }
@@ -110,7 +110,7 @@ class DockerService
 
     protected function getHandlerFromForm(
         Form\DockerServiceCreateAbstract $form
-    ) : DockerService\CrudInterface {
+    ) : Handler\CrudInterface {
         if (is_a($form, Form\DockerServiceCreate\PhpFpm::class)) {
             return $this->handlerPhpFpm;
         }
@@ -120,7 +120,7 @@ class DockerService
 
     protected function getHandlerFromType(
         Entity\DockerServiceType $type
-    ) : DockerService\CrudInterface {
+    ) : Handler\CrudInterface {
         if ($type->getSlug() == 'php-fpm') {
             return $this->handlerPhpFpm;
         }
