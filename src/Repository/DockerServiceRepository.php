@@ -85,4 +85,14 @@ class DockerServiceRepository implements ObjectPersistInterface
     {
         return self::ENTITY_CLASS;
     }
+
+    public function findByProject(
+        Entity\DockerProject $project,
+        string $id
+    ) : ?Entity\DockerService {
+        return $this->findOneBy([
+            'id'      => $id,
+            'project' => $project,
+        ]);
+    }
 }

@@ -85,4 +85,11 @@ class DockerServiceTypeRepository implements ObjectPersistInterface
     {
         return self::ENTITY_CLASS;
     }
+
+    public function findBySlug(
+        string $slug
+    ) : ?Entity\DockerServiceType {
+        return $this->findOneBy([
+            'slug' => $slug,
+        ]);
 }

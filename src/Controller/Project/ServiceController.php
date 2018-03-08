@@ -132,9 +132,7 @@ class ServiceController extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$serviceType = $this->dServiceTypeRepo->findOneBy([
-            'slug' => $serviceTypeSlug,
-        ])) {
+        if (!$serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -174,16 +172,11 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceTypeSlug
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
+        $project = $this->dProjectRepo->findByUser($user, $projectId);
 
-        $service_type = $this->dServiceTypeRepo->findOneBy([
-            'slug' => $serviceTypeSlug,
-        ]);
+        $serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug);
 
-        if (!$form = $this->dServiceDomain->getCreateForm($service_type)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -198,7 +191,7 @@ class ServiceController extends Controller
         ]);
 
         $form->project = $project;
-        $form->type    = $service_type;
+        $form->type    = $serviceType;
 
         $this->validator->setSource($form);
 
@@ -235,21 +228,11 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user,
-        ]);
-
-        if (!$project) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -283,21 +266,11 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user,
-        ]);
-
-        if (!$project) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -333,33 +306,24 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        if (!$project) {
+        ;
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service_type = $service->getType();
+        $serviceType = $service->getType();
 
-        if (!$form = $this->dServiceDomain->getCreateForm($service_type)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -370,7 +334,7 @@ class ServiceController extends Controller
 
         $form->name    = $service->getName();
         $form->project = $project;
-        $form->type    = $service_type;
+        $form->type    = $serviceType;
 
         $this->validator->setSource($form);
 
@@ -407,24 +371,14 @@ class ServiceController extends Controller
         string $projectId,
         string $serviceId
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findOneBy([
-            'id'   => $projectId,
-            'user' => $user
-        ]);
-
-        if (!$project) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
             ], AjaxResponse::HTTP_OK);
         }
 
-        $service = $this->dServiceRepo->findOneBy([
-            'id'      => $serviceId,
-            'project' => $project,
-        ]);
-
-        if (!$service) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
