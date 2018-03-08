@@ -92,4 +92,5 @@ class DockerServiceTypeRepository implements ObjectPersistInterface
         return $this->findOneBy([
             'slug' => $slug,
         ]);
+    }
 }
