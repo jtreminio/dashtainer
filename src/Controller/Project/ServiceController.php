@@ -209,7 +209,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dockerServiceDomain->createServiceFromForm($form);
+        $service = $this->dockerServiceDomain->createService($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -381,7 +381,7 @@ class ServiceController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dockerServiceDomain->updateServiceFromForm($form, $service);
+        $service = $this->dockerServiceDomain->updateService($service, $form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
