@@ -95,4 +95,14 @@ class DockerServiceRepository implements ObjectPersistInterface
             'project' => $project,
         ]);
     }
+
+    public function findChildByType(
+        Entity\DockerService $parent,
+        Entity\DockerServiceType $childType
+    ) : ?Entity\DockerService {
+        return $this->findOneBy([
+            'parent' => $parent,
+            'type'   => $childType,
+        ]);
+    }
 }

@@ -21,11 +21,24 @@
     <hr />
 
     <p>Services:</p>
-    {% for service in project.services %}
-        <p><a href="{{ path('project.service.view.get', {
-                'projectId': project.id,
-                'serviceId': service.id,
-            }) }}">{{ service.name }}</a></p>
+    {% for service in project.services if service.parent is empty %}
+        <ul>
+            <li><a href="{{ path('project.service.view.get', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}">{{ service.name }}</a>
+                {% if service.children is not empty %}
+                    <ul>
+                    {% for child in service.children %}
+                        <li><a href="{{ path('project.service.view.get', {
+                                'projectId': project.id,
+                                'serviceId': child.id,
+                            }) }}">{{ child.name }}</a></li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        </ul>
     {% endfor %}
 
     {% if project.services is empty %}

@@ -43,6 +43,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $build = [];
 
     /**
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="parent")
+     */
+    private $children;
+
+    /**
      * @ORM\Column(name="command", type="simple_array", nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#command
      */
@@ -142,7 +147,9 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $logging = [];
 
     /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceMeta", mappedBy="service", fetch="EAGER")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceMeta",
+     *     mappedBy="service", fetch="EAGER"
+     * )
      */
     protected $meta;
 
@@ -158,6 +165,12 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
      * @see https://docs.docker.com/compose/compose-file/#networks
      */
     protected $networks;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="children")
+     * @ORM\JoinColumn(name="parent_id", referencedColumnName="id")
+     */
+    protected $parent;
 
     /**
      * @ORM\Column(name="pid", type="string", length=4, nullable=true)
@@ -241,10 +254,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
 
     public function __construct()
     {
-        $this->networks        = new Collections\ArrayCollection();
-        $this->secrets         = new Collections\ArrayCollection();
+        $this->children        = new Collections\ArrayCollection();
         $this->meta            = new Collections\ArrayCollection();
+        $this->networks        = new Collections\ArrayCollection();
         $this->project_volumes = new Collections\ArrayCollection();
+        $this->secrets         = new Collections\ArrayCollection();
         $this->volumes         = new Collections\ArrayCollection();
     }
 
@@ -267,6 +281,40 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
             : [];
 
         return $this;
+    }
+
+    /**
+     * @param DockerService $child
+     * @return $this
+     */
+    public function addChild(DockerService $child)
+    {
+        if ($this->children->contains($child)) {
+            return $this;
+        }
+
+        $this->children->add($child);
+        $child->setParent($this);
+
+        return $this;
+    }
+
+    public function removeChild(DockerService $child)
+    {
+        if (!$this->children->contains($child)) {
+            return;
+        }
+
+        $this->children->removeElement($child);
+        $child->setParent(null);
+    }
+
+    /**
+     * @return DockerService[]|Collections\ArrayCollection
+     */
+    public function getChildren()
+    {
+        return $this->children;
     }
 
     public function getCommand() : array
@@ -690,6 +738,22 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     public function getNetworks()
     {
         return $this->networks;
+    }
+
+    public function getParent() : ?DockerService
+    {
+        return $this->parent;
+    }
+
+    /**
+     * @param DockerService $parent
+     * @return $this
+     */
+    public function setParent(DockerService $parent = null)
+    {
+        $this->parent = $parent;
+
+        return $this;
     }
 
     public function getPid() : ?string

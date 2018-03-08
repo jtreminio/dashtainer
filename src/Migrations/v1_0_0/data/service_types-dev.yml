@@ -79,4 +79,10 @@
     slug: beanstalkd
     versions: []
     order: 3
-
+-
+    name: Blackfire
+    category: Other
+    is_public: false
+    slug: blackfire
+    versions: []
+    order: 4

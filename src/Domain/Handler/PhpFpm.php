@@ -8,18 +8,29 @@ use Dashtainer\Repository;
 
 class PhpFpm implements CrudInterface
 {
+    /** @var Blackfire */
+    protected $blackfireHandler;
+
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
 
     /** @var Repository\DockerServiceRepository */
     protected $serviceRepo;
 
+    /** @var Repository\DockerServiceTypeRepository */
+    protected $serviceTypeRepo;
+
     public function __construct(
         Repository\DockerServiceRepository $serviceRepo,
-        Repository\DockerNetworkRepository $networkRepo
+        Repository\DockerNetworkRepository $networkRepo,
+        Repository\DockerServiceTypeRepository $serviceTypeRepo,
+        Blackfire $blackfireHandler
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        $this->serviceRepo     = $serviceRepo;
+        $this->networkRepo     = $networkRepo;
+        $this->serviceTypeRepo = $serviceTypeRepo;
+
+        $this->blackfireHandler = $blackfireHandler;
     }
 
     public function getCreateFormClass() : string
@@ -62,12 +73,6 @@ class PhpFpm implements CrudInterface
             ]);
 
         $service->setBuild($build);
-
-        if ($form->blackfire['install'] ?? false) {
-            $service->setEnvironments([
-                'BLACKFIRE_HOST' => "blackfire-{$service->getSlug()}",
-            ]);
-        }
 
         $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
             $service->getProject()
@@ -182,7 +187,9 @@ class PhpFpm implements CrudInterface
             $this->serviceRepo->save($service, ...$files);
         }
 
-        // @todo add blackfire service if needed
+        if (!empty($form->blackfire['install'])) {
+            $this->createUpdateBlackfireChild($service, $form);
+        }
 
         return $service;
     }
@@ -237,10 +244,18 @@ class PhpFpm implements CrudInterface
         ];
 
         $blackfire = [
-            'install'      => $service->getBuild()->getArgs()['BLACKFIRE_INSTALL'],
-            'server_id'    => '', // @todo grab from separate blackfire service
-            'server_token' => '', // @todo grab from separate blackfire service
+            'install'      => false,
+            'server_id'    => '',
+            'server_token' => '',
         ];
+
+        if ($blackfireService = $this->getBlackfireChild($service)) {
+            $bfEnv = $blackfireService->getEnvironments();
+
+            $blackfire['install']      = true;
+            $blackfire['server_id']    = $bfEnv['BLACKFIRE_SERVER_ID'];
+            $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
+        }
 
         $userFiles = $service->getVolumesByOwner(Entity\DockerServiceVolume::OWNER_USER);
 
@@ -295,12 +310,6 @@ class PhpFpm implements CrudInterface
 
         $service->setBuild($build);
 
-        if ($form->blackfire['install'] ?? false) {
-            $service->setEnvironments([
-                'BLACKFIRE_HOST' => "blackfire-{$service->getSlug()}",
-            ]);
-        }
-
         $this->serviceRepo->save($service);
 
         $cliIni = $service->getVolume('cli-php.ini');
@@ -325,6 +334,16 @@ class PhpFpm implements CrudInterface
             $xdebugIni->setData($form->xdebug['ini']);
 
             $this->serviceRepo->save($xdebugIni);
+        }
+
+        // create or update blackfire service
+        if (!empty($form->blackfire['install'])) {
+            $this->createUpdateBlackfireChild($service, $form);
+        }
+
+        // delete blackfire service
+        if (empty($form->blackfire['install'])) {
+            $this->deleteBlackfireChild($service);
         }
 
         $existingUserFiles = $service->getVolumesByOwner(
@@ -373,8 +392,6 @@ class PhpFpm implements CrudInterface
             $this->serviceRepo->save($service);
         }
 
-        // @todo add blackfire service if needed
-
         return $service;
     }
 
@@ -394,9 +411,78 @@ class PhpFpm implements CrudInterface
             $volumes []= $volume;
         }
 
-        $this->serviceRepo->delete(...$metas, ...$volumes);
-        $this->serviceRepo->delete($service);
+        $children = [];
+        foreach ($service->getChildren() as $child) {
+            $child->setParent(null);
+            $service->removeChild($child);
 
-        // @todo delete blackfire service if needed
+            $children []= $child;
+        }
+
+        $this->serviceRepo->delete(...$metas, ...$volumes, ...$children);
+        $this->serviceRepo->delete($service);
+    }
+
+    protected function createUpdateBlackfireChild(
+        Entity\DockerService $parent,
+        Form\DockerServiceCreate\PhpFpm $form
+    ) : Entity\DockerService {
+        /** @var Form\DockerServiceCreate\Blackfire $blackfireForm */
+        $blackfireForm = $this->blackfireHandler->getCreateForm();
+
+        $blackfireForm->fromArray($form->blackfire);
+
+        if (!$blackfireService = $this->getBlackfireChild($parent)) {
+            $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
+
+            $blackfireForm->name    = "{$blackfireSlug}-{$form->name}";
+            $blackfireForm->project = $form->project;
+            $blackfireForm->type    = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+
+            $blackfireService = $this->blackfireHandler->create($blackfireForm);
+
+            $blackfireService->setParent($parent);
+            $parent->addChild($blackfireService);
+
+            $this->serviceRepo->save($blackfireService, $parent);
+
+            return $blackfireService;
+        }
+
+        $this->blackfireHandler->update($blackfireService, $blackfireForm);
+
+        return $blackfireService;
+    }
+
+    protected function getBlackfireChild(
+        Entity\DockerService $parent
+    ) : ?Entity\DockerService {
+        $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
+        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+
+        return $this->serviceRepo->findChildByType(
+            $parent,
+            $blackfireType
+        );
+    }
+
+    protected function deleteBlackfireChild(Entity\DockerService $parent) {
+        $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
+        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+
+        $blackfire = $this->serviceRepo->findChildByType(
+            $parent,
+            $blackfireType
+        );
+
+        if (!$blackfire) {
+            return;
+        }
+
+        $blackfire->setParent(null);
+        $parent->removeChild($blackfire);
+
+        $this->serviceRepo->save($parent);
+        $this->serviceRepo->delete($blackfire);
     }
 }
