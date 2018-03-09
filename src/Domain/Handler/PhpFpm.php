@@ -33,11 +33,6 @@ class PhpFpm implements CrudInterface
         $this->blackfireHandler = $blackfireHandler;
     }
 
-    public function getCreateFormClass() : string
-    {
-        return Form\DockerServiceCreate\PhpFpm::class;
-    }
-
     public function getServiceTypeSlug() : string
     {
         return 'php-fpm';
@@ -167,7 +162,7 @@ class PhpFpm implements CrudInterface
         }
 
         $files = [];
-        foreach ($form->additional_file as $fileConfig) {
+        foreach ($form->custom_file as $fileConfig) {
             $file = new Entity\DockerServiceVolume();
             $file->setName($fileConfig['filename'])
                 ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
@@ -198,6 +193,11 @@ class PhpFpm implements CrudInterface
         Entity\DockerServiceType $serviceType = null
     ) : Form\DockerServiceCreateAbstract {
         return new Form\DockerServiceCreate\PhpFpm();
+    }
+
+    public function getCreateParams(Entity\DockerProject $project) : array
+    {
+        return [];
     }
 
     public function getViewParams(Entity\DockerService $service) : array
@@ -257,7 +257,7 @@ class PhpFpm implements CrudInterface
             $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
         }
 
-        $userFiles = $service->getVolumesByOwner(Entity\DockerServiceVolume::OWNER_USER);
+        $customFiles = $service->getVolumesByOwner(Entity\DockerServiceVolume::OWNER_USER);
 
         return [
             'version'                => $version,
@@ -272,7 +272,7 @@ class PhpFpm implements CrudInterface
                 'fpm.conf'      => $fpmIni,
                 'fpm_pool.conf' => $fpmPoolIni,
             ],
-            'userFiles'              => $userFiles,
+            'customFiles'            => $customFiles,
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
@@ -297,16 +297,14 @@ class PhpFpm implements CrudInterface
         }
 
         $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('DockerFile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
-                'PHP_PACKAGES'      => array_unique($phpPackages),
-                'PEAR_PACKAGES'     => array_unique($form->pear_packages),
-                'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-                'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
-                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
-            ]);
+        $build->setArgs([
+            'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
+            'PHP_PACKAGES'      => array_unique($phpPackages),
+            'PEAR_PACKAGES'     => array_unique($form->pear_packages),
+            'PECL_PACKAGES'     => array_unique($form->pecl_packages),
+            'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
+            'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
+        ]);
 
         $service->setBuild($build);
 
@@ -351,7 +349,7 @@ class PhpFpm implements CrudInterface
         );
 
         $files = [];
-        foreach ($form->additional_file as $id => $fileConfig) {
+        foreach ($form->custom_file as $id => $fileConfig) {
             if (empty($existingUserFiles[$id])) {
                 $file = new Entity\DockerServiceVolume();
                 $file->setName($fileConfig['filename'])

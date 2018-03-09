@@ -31,8 +31,10 @@ class DockerService
      * @required
      */
     public function setServiceHandlers(
+        Handler\Apache $apache,
         Handler\PhpFpm $phpfpm
     ) {
+        $this->handler []= $apache;
         $this->handler []= $phpfpm;
     }
 
@@ -66,6 +68,15 @@ class DockerService
         $handler = $this->getHandlerFromType($serviceType);
 
         return $handler->getCreateForm($serviceType);
+    }
+
+    public function getCreateParams(
+        Entity\DockerProject $project,
+        Entity\DockerServiceType $serviceType
+    ) : array {
+        $handler = $this->getHandlerFromType($serviceType);
+
+        return $handler->getCreateParams($project);
     }
 
     public function getViewParams(Entity\DockerService $service) : array
@@ -112,7 +123,7 @@ class DockerService
         Form\DockerServiceCreateAbstract $form
     ) : Handler\CrudInterface {
         foreach ($this->handler as $handler) {
-            if (is_a($form, $handler->getCreateFormClass())) {
+            if (is_a($form, get_class($handler->getCreateForm()))) {
                 return $handler;
             }
         }

@@ -22,11 +22,6 @@ class Blackfire implements CrudInterface
         $this->networkRepo = $networkRepo;
     }
 
-    public function getCreateFormClass() : string
-    {
-        return Form\DockerServiceCreate\Blackfire::class;
-    }
-
     public function getServiceTypeSlug() : string
     {
         return 'blackfire';
@@ -64,6 +59,11 @@ class Blackfire implements CrudInterface
         Entity\DockerServiceType $serviceType = null
     ) : Form\DockerServiceCreateAbstract {
         return new Form\DockerServiceCreate\Blackfire();
+    }
+
+    public function getCreateParams(Entity\DockerProject $project) : array
+    {
+        return [];
     }
 
     public function getViewParams(Entity\DockerService $service) : array
