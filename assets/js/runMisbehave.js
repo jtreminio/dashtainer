@@ -4,7 +4,13 @@ module.exports = function(element) {
         oninput : () => Prism.highlightElement(code)
     });
 
-    $(element).on('click', function() {
+    var $pre = $(element);
+
+    if (!$(element).is('pre')) {
+        $pre = $(element).find('pre');
+    }
+
+    $pre.on('click', function() {
         code.focus();
 
         return false;
