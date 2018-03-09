@@ -6,16 +6,10 @@ use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class Apache implements CrudInterface
+class Apache extends HandlerAbstract implements CrudInterface
 {
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
-
-    /** @var Repository\DockerProjectRepository */
-    protected $projectRepo;
-
-    /** @var Repository\DockerServiceRepository */
-    protected $serviceRepo;
 
     /** @var Repository\DockerServiceTypeRepository */
     protected $serviceTypeRepo;
@@ -27,7 +21,6 @@ class Apache implements CrudInterface
         Repository\DockerNetworkRepository $networkRepo
     ) {
         $this->networkRepo     = $networkRepo;
-        $this->projectRepo     = $projectRepo;
         $this->serviceRepo     = $serviceRepo;
         $this->serviceTypeRepo = $serviceTypeRepo;
     }
@@ -35,6 +28,12 @@ class Apache implements CrudInterface
     public function getServiceTypeSlug() : string
     {
         return 'apache';
+    }
+
+    public function getCreateForm(
+        Entity\DockerServiceType $serviceType = null
+    ) : Form\DockerServiceCreateAbstract {
+        return new Form\DockerServiceCreate\Apache();
     }
 
     /**
@@ -158,12 +157,6 @@ class Apache implements CrudInterface
         }
 
         return $service;
-    }
-
-    public function getCreateForm(
-        Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\Apache();
     }
 
     public function getCreateParams(Entity\DockerProject $project) : array
@@ -329,33 +322,5 @@ class Apache implements CrudInterface
         }
 
         return $service;
-    }
-
-    public function delete(Entity\DockerService $service)
-    {
-        $metas = [];
-        foreach ($service->getMetas() as $meta) {
-            $service->removeMeta($meta);
-
-            $metas []= $meta;
-        }
-
-        $volumes = [];
-        foreach ($service->getVolumes() as $volume) {
-            $service->removeVolume($volume);
-
-            $volumes []= $volume;
-        }
-
-        $children = [];
-        foreach ($service->getChildren() as $child) {
-            $child->setParent(null);
-            $service->removeChild($child);
-
-            $children []= $child;
-        }
-
-        $this->serviceRepo->delete(...$metas, ...$volumes, ...$children);
-        $this->serviceRepo->delete($service);
     }
 }

@@ -6,13 +6,10 @@ use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class Blackfire implements CrudInterface
+class Blackfire extends HandlerAbstract implements CrudInterface
 {
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
-
-    /** @var Repository\DockerServiceRepository */
-    protected $serviceRepo;
 
     public function __construct(
         Repository\DockerServiceRepository $serviceRepo,
@@ -25,6 +22,12 @@ class Blackfire implements CrudInterface
     public function getServiceTypeSlug() : string
     {
         return 'blackfire';
+    }
+
+    public function getCreateForm(
+        Entity\DockerServiceType $serviceType = null
+    ) : Form\DockerServiceCreateAbstract {
+        return new Form\DockerServiceCreate\Blackfire();
     }
 
     /**
@@ -55,12 +58,6 @@ class Blackfire implements CrudInterface
         return $service;
     }
 
-    public function getCreateForm(
-        Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\Blackfire();
-    }
-
     public function getCreateParams(Entity\DockerProject $project) : array
     {
         return [];
@@ -88,14 +85,5 @@ class Blackfire implements CrudInterface
         $this->serviceRepo->save($service);
 
         return $service;
-    }
-
-    public function delete(Entity\DockerService $service)
-    {
-        if ($parent = $service->getParent()) {
-            $parent->removeChild($service);
-        }
-
-        $this->serviceRepo->delete($service);
     }
 }

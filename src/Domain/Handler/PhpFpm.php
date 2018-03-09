@@ -6,16 +6,13 @@ use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class PhpFpm implements CrudInterface
+class PhpFpm extends HandlerAbstract implements CrudInterface
 {
     /** @var Blackfire */
     protected $blackfireHandler;
 
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
-
-    /** @var Repository\DockerServiceRepository */
-    protected $serviceRepo;
 
     /** @var Repository\DockerServiceTypeRepository */
     protected $serviceTypeRepo;
@@ -36,6 +33,12 @@ class PhpFpm implements CrudInterface
     public function getServiceTypeSlug() : string
     {
         return 'php-fpm';
+    }
+
+    public function getCreateForm(
+        Entity\DockerServiceType $serviceType = null
+    ) : Form\DockerServiceCreateAbstract {
+        return new Form\DockerServiceCreate\PhpFpm();
     }
 
     /**
@@ -187,12 +190,6 @@ class PhpFpm implements CrudInterface
         }
 
         return $service;
-    }
-
-    public function getCreateForm(
-        Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\PhpFpm();
     }
 
     public function getCreateParams(Entity\DockerProject $project) : array
@@ -391,34 +388,6 @@ class PhpFpm implements CrudInterface
         }
 
         return $service;
-    }
-
-    public function delete(Entity\DockerService $service)
-    {
-        $metas = [];
-        foreach ($service->getMetas() as $meta) {
-            $service->removeMeta($meta);
-
-            $metas []= $meta;
-        }
-
-        $volumes = [];
-        foreach ($service->getVolumes() as $volume) {
-            $service->removeVolume($volume);
-
-            $volumes []= $volume;
-        }
-
-        $children = [];
-        foreach ($service->getChildren() as $child) {
-            $child->setParent(null);
-            $service->removeChild($child);
-
-            $children []= $child;
-        }
-
-        $this->serviceRepo->delete(...$metas, ...$volumes, ...$children);
-        $this->serviceRepo->delete($service);
     }
 
     protected function createUpdateBlackfireChild(
