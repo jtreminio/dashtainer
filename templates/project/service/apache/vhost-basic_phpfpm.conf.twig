@@ -1,0 +1,23 @@
+<VirtualHost *:80 *:443>
+    ServerName {{ form.server_name }}
+    ServerAlias {{ form.server_alias|join(' ') }}
+    DocumentRoot {{ form.document_root }}
+    Protocols h2 http/1.1
+
+    <FilesMatch "\.php$">
+        SetHandler proxy:fcgi://{{ form.fcgi_handler }}
+    </FilesMatch>
+
+    <Directory "{{ form.document_root }}">
+        Options Indexes FollowSymlinks MultiViews
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php index.html
+    </Directory>
+
+    ErrorLog "/var/log/apache2/vhost-error.log"
+    CustomLog "/var/log/apache2/vhost-access.log" combined
+    LogLevel warn
+    ServerSignature Off
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</VirtualHost>

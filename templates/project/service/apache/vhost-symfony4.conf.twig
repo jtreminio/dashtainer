@@ -1,0 +1,31 @@
+<VirtualHost *:80 *:443>
+    ServerName {{ form.server_name }}
+    ServerAlias {{ form.server_alias|join(' ') }}
+    DocumentRoot {{ form.document_root }}
+    Protocols h2 http/1.1
+
+    <FilesMatch "\.php$">
+        SetHandler proxy:fcgi://{{ form.fcgi_handler }}
+        SetEnv APP_ENV dev
+    </FilesMatch>
+
+    <Directory "{{ form.document_root }}/public">
+        Options Indexes FollowSymlinks MultiViews
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php
+        RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
+        RewriteRule ^(.*) - [E=BASE:%1]
+        RewriteCond %{ENV:REDIRECT_STATUS} ^$
+        RewriteRule ^index\.php(/(.*)|$) %{ENV:BASE}/$2 [R=301,L]
+        RewriteCond %{REQUEST_FILENAME} -f
+        RewriteRule .? - [L]
+        RewriteRule .? %{ENV:BASE}/index.php [L]
+    </Directory>
+
+    ErrorLog "/var/log/apache2/vhost-error.log"
+    CustomLog "/var/log/apache2/vhost-access.log" combined
+    LogLevel warn
+    ServerSignature Off
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</VirtualHost>

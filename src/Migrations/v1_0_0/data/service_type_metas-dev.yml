@@ -359,3 +359,194 @@
             xdebug.remote_handler = "dbgp"
             xdebug.remote_port = 9000
 
+-
+    type: Apache
+    name: modules
+    data:
+        available:
+            - access_compat
+            - actions
+            - alias
+            - allowmethods
+            - asis
+            - auth_basic
+            - auth_digest
+            - auth_form
+            - authn_anon
+            - authn_core
+            - authn_dbd
+            - authn_dbm
+            - authn_file
+            - authn_socache
+            - authnz_fcgi
+            - authnz_ldap
+            - authz_core
+            - authz_dbd
+            - authz_dbm
+            - authz_groupfile
+            - authz_host
+            - authz_owner
+            - authz_user
+            - autoindex
+            - brotli
+            - buffer
+            - cache
+            - cache_disk
+            - cache_socache
+            - cern_meta
+            - cgi
+            - cgid
+            - charset_lite
+            - data
+            - dav
+            - dav_fs
+            - dav_lock
+            - dbd
+            - deflate
+            - dialup
+            - dir
+            - dump_io
+            - echo
+            - env
+            - expires
+            - ext_filter
+            - file_cache
+            - filter
+            - headers
+            - heartbeat
+            - heartmonitor
+            - ident
+            - imagemap
+            - include
+            - info
+            - lbmethod_bybusyness
+            - lbmethod_byrequests
+            - lbmethod_bytraffic
+            - lbmethod_heartbeat
+            - ldap
+            - log_debug
+            - log_forensic
+            - lua
+            - macro
+            - mime
+            - mime_magic
+            - mpm_prefork
+            - mpm_worker
+            - negotiation
+            - proxy
+            - proxy_ajp
+            - proxy_balancer
+            - proxy_connect
+            - proxy_express
+            - proxy_fdpass
+            - proxy_ftp
+            - proxy_hcheck
+            - proxy_html
+            - proxy_http
+            - proxy_http2
+            - proxy_scgi
+            - proxy_wstunnel
+            - ratelimit
+            - reflector
+            - remoteip
+            - reqtimeout
+            - request
+            - sed
+            - session
+            - session_cookie
+            - session_crypto
+            - session_dbd
+            - setenvif
+            - slotmem_plain
+            - slotmem_shm
+            - socache_dbm
+            - socache_memcache
+            - socache_shmcb
+            - speling
+            - ssl
+            - status
+            - substitute
+            - suexec
+            - unique_id
+            - userdir
+            - usertrack
+            - vhost_alias
+            - xml2enc
+        default:
+            - http2
+            - mpm_event
+            - proxy_fcgi
+            - rewrite
+        disable:
+            - mpm_prefork
+            - mpm_worker
+-
+    type: Apache
+    name: conf
+    data:
+        apache2.conf: |
+            # /etc/apache2/apache2.conf
+
+            DefaultRuntimeDir ${APACHE_RUN_DIR}
+            PidFile ${APACHE_PID_FILE}
+            Timeout 300
+            KeepAlive On
+            MaxKeepAliveRequests 100
+            KeepAliveTimeout 5
+            User ${APACHE_RUN_USER}
+            Group ${APACHE_RUN_GROUP}
+            HostnameLookups Off
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            LogLevel warn
+
+            IncludeOptional mods-enabled/*.load
+            IncludeOptional mods-enabled/*.conf
+
+            Include ports.conf
+
+            <Directory />
+                Options FollowSymLinks
+                AllowOverride None
+                Require all denied
+            </Directory>
+
+            <Directory /usr/share>
+                AllowOverride None
+                Require all granted
+            </Directory>
+
+            <Directory /var/www/>
+                Options Indexes FollowSymLinks
+                AllowOverride None
+                Require all granted
+            </Directory>
+
+            AccessFileName .htaccess
+
+            <FilesMatch "^\.ht">
+                Require all denied
+            </FilesMatch>
+
+            LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+            LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
+            LogFormat "%h %l %u %t \"%r\" %>s %O" common
+            LogFormat "%{Referer}i -> %U" referer
+            LogFormat "%{User-agent}i" agent
+
+            IncludeOptional conf-enabled/*.conf
+
+            IncludeOptional sites-enabled/*.conf
+
+            ServerName localhost
+        ports.conf: |
+            # /etc/apache2/ports.conf
+
+            Listen 80
+
+            <IfModule ssl_module>
+                Listen 443
+            </IfModule>
+
+            <IfModule mod_gnutls.c>
+                Listen 443
+            </IfModule>
