@@ -2,6 +2,7 @@ module.exports = function(errors) {
     // Clear out old errors if any
     $('.is-invalid').removeClass('is-invalid');
     $('.invalid-feedback').html('');
+    $('.invalid-feedback').css('display', 'none');
 
     if (errors === undefined || errors.length === 0) {
         return false;
