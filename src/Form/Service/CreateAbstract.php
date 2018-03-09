@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Form;
+namespace Dashtainer\Form\Service;
 
 use Dashtainer\Util;
 use Dashtainer\Validator\Constraints as DashAssert;
@@ -8,7 +8,7 @@ use Dashtainer\Validator\Constraints as DashAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-abstract class DockerServiceCreateAbstract implements Util\HydratorInterface
+abstract class CreateAbstract implements Util\HydratorInterface
 {
     /**
      * @DashAssert\NonBlankString(message = "Please enter a service name")

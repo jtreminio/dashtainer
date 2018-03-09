@@ -3,7 +3,6 @@
 namespace Dashtainer\Form\Service;
 
 use Dashtainer\Util;
-use Dashtainer\Validator\Constraints as DashAssert;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;

@@ -39,7 +39,7 @@ class DockerService
     }
 
     public function createService(
-        Form\DockerServiceCreateAbstract $form
+        Form\Service\CreateAbstract $form
     ) : Entity\DockerService {
         $handler = $this->getHandlerFromForm($form);
 
@@ -55,7 +55,7 @@ class DockerService
 
     public function updateService(
         Entity\DockerService $service,
-        Form\DockerServiceCreateAbstract $form
+        Form\Service\CreateAbstract $form
     ) : Entity\DockerService {
         $handler = $this->getHandlerFromForm($form);
 
@@ -64,7 +64,7 @@ class DockerService
 
     public function getCreateForm(
         Entity\DockerServiceType $serviceType
-    ) : Form\DockerServiceCreateAbstract {
+    ) : Form\Service\CreateAbstract {
         $handler = $this->getHandlerFromType($serviceType);
 
         return $handler->getCreateForm($serviceType);
@@ -120,7 +120,7 @@ class DockerService
     }
 
     protected function getHandlerFromForm(
-        Form\DockerServiceCreateAbstract $form
+        Form\Service\CreateAbstract $form
     ) : Handler\CrudInterface {
         foreach ($this->handler as $handler) {
             if (is_a($form, get_class($handler->getCreateForm()))) {

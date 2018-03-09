@@ -1,15 +1,14 @@
 <?php
 
-namespace Dashtainer\Form\DockerServiceCreate;
+namespace Dashtainer\Form\Service;
 
-use Dashtainer\Form;
 use Dashtainer\Util;
 use Dashtainer\Validator\Constraints as DashAssert;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class Blackfire extends Form\DockerServiceCreateAbstract implements Util\HydratorInterface
+class BlackfireCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 

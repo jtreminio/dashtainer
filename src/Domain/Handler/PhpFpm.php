@@ -37,12 +37,12 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
     public function getCreateForm(
         Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\PhpFpm();
+    ) : Form\Service\CreateAbstract {
+        return new Form\Service\PhpFpmCreate();
     }
 
     /**
-     * @param Form\DockerServiceCreate\PhpFpm $form
+     * @param Form\Service\PhpFpmCreate $form
      * @return Entity\DockerService
      */
     public function create($form) : Entity\DockerService
@@ -266,8 +266,8 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
     }
 
     /**
-     * @param Entity\DockerService            $service
-     * @param Form\DockerServiceCreate\PhpFpm $form
+     * @param Entity\DockerService      $service
+     * @param Form\Service\PhpFpmCreate $form
      * @return Entity\DockerService
      */
     public function update(
@@ -378,9 +378,9 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
     protected function createUpdateBlackfireChild(
         Entity\DockerService $parent,
-        Form\DockerServiceCreate\PhpFpm $form
+        Form\Service\PhpFpmCreate $form
     ) : Entity\DockerService {
-        /** @var Form\DockerServiceCreate\Blackfire $blackfireForm */
+        /** @var Form\Service\BlackfireCreate $blackfireForm */
         $blackfireForm = $this->blackfireHandler->getCreateForm();
 
         $blackfireForm->fromArray($form->blackfire);

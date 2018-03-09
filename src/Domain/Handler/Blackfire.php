@@ -26,12 +26,12 @@ class Blackfire extends HandlerAbstract implements CrudInterface
 
     public function getCreateForm(
         Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\Blackfire();
+    ) : Form\Service\CreateAbstract {
+        return new Form\Service\BlackfireCreate();
     }
 
     /**
-     * @param Form\DockerServiceCreate\Blackfire $form
+     * @param Form\Service\BlackfireCreate $form
      * @return Entity\DockerService
      */
     public function create($form) : Entity\DockerService
@@ -69,8 +69,8 @@ class Blackfire extends HandlerAbstract implements CrudInterface
     }
 
     /**
-     * @param Entity\DockerService               $service
-     * @param Form\DockerServiceCreate\Blackfire $form
+     * @param Entity\DockerService         $service
+     * @param Form\Service\BlackfireCreate $form
      * @return Entity\DockerService
      */
     public function update(

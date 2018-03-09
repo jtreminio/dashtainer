@@ -32,12 +32,12 @@ class Apache extends HandlerAbstract implements CrudInterface
 
     public function getCreateForm(
         Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract {
-        return new Form\DockerServiceCreate\Apache();
+    ) : Form\Service\CreateAbstract {
+        return new Form\Service\ApacheCreate();
     }
 
     /**
-     * @param Form\DockerServiceCreate\Apache $form
+     * @param Form\Service\ApacheCreate $form
      * @return Entity\DockerService
      */
     public function create($form) : Entity\DockerService
@@ -228,8 +228,8 @@ class Apache extends HandlerAbstract implements CrudInterface
     }
 
     /**
-     * @param Entity\DockerService               $service
-     * @param Form\DockerServiceCreate\Apache $form
+     * @param Entity\DockerService      $service
+     * @param Form\Service\ApacheCreate $form
      * @return Entity\DockerService
      */
     public function update(

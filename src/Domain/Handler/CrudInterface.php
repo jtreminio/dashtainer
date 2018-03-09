@@ -9,11 +9,11 @@ interface CrudInterface
 {
     public function getServiceTypeSlug() : string;
 
-    public function create($form) : Entity\DockerService;
-
     public function getCreateForm(
         Entity\DockerServiceType $serviceType = null
-    ) : Form\DockerServiceCreateAbstract;
+    ) : Form\Service\CreateAbstract;
+
+    public function create($form) : Entity\DockerService;
 
     public function getCreateParams(Entity\DockerProject $project) : array;
 
