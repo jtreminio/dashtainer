@@ -87,19 +87,19 @@ class ServiceController extends Controller
     ) : AjaxResponse {
         $uniqid = uniqid();
 
-        $id   = "additional_file-{$uniqid}";
-        $name = "additional_file[{$uniqid}]";
+        $id   = "custom_file-{$uniqid}";
+        $name = "custom_file[{$uniqid}]";
 
         $blockTab = $this->render('@Dashtainer/project/service/_block_tab_file.html.twig', [
             'id'             => $id,
             'name'           => $name,
-            'errorContainer' => 'additional_file',
+            'errorContainer' => 'custom_file',
         ]);
 
         $blockContent = $this->render('@Dashtainer/project/service/_block_content_file.html.twig', [
             'id'             => $id,
             'name'           => $name,
-            'errorContainer' => 'additional_file',
+            'errorContainer' => 'custom_file',
         ]);
 
         return new AjaxResponse([
@@ -146,13 +146,15 @@ class ServiceController extends Controller
             strtolower($serviceTypeSlug)
         );
 
-        return $this->render($template, [
+        $params = $this->dServiceDomain->getCreateParams($project, $serviceType);
+
+        return $this->render($template, array_merge([
             'user'        => $user,
             'project'     => $project,
             'serviceName' => $serviceName,
             'serviceType' => $serviceType,
             'version'     => $version,
-        ]);
+        ], $params));
     }
 
     /**
