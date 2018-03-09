@@ -145,7 +145,7 @@ class ServiceController extends Controller
             $version
         );
 
-        $template = sprintf('@Dashtainer/project/service/create/%s.html.twig',
+        $template = sprintf('@Dashtainer/project/service/%s/create.html.twig',
             strtolower($serviceTypeSlug)
         );
 
@@ -244,7 +244,7 @@ class ServiceController extends Controller
         }
 
         $serviceType = $service->getType();
-        $template    = sprintf('@Dashtainer/project/service/view/%s.html.twig',
+        $template    = sprintf('@Dashtainer/project/service/%s/view.html.twig',
             strtolower($serviceType->getName())
         );
 
@@ -282,7 +282,7 @@ class ServiceController extends Controller
         }
 
         $serviceType = $service->getType();
-        $template    = sprintf('@Dashtainer/project/service/update/%s.html.twig',
+        $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getName())
         );
 
