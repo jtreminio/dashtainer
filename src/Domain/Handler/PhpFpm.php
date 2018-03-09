@@ -89,20 +89,10 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($versionMeta, $service);
 
-        $cliIni = new Entity\DockerServiceVolume();
-        $cliIni->setName('cli-php.ini')
+        $phpIni = new Entity\DockerServiceVolume();
+        $phpIni->setName('php.ini')
             ->setSource("\$PWD/{$service->getSlug()}/php.ini")
-            ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
-            ->setData($form->file['php.ini'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
-            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-            ->setService($service);
-
-        $fpmIni = new Entity\DockerServiceVolume();
-        $fpmIni->setName('fpm-php.ini')
-            ->setSource("\$PWD/{$service->getSlug()}/php.ini")
-            ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
+            ->setTarget("/etc/php/{$form->version}/mods-available/zzzz_custom.ini")
             ->setData($form->file['php.ini'] ?? '')
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
@@ -110,20 +100,20 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setService($service);
 
         $fpmConf = new Entity\DockerServiceVolume();
-        $fpmConf->setName('fpm.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/fpm.conf")
+        $fpmConf->setName('php-fpm.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/php-fpm.conf")
             ->setTarget("/etc/php/{$form->version}/fpm/php-fpm.conf")
-            ->setData($form->file['fpm.conf'])
+            ->setData($form->file['php-fpm.conf'])
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
         $fpmPoolConf = new Entity\DockerServiceVolume();
-        $fpmPoolConf->setName('fpm_pool.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/fpm_pool.conf")
+        $fpmPoolConf->setName('php-fpm_pool.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/php-fpm_pool.conf")
             ->setTarget("/etc/php/{$form->version}/fpm/pool.d/www.conf")
-            ->setData($form->file['fpm_pool.conf'])
+            ->setData($form->file['php-fpm_pool.conf'])
             ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
@@ -138,14 +128,13 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setType(Entity\DockerServiceVolume::TYPE_DIR)
             ->setService($service);
 
-        $service->addVolume($cliIni)
-            ->addVolume($fpmIni)
+        $service->addVolume($phpIni)
             ->addVolume($fpmConf)
             ->addVolume($fpmPoolConf)
             ->addVolume($directory);
 
         $this->serviceRepo->save(
-            $cliIni, $fpmIni, $fpmConf, $fpmPoolConf, $directory, $service
+            $phpIni, $fpmConf, $fpmPoolConf, $directory, $service
         );
 
         if ($form->xdebug['install'] ?? false) {
@@ -221,9 +210,9 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $peclPackagesSelected   = $service->getBuild()->getArgs()['PECL_PACKAGES'];
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
-        $phpIni     = $service->getVolume('fpm-php.ini');
-        $fpmIni     = $service->getVolume('fpm.conf');
-        $fpmPoolIni = $service->getVolume('fpm_pool.conf');
+        $phpIni     = $service->getVolume('php.ini');
+        $fpmConf    = $service->getVolume('php-fpm.conf');
+        $fpmPoolIni = $service->getVolume('php-fpm_pool.conf');
 
         $composer = [
             'install' => $service->getBuild()->getArgs()['COMPOSER_INSTALL'],
@@ -265,9 +254,9 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
-                'php.ini'       => $phpIni,
-                'fpm.conf'      => $fpmIni,
-                'fpm_pool.conf' => $fpmPoolIni,
+                'php.ini'           => $phpIni,
+                'php-fpm.conf'      => $fpmConf,
+                'php-fpm_pool.conf' => $fpmPoolIni,
             ],
             'customFiles'            => $customFiles,
             'composer'               => $composer,
@@ -307,22 +296,19 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($service);
 
-        $cliIni = $service->getVolume('cli-php.ini');
-        $cliIni->setData($form->file['php.ini'] ?? '');
+        $phpIni = $service->getVolume('php.ini');
+        $phpIni->setData($form->file['php.ini'] ?? '');
 
-        $fpmIni = $service->getVolume('fpm-php.ini');
-        $fpmIni->setData($form->file['php.ini'] ?? '');
+        $fpmConf = $service->getVolume('php-fpm.conf');
+        $fpmConf->setData($form->file['php-fpm.conf']);
 
-        $fpmConf = $service->getVolume('fpm.conf');
-        $fpmConf->setData($form->file['fpm.conf']);
-
-        $fpmPoolConf = $service->getVolume('fpm_pool.conf');
-        $fpmPoolConf->setData($form->file['fpm_pool.conf']);
+        $fpmPoolConf = $service->getVolume('php-fpm_pool.conf');
+        $fpmPoolConf->setData($form->file['php-fpm_pool.conf']);
 
         $directory = $service->getVolume('project_directory');
         $directory->setSource($form->directory);
 
-        $this->serviceRepo->save($cliIni, $fpmIni, $fpmConf, $fpmPoolConf, $directory);
+        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf, $directory);
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = $service->getVolume('xdebug.ini');

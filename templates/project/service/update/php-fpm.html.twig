@@ -110,6 +110,16 @@
         <div class="row">
             <div class="col">
                 <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           data-toggle="add-block"
+                           aria-controls="#nav-file-content"
+                           href="{{ path('project.service.block-add-file.get', {
+                               'projectId': project.id,
+                               'language': 'ini',
+                           }) }}">
+                            <i class="fa fa-plus"></i> Add</a>
+                    </li>
                     {% for key, value in configFiles %}
                         <li class="nav-item {{ loop.first ? 'active' }}">
                             <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
@@ -118,51 +128,11 @@
                                aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
                         </li>
                     {% endfor %}
-                </ul>
-                <div id="nav-file-content" class="tab-content">
-                {% for key, value in configFiles %}
-                    <div id="file-{{ key }}" role="tabpanel"
-                         class="tab-pane fade {{ loop.first ? 'show active' }}">
-                        <div class="row">
-                            <div class="col">
-                                <pre class="language-ini" data-code-highlight><code
-                                        id="file-{{ key }}-source"
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false">{{ value.data }}</code></pre>
-                                <input type="hidden" value="" name="file[{{ key }}]"
-                                       data-error-container="file-ini"
-                                       data-get-value-source="file-{{ key }}-source" />
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-                </div>
 
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="file-ini"></div>
-            </div>
-        </div>
-
-        <hr class="mb-4" />
-
-        <h4 class="mb-3">Additional Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-custom_file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                           }) }}">
-                            <i class="fa fa-plus"></i> Add</a>
-                    </li>
                     {% for file in customFiles %}
-                        <li class="nav-item {{ loop.first ? 'active' }}">
+                        <li class="nav-item">
                             <a id="nav-custom_file-{{ file.id }}-tab"
-                               class="nav-link {{ loop.first ? 'active' }}"
+                               class="nav-link"
                                data-toggle="tab" href="#custom_file-{{ file.id }}"
                                role="tab" aria-controls="custom_file-{{ file.id }}"
                                aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
@@ -175,20 +145,27 @@
                         </li>
                     {% endfor %}
                 </ul>
-                <div id="nav-custom_file-content" class="tab-content">
-                    <div class="tab-pane fade {{ customFiles is empty ? 'show active'}}"
-                         role="tabpanel" data-role="empty-tab">
-                        <div class="row">
-                            <div class="col px-5">
-                                <i class="fa fa-share fa-rotate-270" aria-hidden="true"></i>
-                                You have no additional files. Click to add a file.
+                <div id="nav-file-content" class="tab-content">
+                    {% for key, value in configFiles %}
+                        <div id="file-{{ key }}" role="tabpanel"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}">
+                            <div class="row">
+                                <div class="col">
+                                    <pre class="language-ini" data-code-highlight><code
+                                            id="file-{{ key }}-source"
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false">{{ value.data }}</code></pre>
+                                    <input type="hidden" value="" name="file[{{ key }}]"
+                                           data-error-container="file-ini"
+                                           data-get-value-source="file-{{ key }}-source" />
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    {% endfor %}
 
                     {% for file in customFiles %}
                         <div id="custom_file-{{ file.id }}"
-                             class="tab-pane fade {{ loop.first ? 'show active' }}"
+                             class="tab-pane fade"
                              role="tabpanel">
                             <div class="row">
                                 <div class="form-group col">
@@ -231,7 +208,7 @@
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="custom_file"></div>
+                     data-error-container-name="file-ini"></div>
             </div>
         </div>
 

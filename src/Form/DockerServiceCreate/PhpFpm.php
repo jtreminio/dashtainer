@@ -62,15 +62,15 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
 
     protected function validateFile(ExecutionContextInterface $context)
     {
-        if (empty(trim($this->file['fpm.conf'] ?? ''))) {
-            $context->buildViolation('fpm.conf cannot be empty')
-                ->atPath('file[fpm.conf]')
+        if (empty(trim($this->file['php-fpm.conf'] ?? ''))) {
+            $context->buildViolation('php-fpm.conf cannot be empty')
+                ->atPath('file[php-fpm.conf]')
                 ->addViolation();
         }
 
-        if (empty(trim($this->file['fpm_pool.conf'] ?? ''))) {
-            $context->buildViolation('fpm_pool.conf cannot be empty')
-                ->atPath('file[fpm_pool.conf]')
+        if (empty(trim($this->file['php-fpm_pool.conf'] ?? ''))) {
+            $context->buildViolation('php-fpm_pool.conf cannot be empty')
+                ->atPath('file[php-fpm_pool.conf]')
                 ->addViolation();
         }
     }

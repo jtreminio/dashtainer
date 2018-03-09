@@ -148,11 +148,22 @@
         <hr class="mb-4" />
 
         {% set iniMeta = serviceType.meta("ini-#{version}") %}
-        {% if iniMeta %}
-            <h4 class="mb-3">Config Files</h4>
-            <div class="row">
-                <div class="col">
-                    <ul class="nav nav-tabs mb-3" role="tablist">
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           data-toggle="add-block"
+                           aria-controls="#nav-file-content"
+                           href="{{ path('project.service.block-add-file.get', {
+                               'projectId': project.id,
+                               'language': 'ini',
+                           }) }}">
+                            <i class="fa fa-plus"></i> Add</a>
+                    </li>
+                    {% if iniMeta %}
                         {% for key, value in iniMeta.data %}
                             <li class="nav-item {{ loop.first ? 'active' }}">
                                 <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
@@ -161,8 +172,10 @@
                                    aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
                             </li>
                         {% endfor %}
-                    </ul>
-                    <div id="nav-file-content" class="tab-content">
+                    {% endif %}
+                </ul>
+                <div id="nav-file-content" class="tab-content">
+                    {% if iniMeta %}
                         {% for key, value in iniMeta.data %}
                             <div id="file-{{ key }}" role="tabpanel"
                                  class="tab-pane fade {{ loop.first ? 'show active' }}">
@@ -179,42 +192,11 @@
                                 </div>
                             </div>
                         {% endfor %}
-                    </div>
-
-                    <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                         data-error-container-name="file-error"></div>
+                    {% endif %}
                 </div>
-            </div>
 
-            <hr class="mb-4" />
-        {% endif %}
-
-        <h4 class="mb-3">Additional Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-custom_file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                           }) }}">
-                            <i class="fa fa-plus"></i> Add</a>
-                    </li>
-                </ul>
-                <div id="nav-custom_file-content" class="tab-content">
-                    <div class="tab-pane fade show active" role="tabpanel"
-                         data-role="empty-tab">
-                        <div class="row">
-                            <div class="col px-5">
-                                <i class="fa fa-share fa-rotate-270" aria-hidden="true"></i>
-                                You have no custom files. Click to add a file.
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
                      data-error-container-name="custom_file"></div>
