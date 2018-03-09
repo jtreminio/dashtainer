@@ -33,5 +33,8 @@ function parseResponse($tablist, $panelBodyContainer, row) {
     $tablist.append($tabLink);
     $panelBodyContainer.append(content);
 
+    var $content = $('[id="' + $(content)[0].id + '"]');
+    DASHTAINER.runMisbehave($content);
+
     return $tabLink;
 }

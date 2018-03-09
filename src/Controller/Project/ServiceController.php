@@ -78,12 +78,14 @@ class ServiceController extends Controller
 
     /**
      * @Route(name="project.service.block-add-file.get",
-     *     path="/project/{projectId}/service/block-add-file",
+     *     path="/project/{projectId}/service/block-add-file/{language}",
      *     methods={"GET"}
      * )
+     * @param string $language
      * @return AjaxResponse
      */
     public function getBlockAddFile(
+        string $language
     ) : AjaxResponse {
         $uniqid = uniqid();
 
@@ -99,6 +101,7 @@ class ServiceController extends Controller
         $blockContent = $this->render('@Dashtainer/project/service/_block_content_file.html.twig', [
             'id'             => $id,
             'name'           => $name,
+            'language'       => $language,
             'errorContainer' => 'custom_file',
         ]);
 

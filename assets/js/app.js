@@ -15,13 +15,14 @@ require('prismjs/themes/prism.css');
 require('prismjs/components/prism-apacheconf');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');
-let Misbehave = require('misbehave');
 
 require('./tabToSpacesInput');
 
 DASHTAINER = {};
 DASHTAINER.formErrors = require('./formErrors');
 DASHTAINER.eventDataToggleTab = require('./eventDataToggleTab');
+DASHTAINER.misbehave = require('misbehave');
+DASHTAINER.runMisbehave = require('./runMisbehave');
 
 $(document).ready(function() {
     require('./formAjax');
@@ -36,16 +37,7 @@ $(document).ready(function() {
     }});
 
     $.each($('pre[data-code-highlight]'), function(_, element) {
-        let code = $(element).find('code')[0];
-        let misbehave = new Misbehave(code, {
-            oninput : () => Prism.highlightElement(code)
-        });
-
-        $(element).on('click', function() {
-            code.focus();
-
-            return false;
-        });
+        DASHTAINER.runMisbehave(element);
     });
 
     $('[data-selectize-tags]').selectize({
