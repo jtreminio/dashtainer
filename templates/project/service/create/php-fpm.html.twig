@@ -173,7 +173,7 @@
                                                 contenteditable autocorrect="off" autocapitalize="off"
                                                 spellcheck="false">{{ value }}</code></pre>
                                         <input type="hidden" value="" name="file[{{ key }}]"
-                                               data-error-container="file-ini"
+                                               data-error-container="file-error"
                                                data-get-value-source="file-{{ key }}-source" />
                                     </div>
                                 </div>
@@ -182,7 +182,7 @@
                     </div>
 
                     <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                         data-error-container-name="file-ini"></div>
+                         data-error-container-name="file-error"></div>
                 </div>
             </div>
 
@@ -197,27 +197,27 @@
                     <li class="nav-item">
                         <a class="nav-link"
                            data-toggle="add-block"
-                           aria-controls="#nav-additional_file-content"
+                           aria-controls="#nav-custom_file-content"
                            href="{{ path('project.service.block-add-file.get', {
                                'projectId': project.id,
                            }) }}">
                             <i class="fa fa-plus"></i> Add</a>
                     </li>
                 </ul>
-                <div id="nav-additional_file-content" class="tab-content">
+                <div id="nav-custom_file-content" class="tab-content">
                     <div class="tab-pane fade show active" role="tabpanel"
                          data-role="empty-tab">
                         <div class="row">
                             <div class="col px-5">
                                 <i class="fa fa-share fa-rotate-270" aria-hidden="true"></i>
-                                You have no additional files. Click to add a file.
+                                You have no custom files. Click to add a file.
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="additional_file"></div>
+                     data-error-container-name="custom_file"></div>
             </div>
         </div>
 

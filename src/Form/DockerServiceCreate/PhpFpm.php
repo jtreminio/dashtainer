@@ -33,7 +33,7 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
 
     public $file = [];
 
-    public $additional_file = [];
+    public $custom_file = [];
 
     public $composer = [];
 
@@ -57,7 +57,7 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
         $this->validateFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);
-        $this->validateAdditionalFile($context);
+        $this->validateCustomFile($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)
@@ -107,24 +107,24 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
         }
     }
 
-    protected function validateAdditionalFile(ExecutionContextInterface $context)
+    protected function validateCustomFile(ExecutionContextInterface $context)
     {
         $filenames   = [];
         $fileTargets = [];
 
-        foreach ($this->additional_file as $key => $file) {
+        foreach ($this->custom_file as $key => $file) {
             $filename = trim($file['filename']) ?? '';
             $target   = trim($file['target'] ?? '');
 
             if (empty($filename)) {
-                $context->buildViolation('Ensure all additional config files have a filename')
-                    ->atPath("additional_file[{$key}][filename]")
+                $context->buildViolation('Ensure all custom config files have a filename')
+                    ->atPath("custom_file[{$key}][filename]")
                     ->addViolation();
             }
 
             if (!empty($filename) && in_array($filename, $filenames)) {
-                $context->buildViolation('Ensure all additional config filenames are unique')
-                    ->atPath("additional_file[{$key}][filename]")
+                $context->buildViolation('Ensure all custom config filenames are unique')
+                    ->atPath("custom_file[{$key}][filename]")
                     ->addViolation();
             }
 
@@ -133,14 +133,14 @@ class PhpFpm extends Form\DockerServiceCreateAbstract implements Util\HydratorIn
             }
 
             if (empty($target)) {
-                $context->buildViolation('Ensure all additional config files have a target')
-                    ->atPath("additional_file[{$key}][target]")
+                $context->buildViolation('Ensure all custom config files have a target')
+                    ->atPath("custom_file[{$key}][target]")
                     ->addViolation();
             }
 
             if (!empty($target) && in_array($target, $fileTargets)) {
-                $context->buildViolation('Ensure all additional config targets are unique')
-                    ->atPath("additional_file[{$key}][target]")
+                $context->buildViolation('Ensure all custom config targets are unique')
+                    ->atPath("custom_file[{$key}][target]")
                     ->addViolation();
             }
 

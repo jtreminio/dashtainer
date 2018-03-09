@@ -153,30 +153,30 @@
                     <li class="nav-item">
                         <a class="nav-link"
                            data-toggle="add-block"
-                           aria-controls="#nav-additional_file-content"
+                           aria-controls="#nav-custom_file-content"
                            href="{{ path('project.service.block-add-file.get', {
                                'projectId': project.id,
                            }) }}">
                             <i class="fa fa-plus"></i> Add</a>
                     </li>
-                    {% for file in userFiles %}
+                    {% for file in customFiles %}
                         <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-additional_file-{{ file.id }}-tab"
+                            <a id="nav-custom_file-{{ file.id }}-tab"
                                class="nav-link {{ loop.first ? 'active' }}"
-                               data-toggle="tab" href="#additional_file-{{ file.id }}"
-                               role="tab" aria-controls="additional_file-{{ file.id }}"
+                               data-toggle="tab" href="#custom_file-{{ file.id }}"
+                               role="tab" aria-controls="custom_file-{{ file.id }}"
                                aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-default"
                                         data-toggle="delete-block"
-                                        data-target="#additional_file-{{ file.id }}">
+                                        data-target="#custom_file-{{ file.id }}">
                                     <i class="fa fa-close"></i></button>
                             </div>
                         </li>
                     {% endfor %}
                 </ul>
-                <div id="nav-additional_file-content" class="tab-content">
-                    <div class="tab-pane fade {{ userFiles is empty ? 'show active'}}"
+                <div id="nav-custom_file-content" class="tab-content">
+                    <div class="tab-pane fade {{ customFiles is empty ? 'show active'}}"
                          role="tabpanel" data-role="empty-tab">
                         <div class="row">
                             <div class="col px-5">
@@ -186,31 +186,31 @@
                         </div>
                     </div>
 
-                    {% for file in userFiles %}
-                        <div id="additional_file-{{ file.id }}"
+                    {% for file in customFiles %}
+                        <div id="custom_file-{{ file.id }}"
                              class="tab-pane fade {{ loop.first ? 'show active' }}"
                              role="tabpanel">
                             <div class="row">
                                 <div class="form-group col">
-                                    <label for="additional_file-{{ file.id }}-filename">Filename</label>
+                                    <label for="custom_file-{{ file.id }}-filename">Filename</label>
                                     <input type="text" class="form-control" maxlength="255"
-                                           id="additional_file-{{ file.id }}-filename"
-                                           name="additional_file[{{ file.id }}][filename]"
+                                           id="custom_file-{{ file.id }}-filename"
+                                           name="custom_file[{{ file.id }}][filename]"
                                            placeholder="" value="{{ file.name }}"
-                                           data-update-text="nav-additional_file-{{ file.id }}-tab"
-                                           data-error-container="additional_file" />
+                                           data-update-text="nav-custom_file-{{ file.id }}-tab"
+                                           data-error-container="custom_file" />
                                     <small class="text-muted">
                                         Save config into this local file.
                                     </small>
                                 </div>
 
                                 <div class="form-group col">
-                                    <label for="additional_file-{{ file.id }}-target">Target Path</label>
+                                    <label for="custom_file-{{ file.id }}-target">Target Path</label>
                                     <input type="text" class="form-control" maxlength="255"
-                                           id="additional_file-{{ file.id }}-target"
-                                           name="additional_file[{{ file.id }}][target]"
+                                           id="custom_file-{{ file.id }}-target"
+                                           name="custom_file[{{ file.id }}][target]"
                                            placeholder="" value="{{ file.target }}"
-                                           data-error-container="additional_file" />
+                                           data-error-container="custom_file" />
                                     <small class="text-muted">
                                         Make file available inside container at this location.
                                     </small>
@@ -220,10 +220,10 @@
                                     <pre class="language-ini" data-code-highlight><code
                                             contenteditable autocorrect="off" autocapitalize="off"
                                             spellcheck="false"
-                                            id="additional_file-{{ file.id }}-data">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="additional_file[{{ file.id }}][data]"
-                                           data-error-container="additional_file"
-                                           data-get-value-source="additional_file-{{ file.id }}-data" />
+                                            id="custom_file-{{ file.id }}-data">{{ file.data }}</code></pre>
+                                    <input type="hidden" value="" name="custom_file[{{ file.id }}][data]"
+                                           data-error-container="custom_file"
+                                           data-get-value-source="custom_file-{{ file.id }}-data" />
                                 </div>
                             </div>
                         </div>
@@ -231,7 +231,7 @@
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="additional_file"></div>
+                     data-error-container-name="custom_file"></div>
             </div>
         </div>
 
