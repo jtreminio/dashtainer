@@ -96,6 +96,21 @@ class DockerServiceRepository implements ObjectPersistInterface
         ]);
     }
 
+    /**
+     * @param Entity\DockerProject     $project
+     * @param Entity\DockerServiceType $type
+     * @return Entity\DockerService[]
+     */
+    public function findByProjectAndType(
+        Entity\DockerProject $project,
+        Entity\DockerServiceType $type
+    ) : array {
+        return $this->findBy([
+            'project' => $project,
+            'type'    => $type,
+        ]);
+    }
+
     public function findChildByType(
         Entity\DockerService $parent,
         Entity\DockerServiceType $childType
