@@ -581,3 +581,61 @@
             <IfModule mod_gnutls.c>
                 Listen 443
             </IfModule>
+
+-
+    type: Nginx
+    name: conf
+    data:
+        nginx.conf: |
+            # /etc/nginx/nginx.conf
+
+            user www-data;
+            worker_processes auto;
+            pid /run/nginx.pid;
+            include /etc/nginx/modules-enabled/*.conf;
+
+            events {
+                worker_connections 768;
+            }
+
+            http {
+                sendfile on;
+                tcp_nopush on;
+                tcp_nodelay on;
+                keepalive_timeout 65;
+                types_hash_max_size 2048;
+
+                include /etc/nginx/mime.types;
+                default_type application/octet-stream;
+
+                ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+                ssl_prefer_server_ciphers on;
+
+                access_log /var/log/nginx/access.log;
+                error_log /var/log/nginx/error.log;
+
+                gzip on;
+                gzip_disable "msie6";
+
+                include /etc/nginx/conf.d/*.conf;
+                include /etc/nginx/sites-enabled/*;
+            }
+        core.conf: |
+            # /etc/nginx/conf.d/core.conf
+
+            client_max_body_size 10m;
+            client_body_buffer_size 128k;
+        proxy.conf: |
+            # /etc/nginx/conf.d/proxy.conf
+
+            proxy_redirect off;
+            proxy_connect_timeout 600s;
+            proxy_send_timeout 600s;
+            proxy_read_timeout 600s;
+            proxy_buffers 4 256k;
+            proxy_buffer_size 128k;
+            proxy_http_version 1.0;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_headers_hash_bucket_size 64;

@@ -1,0 +1,267 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                }) }}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Create Service: Nginx</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="text-center">
+        <h2>Nginx</h2>
+    </div>
+
+    <form class="mb-5" action="{{ path('project.service.create.post', {
+        'projectId': project.id,
+        'serviceTypeSlug': serviceType.slug,
+    }) }}" method="post" data-ajax>
+        <div class="row">
+            <div class="form-group col col-md-10 col-lg-6">
+                <label for="name">Service Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ serviceName }}" required data-mask-type="dns"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+            <div class="form-group col-12">
+                <small class="text-muted">
+                    This is the name other services in this project will use to communicate
+                    with the Nginx service.
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col col-md-10 col-lg-6">
+                <label for="directory">Path to Web Files</label>
+                <input type="text" class="form-control" maxlength="255"
+                       id="directory" name="directory" placeholder=""
+                       value="/path/to/your/project" required
+                       data-error-container="directory" />
+                <div class="invalid-feedback" data-error-container-name="directory"></div>
+            </div>
+            <div class="form-group col-12">
+                <small class="text-muted">
+                    Location of your Web project's files on host machine.
+                    This will be automatically mounted inside the container as
+                    <code>/var/www</code>.<br />
+                    Windows users: You must use forward-slash
+                    <code>c:/dev/my-project/webroot</code> or double back-slash
+                    <code>c:\\dev\\my-project\\webroot</code>.
+                </small>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <h4 class="mb-3">Packages</h4>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="system-packages">System Packages</label>
+                <select class="form-control" id="system-packages" name="system_packages[]"
+                        multiple data-error-container="system-packages" data-selectize-tags>
+                </select>
+                <div class="invalid-feedback" data-error-container-name="system-packages"></div>
+                <small class="text-muted">
+                    Will be installed using <code>apt-get</code>.
+                </small>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <h4 class="mb-3">Virtual Host Config</h4>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="server_name">Server Name</label>
+                <input type="text" class="form-control"
+                       id="server_name" name="server_name" placeholder=""
+                       value="awesome.test" />
+            </div>
+
+            <div class="col form-group">
+                <label for="server_alias">Server Aliases</label>
+                <select class="form-control" id="server_alias"
+                        name="server_alias[]"
+                        multiple data-selectize-tags>
+                    <option value="www.awesome.test" selected>www.awesome.test</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col form-group">
+                <label for="document_root">Document Root</label>
+                <input type="text" class="form-control"
+                       id="document_root" name="document_root" placeholder=""
+                       value="/var/www/awesome" />
+                <small class="text-muted">
+                    Location of your site's index.php file, or other landing page.
+                </small>
+            </div>
+
+            {% set has_fcgi_handlers = false %}
+            <div class="col form-group">
+                <label for="fcgi_handler">FCGI Handler</label>
+                <select class="form-control" id="fcgi_handler"
+                        name="fcgi_handler"
+                        data-selectize-tags>
+                    {% if fcgi_handlers.phpfpm is not empty %}
+                        {% set has_fcgi_handlers = true %}
+                        <optgroup label="PHP-FPM">
+                            {% for handler in fcgi_handlers.phpfpm %}
+                                <option value="{{ handler.name }}:9000"
+                                        {{ loop.first ? 'selected' }}>
+                                    {{ handler.name }}:9000</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endif %}
+                </select>
+                <small class="text-muted">
+                    {% if not has_fcgi_handlers %}
+                        No handlers found.
+                        <a href="{{ path('project.view.get', {
+                            'projectId': project.id,
+                        }) }}">Create a handler service first</a>,
+                        like PHP-FPM.
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item dropdown active">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown"
+                           href="#" role="button" aria-haspopup="true"
+                           aria-expanded="false">Generate from a template</a>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'basic_html',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Basic HTML</a>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'basic_phpfpm',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Basic PHP-FPM</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'symfony2_3',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Symfony 2 &amp; 3</a>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'symfony4',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Symfony 4</a>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'laravel',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Laravel</a>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'wordpress',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Wordpress</a>
+                        </div>
+                    </li>
+                </ul>
+                <div id="nav-vhost_conf-content" class="tab-content">
+                    <div class="tab-pane fade show active" role="tabpanel"
+                         data-role="empty-tab">
+                        <div class="row">
+                            <div class="col">
+                                <pre class="language-nginx" data-code-highlight><code
+                                        id="vhost_conf-code"
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false"># Generate from a template with the dropdown above,
+# or create your own custom config here</code></pre>
+                                <input type="hidden" value="" id="vhost_conf" name="vhost_conf"
+                                       data-error-container="vhost"
+                                       data-get-value-source="vhost_conf-code" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invalid-feedback" data-error-container-name="vhost"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        {% set conf = serviceType.meta('conf') %}
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           data-toggle="add-block"
+                           aria-controls="#nav-file-content"
+                           href="{{ path('project.service.block-add-file.get', {
+                               'projectId': project.id,
+                               'language': 'nginx',
+                           }) }}">
+                            <i class="fa fa-plus"></i> Add</a>
+                    </li>
+                    {% for key, value in conf.data %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-file-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" role="tab"
+                               href="#file-{{ key }}" aria-controls="file-{{ key }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div id="nav-file-content" class="tab-content">
+                    {% for key, value in conf.data %}
+                        <div id="file-{{ key }}" role="tabpanel"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}">
+                            <div class="row">
+                                <div class="col">
+                                    <pre class="language-nginx" data-code-highlight><code
+                                            id="file-{{ key }}-source"
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false">{{ value }}</code></pre>
+                                    <input type="hidden" value="" name="file[{{ key }}]"
+                                           data-error-container="file-error"
+                                           data-get-value-source="file-{{ key }}-source" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="custom_file"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+    </form>
+</div>
+{% endblock %}

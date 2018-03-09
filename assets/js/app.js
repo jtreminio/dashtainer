@@ -15,6 +15,7 @@ require('prismjs/themes/prism.css');
 require('prismjs/components/prism-apacheconf');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');
+require('prismjs/components/prism-nginx');
 
 require('./tabToSpacesInput');
 
