@@ -27,6 +27,7 @@ $(document).ready(function() {
     require('./formAjax');
     require('./addBlock');
     require('./removeBlock');
+    require('./codeFromRemote');
 
     DASHTAINER.eventDataToggleTab();
 

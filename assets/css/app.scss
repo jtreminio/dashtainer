@@ -119,11 +119,20 @@ ul[role="tablist"] {
             }
         }
 
+        a.dropdown-item {
+            color: #000;
+
+            &:hover {
+                background-color: $gray-100 !important;
+            }
+        }
+
         .btn-group button {
             border: none;
         }
 
-        a[data-toggle="add-block"] {
+        a[data-toggle="add-block"],
+        a[data-toggle="dropdown"] {
             color: #000;
         }
     }
