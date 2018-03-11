@@ -18,30 +18,10 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     use RandomIdTrait;
     use EntityBaseTrait;
 
-    public const CONSISTENCY_CACHED     = 'cached';
-    public const CONSISTENCY_CONSISTENT = 'consistent';
-    public const CONSISTENCY_DELEGATED  = 'delegated';
-
-    protected const ALLOWED_CONSISTENCIES = [
-        self::CONSISTENCY_CACHED,
-        self::CONSISTENCY_CONSISTENT,
-        self::CONSISTENCY_DELEGATED,
-    ];
-
     /**
      * @ORM\Column(name="name", type="string", length=64)
      */
     protected $name;
-
-    /**
-     * Only used in MacOS hosts.
-     *
-     * Not used directly in volumes main section, only within services.volumes
-     *
-     * @ORM\Column(name="consistency", type="string", length=10, nullable=true)
-     * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
-     */
-    protected $consistency;
 
     /**
      * @ORM\Column(name="driver", type="string", length=16, nullable=true)
@@ -87,33 +67,13 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     protected $project;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="project_volumes")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\DockerServiceVolume", mappedBy="project_volume")
      */
-    protected $services;
+    protected $service_volumes;
 
     public function __construct()
     {
-        $this->services = new Collections\ArrayCollection();
-    }
-
-    public function getConsistency() : ?string
-    {
-        return $this->consistency;
-    }
-
-    /**
-     * @param string $consistency
-     * @return $this
-     */
-    public function setConsistency(string $consistency = null)
-    {
-        if (!in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
-            throw new \UnexpectedValueException();
-        }
-
-        $this->consistency = $consistency;
-
-        return $this;
+        $this->service_volumes = new Collections\ArrayCollection();
     }
 
     public function getDriver() : ?string
@@ -265,26 +225,26 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     }
 
     /**
-     * @param DockerService $service
+     * @param DockerServiceVolume $serviceVolume
      * @return $this
      */
-    public function addService(DockerService $service)
+    public function addServiceVolume(DockerServiceVolume $serviceVolume)
     {
-        $this->services[] = $service;
+        $this->service_volumes[] = $serviceVolume;
 
         return $this;
     }
 
-    public function removeService(DockerService $service)
+    public function removeServiceVolume(DockerServiceVolume $serviceVolume)
     {
-        $this->services->removeElement($service);
+        $this->service_volumes->removeElement($serviceVolume);
     }
 
     /**
-     * @return DockerService[]|Collections\ArrayCollection
+     * @return DockerServiceVolume[]|Collections\ArrayCollection
      */
-    public function getServices()
+    public function getServiceVolumes()
     {
-        return $this->services;
+        return $this->service_volumes;
     }
 }

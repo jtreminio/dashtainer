@@ -43,6 +43,16 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         self::FILETYPE_FILE,
     ];
 
+    public const TYPE_BIND   = 'bind';
+    public const TYPE_TMPFS  = 'tmpfs';
+    public const TYPE_VOLUME = 'volume';
+
+    protected const ALLOWED_TYPES = [
+        self::TYPE_BIND,
+        self::TYPE_TMPFS,
+        self::TYPE_VOLUME,
+    ];
+
     /**
      * @ORM\Column(name="name", type="string", length=64)
      */
@@ -88,10 +98,24 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     protected $owner = 'system';
 
     /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerVolume", inversedBy="service_volumes")
+     * @ORM\JoinColumn(name="project_volume_id", referencedColumnName="id", nullable=true)
+     * @see https://docs.docker.com/compose/compose-file/#volumes
+     */
+    protected $project_volume;
+
+    /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\DockerService", inversedBy="volumes")
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id", nullable=false)
      */
     protected $service;
+
+    /**
+     * One of volume, bind, tmpfs
+     *
+     * @ORM\Column(name="type", type="string", length=6)
+     */
+    protected $type = 'bind';
 
     public function getData() : ?string
     {
@@ -165,6 +189,42 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
+    public function getFiletype() : ?string
+    {
+        return $this->filetype;
+    }
+
+    /**
+     * @param string $filetype
+     * @return $this
+     */
+    public function setFiletype(string $filetype)
+    {
+        if (!in_array($filetype, static::ALLOWED_FILETYPES)) {
+            throw new \UnexpectedValueException();
+        }
+
+        $this->filetype = $filetype;
+
+        return $this;
+    }
+
+    public function getProjectVolume() : ?DockerVolume
+    {
+        return $this->project_volume;
+    }
+
+    /**
+     * @param DockerVolume $project_volume
+     * @return $this
+     */
+    public function setProjectVolume(DockerVolume $project_volume)
+    {
+        $this->project_volume = $project_volume;
+
+        return $this;
+    }
+
     public function getService() : ?DockerService
     {
         return $this->service;
@@ -218,22 +278,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    public function getFiletype() : ?string
+    public function getType() : ?string
     {
-        return $this->filetype;
+        return $this->type;
     }
 
     /**
-     * @param string $filetype
+     * @param string $type
      * @return $this
      */
-    public function setFiletype(string $filetype)
+    public function setType(string $type)
     {
-        if (!in_array($filetype, static::ALLOWED_FILETYPES)) {
+        if (!in_array($type, static::ALLOWED_TYPES)) {
             throw new \UnexpectedValueException();
         }
 
-        $this->filetype = $filetype;
+        $this->type = $type;
 
         return $this;
     }

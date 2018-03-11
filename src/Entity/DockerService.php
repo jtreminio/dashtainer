@@ -191,13 +191,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
     protected $project;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerVolume", inversedBy="services")
-     * @ORM\JoinTable(name="docker_services_project_volumes")
-     * @see https://docs.docker.com/compose/compose-file/#volumes
-     */
-    protected $project_volumes;
-
-    /**
      * @ORM\Column(name="restart", type="string", length=14, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#restart
      */
@@ -254,12 +247,11 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
 
     public function __construct()
     {
-        $this->children        = new Collections\ArrayCollection();
-        $this->meta            = new Collections\ArrayCollection();
-        $this->networks        = new Collections\ArrayCollection();
-        $this->project_volumes = new Collections\ArrayCollection();
-        $this->secrets         = new Collections\ArrayCollection();
-        $this->volumes         = new Collections\ArrayCollection();
+        $this->children = new Collections\ArrayCollection();
+        $this->meta     = new Collections\ArrayCollection();
+        $this->networks = new Collections\ArrayCollection();
+        $this->secrets  = new Collections\ArrayCollection();
+        $this->volumes  = new Collections\ArrayCollection();
     }
 
     public function getBuild() : DockerService\Build
@@ -802,30 +794,6 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
         $this->project = $project;
 
         return $this;
-    }
-
-    /**
-     * @param DockerVolume $project_volume
-     * @return $this
-     */
-    public function addProjectVolume(DockerVolume $project_volume)
-    {
-        $this->project_volumes[] = $project_volume;
-
-        return $this;
-    }
-
-    public function removeProjectVolume(DockerVolume $project_volume)
-    {
-        $this->project_volumes->removeElement($project_volume);
-    }
-
-    /**
-     * @return DockerVolume[]|Collections\ArrayCollection
-     */
-    public function getProjectVolumes()
-    {
-        return $this->project_volumes;
     }
 
     public function getRestart() : string
