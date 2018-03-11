@@ -1,0 +1,40 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <p>Export project</p>
+
+    <p>ID: {{ project.id }}</p>
+    <p>Name: {{ project.name }}</p>
+    <hr />
+
+    {% if project.services is empty %}
+        <p>You have no services defined within this project.</p>
+    {% endif %}
+
+    <div class="row">
+        <div class="col">
+            <a href="{{ path('project.export.type.get', {
+                'projectId': project.id,
+                'exportType': 'dev',
+            }) }}" class="btn btn-primary btn-lg btn-block">
+                Export service for local development</a>
+        </div>
+
+        <div class="col">
+            <a href="#" class="btn btn-primary btn-lg btn-block">
+                Export service for local development</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

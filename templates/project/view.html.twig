@@ -17,6 +17,7 @@
     <p>ID: {{ project.id }}</p>
     <p>Name: {{ project.name }}</p>
     <p><a href="{{ path('project.update.get', {'projectId': project.id}) }}">Edit project</a></p>
+    <p><a href="{{ path('project.export.get', {'projectId': project.id}) }}">Export project</a></p>
 
     <hr />
 

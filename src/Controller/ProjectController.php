@@ -19,6 +19,9 @@ class ProjectController extends Controller
     /** @var Domain\DockerProject */
     protected $dockerProjectDomain;
 
+    /** @var Domain\Export */
+    protected $exportDomain;
+
     /** @var Repository\DockerProjectRepository */
     protected $dProjectRepo;
 
@@ -30,11 +33,13 @@ class ProjectController extends Controller
 
     public function __construct(
         Domain\DockerProject $dockerProjectDomain,
+        Domain\Export $exportDomain,
         Repository\DockerProjectRepository $dProjectRepo,
         Repository\DockerServiceCategoryRepository $dServiceCatRepo,
         Validator\Validator $validator
     ) {
         $this->dockerProjectDomain = $dockerProjectDomain;
+        $this->exportDomain        = $exportDomain;
 
         $this->dProjectRepo    = $dProjectRepo;
         $this->dServiceCatRepo = $dServiceCatRepo;
@@ -198,5 +203,54 @@ class ProjectController extends Controller
             'type' => AjaxResponse::AJAX_REDIRECT,
             'data' => $this->generateUrl('project.index.get'),
         ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.export.get",
+     *     path="/project/{projectId}/export",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getExport(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/export.html.twig', [
+            'project' => $project,
+        ]);
+    }
+
+    /**
+     * @Route(name="project.export.type.get",
+     *     path="/project/{projectId}/export/{exportType}",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @param string      $exportType
+     * @return Response
+     */
+    public function getExportType(
+        Entity\User $user,
+        string $projectId,
+        string $exportType
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        $yaml = $this->exportDomain->export($project);
+
+        $response = new Response();
+        $response->setContent("<pre>$yaml");
+
+        return $response;
     }
 }
