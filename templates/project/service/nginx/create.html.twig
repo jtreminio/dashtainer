@@ -67,7 +67,11 @@
                 <label for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
-                       value="awesome.test" />
+                       value="awesome.localhost" />
+                <small class="text-muted">
+                    Your server name <strong>must</strong> be <code>.localhost</code>
+                    for local development.
+                </small>
             </div>
 
             <div class="col form-group">
@@ -75,8 +79,12 @@
                 <select class="form-control" id="server_alias"
                         name="server_alias[]"
                         multiple data-selectize-tags>
-                    <option value="www.awesome.test" selected>www.awesome.test</option>
+                    <option value="www.awesome.localhost" selected>www.awesome.localhost</option>
                 </select>
+                <small class="text-muted">
+                    Your server aliases <strong>must</strong> be <code>.localhost</code>
+                    for local development.
+                </small>
             </div>
         </div>
 
