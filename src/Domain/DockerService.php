@@ -157,7 +157,9 @@ class DockerService
                     $sub['target'] = $target;
                 }
 
-                $current['build'] = $sub;
+                if (!empty($sub)) {
+                    $current['build'] = $sub;
+                }
             }
 
             if ($command = $service->getCommand()) {
