@@ -123,49 +123,9 @@ class Apache extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf, $service);
 
-        if ($form->project_files['type'] == 'local') {
-            $projectFilesMeta = new Entity\DockerServiceMeta();
-            $projectFilesMeta->setName('project_files')
-                ->setData([
-                    'type'   => 'local',
-                    'source' => $form->project_files['local']['source'],
-                ])
-                ->setService($service);
+        $this->projectFilesCreate($service, $form);
 
-            $service->addMeta($projectFilesMeta);
-
-            $projectFilesSource = new Entity\DockerServiceVolume();
-            $projectFilesSource->setName('project_files_source')
-                ->setSource($form->project_files['local']['source'])
-                ->setTarget('/var/www')
-                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-                ->setService($service);
-
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
-        }
-
-        $files = [];
-        foreach ($form->custom_file as $fileConfig) {
-            $file = new Entity\DockerServiceVolume();
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data'])
-                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                ->setService($service);
-
-            $service->addVolume($file);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
+        $this->customFilesCreate($service, $form);
 
         return $service;
     }
@@ -188,21 +148,6 @@ class Apache extends HandlerAbstract implements CrudInterface
 
     public function getViewParams(Entity\DockerService $service) : array
     {
-        $projectFilesMeta = $service->getMeta('project_files');
-
-        $projectFilesLocal = [
-            'type'   => 'local',
-            'source' => '',
-        ];
-        if ($projectFilesMeta->getData()['type'] == 'local') {
-            $projectFilesLocal['source'] = $projectFilesMeta->getData()['source'];
-        }
-
-        $projectFiles = [
-            'type'  => $projectFilesMeta->getData()['type'],
-            'local' => $projectFilesLocal,
-        ];
-
         $apacheModulesEnable    = $service->getBuild()->getArgs()['APACHE_MODULES_ENABLE'];
         $apacheModulesDisable   = $service->getBuild()->getArgs()['APACHE_MODULES_DISABLE'];
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
@@ -228,7 +173,7 @@ class Apache extends HandlerAbstract implements CrudInterface
         );
 
         return [
-            'projectFiles'           => $projectFiles,
+            'projectFiles'           => $this->projectFilesViewParams($service),
             'apacheModulesEnable'    => $apacheModulesEnable,
             'apacheModulesDisable'   => $apacheModulesDisable,
             'availableApacheModules' => $availableApacheModules,
@@ -296,76 +241,9 @@ class Apache extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf);
 
-        $projectFilesMeta   = $service->getMeta('project_files');
-        $projectFilesSource = $service->getVolume('project_files_source');
-        if ($form->project_files['type'] == 'local') {
-            $projectFilesMeta->setData([
-                'type'   => 'local',
-                'source' => $form->project_files['local']['source'],
-            ]);
+        $this->projectFilesUpdate($service, $form);
 
-            if (!$projectFilesSource) {
-                $projectFilesSource = new Entity\DockerServiceVolume();
-                $projectFilesSource->setName('project_files_source')
-                    ->setTarget('/var/www')
-                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-                    ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-                    ->setService($service);
-            }
-
-            $projectFilesSource->setSource($form->project_files['local']['source']);
-
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
-        }
-
-        // todo: Add support for non-local project files source, ie github
-
-        $existingUserFiles = $service->getVolumesByOwner(
-            Entity\DockerServiceVolume::OWNER_USER
-        );
-
-        $files = [];
-        foreach ($form->custom_file as $id => $fileConfig) {
-            if (empty($existingUserFiles[$id])) {
-                $file = new Entity\DockerServiceVolume();
-                $file->setName($fileConfig['filename'])
-                    ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                    ->setTarget($fileConfig['target'])
-                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                    ->setData($fileConfig['data'])
-                    ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                    ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                    ->setService($service);
-
-                $service->addVolume($file);
-
-                $files []= $file;
-
-                continue;
-            }
-
-            /** @var Entity\DockerServiceVolume $file */
-            $file = $existingUserFiles[$id];
-            unset($existingUserFiles[$id]);
-
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data']);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
-
-        foreach ($existingUserFiles as $file) {
-            $service->removeVolume($file);
-            $this->serviceRepo->delete($file);
-            $this->serviceRepo->save($service);
-        }
+        $this->customFilesUpdate($service, $form);
 
         return $service;
     }

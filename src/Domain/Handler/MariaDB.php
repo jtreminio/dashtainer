@@ -103,26 +103,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($myCnf, $configFileCnf, $service);
 
-        $files = [];
-        foreach ($form->custom_file as $fileConfig) {
-            $file = new Entity\DockerServiceVolume();
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data'])
-                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                ->setService($service);
-
-            $service->addVolume($file);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
+        $this->customFilesCreate($service, $form);
 
         return $service;
     }
@@ -194,51 +175,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($myCnf, $configFileCnf);
 
-        $existingUserFiles = $service->getVolumesByOwner(
-            Entity\DockerServiceVolume::OWNER_USER
-        );
-
-        $files = [];
-        foreach ($form->custom_file as $id => $fileConfig) {
-            if (empty($existingUserFiles[$id])) {
-                $file = new Entity\DockerServiceVolume();
-                $file->setName($fileConfig['filename'])
-                    ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                    ->setTarget($fileConfig['target'])
-                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                    ->setData($fileConfig['data'])
-                    ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                    ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                    ->setService($service);
-
-                $service->addVolume($file);
-
-                $files []= $file;
-
-                continue;
-            }
-
-            /** @var Entity\DockerServiceVolume $file */
-            $file = $existingUserFiles[$id];
-            unset($existingUserFiles[$id]);
-
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data']);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
-
-        foreach ($existingUserFiles as $file) {
-            $service->removeVolume($file);
-            $this->serviceRepo->delete($file);
-            $this->serviceRepo->save($service);
-        }
+        $this->customFilesUpdate($service, $form);
 
         return $service;
     }

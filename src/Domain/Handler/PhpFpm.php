@@ -125,28 +125,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf, $service);
 
-        if ($form->project_files['type'] == 'local') {
-            $projectFilesMeta = new Entity\DockerServiceMeta();
-            $projectFilesMeta->setName('project_files')
-                ->setData([
-                    'type'   => 'local',
-                    'source' => $form->project_files['local']['source'],
-                ])
-                ->setService($service);
-
-            $service->addMeta($projectFilesMeta);
-
-            $projectFilesSource = new Entity\DockerServiceVolume();
-            $projectFilesSource->setName('project_files_source')
-                ->setSource($form->project_files['local']['source'])
-                ->setTarget('/var/www')
-                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-                ->setService($service);
-
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
-        }
+        $this->projectFilesCreate($service, $form);
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = new Entity\DockerServiceVolume();
@@ -164,26 +143,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             $this->serviceRepo->save($xdebugIni, $service);
         }
 
-        $files = [];
-        foreach ($form->custom_file as $fileConfig) {
-            $file = new Entity\DockerServiceVolume();
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data'])
-                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                ->setService($service);
-
-            $service->addVolume($file);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
+        $this->customFilesCreate($service, $form);
 
         if (!empty($form->blackfire['install'])) {
             $this->createUpdateBlackfireChild($service, $form);
@@ -200,21 +160,6 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
     public function getViewParams(Entity\DockerService $service) : array
     {
         $version = $service->getMeta('version')->getData()[0];
-
-        $projectFilesMeta = $service->getMeta('project_files');
-
-        $projectFilesLocal = [
-            'type'   => 'local',
-            'source' => '',
-        ];
-        if ($projectFilesMeta->getData()['type'] == 'local') {
-            $projectFilesLocal['source'] = $projectFilesMeta->getData()['source'];
-        }
-
-        $projectFiles = [
-            'type'  => $projectFilesMeta->getData()['type'],
-            'local' => $projectFilesLocal,
-        ];
 
         $phpPackagesSelected = $service->getBuild()->getArgs()['PHP_PACKAGES'];
 
@@ -272,7 +217,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         return [
             'version'                => $version,
-            'projectFiles'           => $projectFiles,
+            'projectFiles'           => $this->projectFilesViewParams($service),
             'phpPackagesSelected'    => $phpPackagesSelected,
             'availablePhpPackages'   => $availablePhpPackages,
             'pearPackagesSelected'   => $pearPackagesSelected,
@@ -332,30 +277,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf);
 
-        $projectFilesMeta   = $service->getMeta('project_files');
-        $projectFilesSource = $service->getVolume('project_files_source');
-        if ($form->project_files['type'] == 'local') {
-            $projectFilesMeta->setData([
-                'type'   => 'local',
-                'source' => $form->project_files['local']['source'],
-            ]);
-
-            if (!$projectFilesSource) {
-                $projectFilesSource = new Entity\DockerServiceVolume();
-                $projectFilesSource->setName('project_files_source')
-                    ->setTarget('/var/www')
-                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-                    ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-                    ->setService($service);
-            }
-
-            $projectFilesSource->setSource($form->project_files['local']['source']);
-
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
-        }
-
-        // todo: Add support for non-local project files source, ie github
+        $this->projectFilesUpdate($service, $form);
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = $service->getVolume('xdebug.ini');
@@ -374,51 +296,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             $this->deleteBlackfireChild($service);
         }
 
-        $existingUserFiles = $service->getVolumesByOwner(
-            Entity\DockerServiceVolume::OWNER_USER
-        );
-
-        $files = [];
-        foreach ($form->custom_file as $id => $fileConfig) {
-            if (empty($existingUserFiles[$id])) {
-                $file = new Entity\DockerServiceVolume();
-                $file->setName($fileConfig['filename'])
-                    ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                    ->setTarget($fileConfig['target'])
-                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-                    ->setData($fileConfig['data'])
-                    ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                    ->setType(Entity\DockerServiceVolume::TYPE_FILE)
-                    ->setService($service);
-
-                $service->addVolume($file);
-
-                $files []= $file;
-
-                continue;
-            }
-
-            /** @var Entity\DockerServiceVolume $file */
-            $file = $existingUserFiles[$id];
-            unset($existingUserFiles[$id]);
-
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
-                ->setTarget($fileConfig['target'])
-                ->setData($fileConfig['data']);
-
-            $files []= $file;
-        }
-
-        if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
-        }
-
-        foreach ($existingUserFiles as $file) {
-            $service->removeVolume($file);
-            $this->serviceRepo->delete($file);
-            $this->serviceRepo->save($service);
-        }
+        $this->customFilesUpdate($service, $form);
 
         return $service;
     }

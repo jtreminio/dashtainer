@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
+    use CustomFileTrait;
     use ProjectFilesTrait;
 
     /**
@@ -102,49 +103,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
             $context->buildViolation('Blackfire Server Token cannot be empty')
                 ->atPath('blackfire[server_token]')
                 ->addViolation();
-        }
-    }
-
-    protected function validateCustomFile(ExecutionContextInterface $context)
-    {
-        $filenames   = [];
-        $fileTargets = [];
-
-        foreach ($this->custom_file as $key => $file) {
-            $filename = trim($file['filename']) ?? '';
-            $target   = trim($file['target'] ?? '');
-
-            if (empty($filename)) {
-                $context->buildViolation('Ensure all custom config files have a filename')
-                    ->atPath("custom_file[{$key}][filename]")
-                    ->addViolation();
-            }
-
-            if (!empty($filename) && in_array($filename, $filenames)) {
-                $context->buildViolation('Ensure all custom config filenames are unique')
-                    ->atPath("custom_file[{$key}][filename]")
-                    ->addViolation();
-            }
-
-            if (!empty($filename)) {
-                $filenames []= $filename;
-            }
-
-            if (empty($target)) {
-                $context->buildViolation('Ensure all custom config files have a target')
-                    ->atPath("custom_file[{$key}][target]")
-                    ->addViolation();
-            }
-
-            if (!empty($target) && in_array($target, $fileTargets)) {
-                $context->buildViolation('Ensure all custom config targets are unique')
-                    ->atPath("custom_file[{$key}][target]")
-                    ->addViolation();
-            }
-
-            if (!empty($target)) {
-                $fileTargets []= $target;
-            }
         }
     }
 }
