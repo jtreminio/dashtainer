@@ -15,44 +15,30 @@ class DockerService
     /** @var Repository\DockerNetworkRepository */
     protected $networkRepo;
 
-    /** @var Handler\CrudInterface[] */
-    protected $handler = [];
+    /** @var ServiceHandlerStore */
+    protected $serviceHandler;
 
     public function __construct(
         Repository\DockerServiceRepository $repo,
-        Repository\DockerNetworkRepository $networkRepo
+        Repository\DockerNetworkRepository $networkRepo,
+        ServiceHandlerStore $serviceHandler
     ) {
-        $this->repo        = $repo;
-        $this->networkRepo = $networkRepo;
-    }
-
-    /**
-     * @inheritdoc
-     * @required
-     */
-    public function setServiceHandlers(
-        Handler\Apache $apache,
-        Handler\Nginx $nginx,
-        Handler\PhpFpm $phpfpm,
-        Handler\MariaDB $mariaDB
-    ) {
-        $this->handler []= $apache;
-        $this->handler []= $nginx;
-        $this->handler []= $phpfpm;
-        $this->handler []= $mariaDB;
+        $this->repo           = $repo;
+        $this->networkRepo    = $networkRepo;
+        $this->serviceHandler = $serviceHandler;
     }
 
     public function createService(
         Form\Service\CreateAbstract $form
     ) : Entity\DockerService {
-        $handler = $this->getHandlerFromForm($form);
+        $handler = $this->serviceHandler->getHandlerFromForm($form);
 
         return $handler->create($form);
     }
 
     public function deleteService(Entity\DockerService $service)
     {
-        $handler = $this->getHandlerFromType($service->getType());
+        $handler = $this->serviceHandler->getHandlerFromType($service->getType());
 
         $handler->delete($service);
     }
@@ -61,7 +47,7 @@ class DockerService
         Entity\DockerService $service,
         Form\Service\CreateAbstract $form
     ) : Entity\DockerService {
-        $handler = $this->getHandlerFromForm($form);
+        $handler = $this->serviceHandler->getHandlerFromForm($form);
 
         return $handler->update($service, $form);
     }
@@ -69,7 +55,7 @@ class DockerService
     public function getCreateForm(
         Entity\DockerServiceType $serviceType
     ) : Form\Service\CreateAbstract {
-        $handler = $this->getHandlerFromType($serviceType);
+        $handler = $this->serviceHandler->getHandlerFromType($serviceType);
 
         return $handler->getCreateForm($serviceType);
     }
@@ -78,14 +64,14 @@ class DockerService
         Entity\DockerProject $project,
         Entity\DockerServiceType $serviceType
     ) : array {
-        $handler = $this->getHandlerFromType($serviceType);
+        $handler = $this->serviceHandler->getHandlerFromType($serviceType);
 
         return $handler->getCreateParams($project);
     }
 
     public function getViewParams(Entity\DockerService $service) : array
     {
-        $handler = $this->getHandlerFromType($service->getType());
+        $handler = $this->serviceHandler->getHandlerFromType($service->getType());
 
         return $handler->getViewParams($service);
     }
@@ -121,29 +107,5 @@ class DockerService
         }
 
         return "{$hostname}-" . uniqid();
-    }
-
-    protected function getHandlerFromForm(
-        Form\Service\CreateAbstract $form
-    ) : Handler\CrudInterface {
-        foreach ($this->handler as $handler) {
-            if (is_a($form, get_class($handler->getCreateForm()))) {
-                return $handler;
-            }
-        }
-
-        return null;
-    }
-
-    protected function getHandlerFromType(
-        Entity\DockerServiceType $type
-    ) : Handler\CrudInterface {
-        foreach ($this->handler as $handler) {
-            if ($type->getSlug() == $handler->getServiceTypeSlug()) {
-                return $handler;
-            }
-        }
-
-        return null;
     }
 }

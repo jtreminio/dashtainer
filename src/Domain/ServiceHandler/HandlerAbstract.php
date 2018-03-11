@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Domain\Handler;
+namespace Dashtainer\Domain\ServiceHandler;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;

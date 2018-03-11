@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Domain\Handler;
+namespace Dashtainer\Domain\ServiceHandler;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
@@ -60,7 +60,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $build = $service->getBuild();
         $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('DockerFile')
+            ->setDockerfile('Dockerfile')
             ->setArgs([
                 'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
                 'PHP_PACKAGES'      => array_unique($phpPackages),
