@@ -23,67 +23,7 @@
         'projectId': project.id,
         'serviceId': service.id,
     }) }}" method="post" data-ajax>
-        <h4 class="mb-3">Project Files Source</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item {{ projectFiles.type == 'local' ? 'active' }}">
-                        <a id="nav-project_files-local-tab"
-                           class="nav-item nav-link {{ projectFiles.type == 'local' ? 'active' }}"
-                           data-toggle="tab" role="tab"
-                           href="#project_files-local"
-                           aria-selected="{{ projectFiles.type == 'local' ? 'true' }}">Local</a>
-                    </li>
-                </ul>
-                <div id="nav-addons-content" class="tab-content">
-                    <div id="project_files-local" role="tabpanel"
-                         class="tab-pane fade {{ projectFiles.type == 'local' ? 'show active' }}">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-radio lg">
-                                    <input type="radio" class="custom-control-input"
-                                           value="local" {{ projectFiles.type == 'local' ? 'checked' }}
-                                           id="project_files-type-local" name="project_files[type]"
-                                           data-error-container="project_files">
-                                    <label class="custom-control-label" for="project_files-type-local">
-                                        Local</label>
-                                </div>
-                                <small class="text-muted">
-                                    Only to be used in development mode where you have project files
-                                    on your local machine for editing in your IDE.
-                                </small>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="form-group col col-md-10 col-lg-6">
-                                <label for="project_files-local-source">Path to Project Files</label>
-                                <input type="text" class="form-control" maxlength="255"
-                                       id="project_files-local-source" name="project_files[local][source]"
-                                       placeholder="" value="{{ projectFiles.local.source }}"
-                                       data-error-container="project_files" />
-                            </div>
-                            <div class="form-group col-12">
-                                <small class="text-muted">
-                                    Location of your project files on host machine.
-                                    The contents will be made available inside the container
-                                    at <code>/var/www/</code>.<br />
-                                    Windows users: You must use forward-slash
-                                    <code>c:/dev/my-project</code> or double back-slash
-                                    <code>c:\\dev\\my-project</code>.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="project_files"></div>
-            </div>
-        </div>
-
-        <hr class="mb-4" />
+        {% include '@Dashtainer/project/service/snippets/_project_files_update.html.twig' %}
 
         <h4 class="mb-3">Packages</h4>
 
