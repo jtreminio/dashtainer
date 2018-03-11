@@ -324,7 +324,7 @@ class DockerService
 
             foreach ($service->getVolumes() as $volume) {
                 $sub = [
-                    'type'        => 'bind',
+                    'type'        => $volume->getType(),
                     'source'      => Util\YamlTag::doubleQuotes($volume->getSource()),
                     'target'      => Util\YamlTag::doubleQuotes($volume->getTarget()),
                     'propagation' => $volume->getConsistency(),
