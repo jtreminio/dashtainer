@@ -11,11 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
+    use ProjectFilesTrait;
 
-    /**
-     * @DashAssert\NonBlankString(message = "Please enter the source of your project files")
-     */
-    public $directory;
+    public $project_files = [];
 
     public $system_packages = [];
 
@@ -46,6 +44,7 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
                 ->addViolation();
         }
 
+        $this->validateProjectFiles($context);
         $this->validateFile($context);
         $this->validateCustomFile($context);
     }

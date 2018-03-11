@@ -11,16 +11,14 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
+    use ProjectFilesTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
      */
     public $version;
 
-    /**
-     * @DashAssert\NonBlankString(message = "Please enter the source of your project files")
-     */
-    public $directory;
+    public $project_files = [];
 
     public $php_packages = [];
 
@@ -53,6 +51,7 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
                 ->addViolation();
         }
 
+        $this->validateProjectFiles($context);
         $this->validateFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);

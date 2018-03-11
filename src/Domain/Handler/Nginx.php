@@ -125,24 +125,35 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
-        $directory = new Entity\DockerServiceVolume();
-        $directory->setName('project_directory')
-            ->setSource($form->directory)
-            ->setTarget('/var/www')
-            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-            ->setService($service);
-
         $service->addVolume($nginxConf)
             ->addVolume($coreConf)
             ->addVolume($proxyConf)
-            ->addVolume($vhostConf)
-            ->addVolume($directory);
+            ->addVolume($vhostConf);
 
-        $this->serviceRepo->save(
-            $nginxConf, $coreConf, $proxyConf, $vhostConf, $directory, $service
-        );
+        $this->serviceRepo->save($nginxConf, $coreConf, $proxyConf, $vhostConf, $service);
+
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta = new Entity\DockerServiceMeta();
+            $projectFilesMeta->setName('project_files')
+                ->setData([
+                    'type'   => 'local',
+                    'source' => $form->project_files['local']['source'],
+                ])
+                ->setService($service);
+
+            $service->addMeta($projectFilesMeta);
+
+            $projectFilesSource = new Entity\DockerServiceVolume();
+            $projectFilesSource->setName('project_files_source')
+                ->setSource($form->project_files['local']['source'])
+                ->setTarget('/var/www')
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                ->setService($service);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
 
         $files = [];
         foreach ($form->custom_file as $fileConfig) {
@@ -186,7 +197,20 @@ class Nginx extends HandlerAbstract implements CrudInterface
 
     public function getViewParams(Entity\DockerService $service) : array
     {
-        $projectVol = $service->getVolume('project_directory');
+        $projectFilesMeta = $service->getMeta('project_files');
+
+        $projectFilesLocal = [
+            'type'   => 'local',
+            'source' => '',
+        ];
+        if ($projectFilesMeta->getData()['type'] == 'local') {
+            $projectFilesLocal['source'] = $projectFilesMeta->getData()['source'];
+        }
+
+        $projectFiles = [
+            'type'  => $projectFilesMeta->getData()['type'],
+            'local' => $projectFilesLocal,
+        ];
 
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
@@ -206,7 +230,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
         );
 
         return [
-            'projectVol'             => $projectVol,
+            'projectFiles'           => $projectFiles,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
                 'nginx.conf' => $nginxConf,
@@ -271,12 +295,32 @@ class Nginx extends HandlerAbstract implements CrudInterface
         $vhostConf = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf ?? '');
 
-        $directory = $service->getVolume('project_directory');
-        $directory->setSource($form->directory);
+        $this->serviceRepo->save($nginxConf, $coreConf, $proxyConf, $vhostConf);
 
-        $this->serviceRepo->save(
-            $nginxConf, $coreConf, $proxyConf, $vhostConf, $directory
-        );
+        $projectFilesMeta   = $service->getMeta('project_files');
+        $projectFilesSource = $service->getVolume('project_files_source');
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta->setData([
+                'type'   => 'local',
+                'source' => $form->project_files['local']['source'],
+            ]);
+
+            if (!$projectFilesSource) {
+                $projectFilesSource = new Entity\DockerServiceVolume();
+                $projectFilesSource->setName('project_files_source')
+                    ->setTarget('/var/www')
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                    ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                    ->setService($service);
+            }
+
+            $projectFilesSource->setSource($form->project_files['local']['source']);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
+
+        // todo: Add support for non-local project files source, ie github
 
         $existingUserFiles = $service->getVolumesByOwner(
             Entity\DockerServiceVolume::OWNER_USER

@@ -117,23 +117,34 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
-        $directory = new Entity\DockerServiceVolume();
-        $directory->setName('project_directory')
-            ->setSource($form->directory)
-            ->setTarget('/var/www')
-            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-            ->setService($service);
-
         $service->addVolume($apache2Conf)
             ->addVolume($portsConf)
-            ->addVolume($vhostConf)
-            ->addVolume($directory);
+            ->addVolume($vhostConf);
 
-        $this->serviceRepo->save(
-            $apache2Conf, $portsConf, $vhostConf, $directory, $service
-        );
+        $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf, $service);
+
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta = new Entity\DockerServiceMeta();
+            $projectFilesMeta->setName('project_files')
+                ->setData([
+                    'type'   => 'local',
+                    'source' => $form->project_files['local']['source'],
+                ])
+                ->setService($service);
+
+            $service->addMeta($projectFilesMeta);
+
+            $projectFilesSource = new Entity\DockerServiceVolume();
+            $projectFilesSource->setName('project_files_source')
+                ->setSource($form->project_files['local']['source'])
+                ->setTarget('/var/www')
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                ->setService($service);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
 
         $files = [];
         foreach ($form->custom_file as $fileConfig) {
@@ -177,7 +188,20 @@ class Apache extends HandlerAbstract implements CrudInterface
 
     public function getViewParams(Entity\DockerService $service) : array
     {
-        $projectVol = $service->getVolume('project_directory');
+        $projectFilesMeta = $service->getMeta('project_files');
+
+        $projectFilesLocal = [
+            'type'   => 'local',
+            'source' => '',
+        ];
+        if ($projectFilesMeta->getData()['type'] == 'local') {
+            $projectFilesLocal['source'] = $projectFilesMeta->getData()['source'];
+        }
+
+        $projectFiles = [
+            'type'  => $projectFilesMeta->getData()['type'],
+            'local' => $projectFilesLocal,
+        ];
 
         $apacheModulesEnable    = $service->getBuild()->getArgs()['APACHE_MODULES_ENABLE'];
         $apacheModulesDisable   = $service->getBuild()->getArgs()['APACHE_MODULES_DISABLE'];
@@ -204,7 +228,7 @@ class Apache extends HandlerAbstract implements CrudInterface
         );
 
         return [
-            'projectVol'             => $projectVol,
+            'projectFiles'           => $projectFiles,
             'apacheModulesEnable'    => $apacheModulesEnable,
             'apacheModulesDisable'   => $apacheModulesDisable,
             'availableApacheModules' => $availableApacheModules,
@@ -270,10 +294,32 @@ class Apache extends HandlerAbstract implements CrudInterface
         $vhostConf   = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf);
 
-        $directory = $service->getVolume('project_directory');
-        $directory->setSource($form->directory);
+        $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf);
 
-        $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf, $directory);
+        $projectFilesMeta   = $service->getMeta('project_files');
+        $projectFilesSource = $service->getVolume('project_files_source');
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta->setData([
+                'type'   => 'local',
+                'source' => $form->project_files['local']['source'],
+            ]);
+
+            if (!$projectFilesSource) {
+                $projectFilesSource = new Entity\DockerServiceVolume();
+                $projectFilesSource->setName('project_files_source')
+                    ->setTarget('/var/www')
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                    ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                    ->setService($service);
+            }
+
+            $projectFilesSource->setSource($form->project_files['local']['source']);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
+
+        // todo: Add support for non-local project files source, ie github
 
         $existingUserFiles = $service->getVolumesByOwner(
             Entity\DockerServiceVolume::OWNER_USER

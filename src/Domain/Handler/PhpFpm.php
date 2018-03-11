@@ -119,23 +119,34 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
 
-        $directory = new Entity\DockerServiceVolume();
-        $directory->setName('project_directory')
-            ->setSource($form->directory)
-            ->setTarget('/var/www')
-            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
-            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_DIR)
-            ->setService($service);
-
         $service->addVolume($phpIni)
             ->addVolume($fpmConf)
-            ->addVolume($fpmPoolConf)
-            ->addVolume($directory);
+            ->addVolume($fpmPoolConf);
 
-        $this->serviceRepo->save(
-            $phpIni, $fpmConf, $fpmPoolConf, $directory, $service
-        );
+        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf, $service);
+
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta = new Entity\DockerServiceMeta();
+            $projectFilesMeta->setName('project_files')
+                ->setData([
+                    'type'   => 'local',
+                    'source' => $form->project_files['local']['source'],
+                ])
+                ->setService($service);
+
+            $service->addMeta($projectFilesMeta);
+
+            $projectFilesSource = new Entity\DockerServiceVolume();
+            $projectFilesSource->setName('project_files_source')
+                ->setSource($form->project_files['local']['source'])
+                ->setTarget('/var/www')
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                ->setService($service);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = new Entity\DockerServiceVolume();
@@ -188,8 +199,22 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
     public function getViewParams(Entity\DockerService $service) : array
     {
-        $version    = $service->getMeta('version')->getData()[0];
-        $projectVol = $service->getVolume('project_directory');
+        $version = $service->getMeta('version')->getData()[0];
+
+        $projectFilesMeta = $service->getMeta('project_files');
+
+        $projectFilesLocal = [
+            'type'   => 'local',
+            'source' => '',
+        ];
+        if ($projectFilesMeta->getData()['type'] == 'local') {
+            $projectFilesLocal['source'] = $projectFilesMeta->getData()['source'];
+        }
+
+        $projectFiles = [
+            'type'  => $projectFilesMeta->getData()['type'],
+            'local' => $projectFilesLocal,
+        ];
 
         $phpPackagesSelected = $service->getBuild()->getArgs()['PHP_PACKAGES'];
 
@@ -247,7 +272,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         return [
             'version'                => $version,
-            'projectVol'             => $projectVol,
+            'projectFiles'           => $projectFiles,
             'phpPackagesSelected'    => $phpPackagesSelected,
             'availablePhpPackages'   => $availablePhpPackages,
             'pearPackagesSelected'   => $pearPackagesSelected,
@@ -305,10 +330,32 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $fpmPoolConf = $service->getVolume('php-fpm_pool.conf');
         $fpmPoolConf->setData($form->file['php-fpm_pool.conf']);
 
-        $directory = $service->getVolume('project_directory');
-        $directory->setSource($form->directory);
+        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf);
 
-        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf, $directory);
+        $projectFilesMeta   = $service->getMeta('project_files');
+        $projectFilesSource = $service->getVolume('project_files_source');
+        if ($form->project_files['type'] == 'local') {
+            $projectFilesMeta->setData([
+                'type'   => 'local',
+                'source' => $form->project_files['local']['source'],
+            ]);
+
+            if (!$projectFilesSource) {
+                $projectFilesSource = new Entity\DockerServiceVolume();
+                $projectFilesSource->setName('project_files_source')
+                    ->setTarget('/var/www')
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
+                    ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                    ->setService($service);
+            }
+
+            $projectFilesSource->setSource($form->project_files['local']['source']);
+
+            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+        }
+
+        // todo: Add support for non-local project files source, ie github
 
         if ($form->xdebug['install'] ?? false) {
             $xdebugIni = $service->getVolume('xdebug.ini');
