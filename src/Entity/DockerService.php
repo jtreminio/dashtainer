@@ -116,7 +116,7 @@ class DockerService implements Util\HydratorInterface, EntityBaseInterface, Slug
 
     /**
      * @ORM\Column(name="healthcheck", type="json_array", nullable=true)
-     * @uses \Dashtainer\Entity\DockerService\Deploy
+     * @uses \Dashtainer\Entity\DockerService\Healthcheck
      * @see https://docs.docker.com/compose/compose-file/#healthcheck
      */
     protected $healthcheck = [];
