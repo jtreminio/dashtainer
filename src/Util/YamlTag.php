@@ -24,8 +24,10 @@ abstract class YamlTag
 
     protected static function doubleQuotesParse(string $string) : string
     {
-        $string  = str_replace("'" . static::DBL_QUOTES, '"', $string);
-        return str_replace(static::DBL_QUOTES . "'", '"', $string);
+        $string = str_replace("'" . static::DBL_QUOTES, '"', $string);
+        $string = str_replace(static::DBL_QUOTES . "'", '"', $string);
+
+        return str_replace(static::DBL_QUOTES, '"', $string);
     }
 
     public static function nilValue() : string
