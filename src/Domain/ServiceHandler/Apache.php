@@ -94,7 +94,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setData($form->file['apache2.conf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $portsConf = new Entity\DockerServiceVolume();
@@ -104,7 +104,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setData($form->file['ports.conf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $vhostConf = new Entity\DockerServiceVolume();
@@ -114,7 +114,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setData($form->vhost_conf ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $service->addVolume($apache2Conf)

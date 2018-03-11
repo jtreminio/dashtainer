@@ -96,7 +96,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setData($form->file['php.ini'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $fpmConf = new Entity\DockerServiceVolume();
@@ -106,7 +106,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setData($form->file['php-fpm.conf'])
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $fpmPoolConf = new Entity\DockerServiceVolume();
@@ -116,7 +116,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setData($form->file['php-fpm_pool.conf'])
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $service->addVolume($phpIni)
@@ -135,7 +135,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
                 ->setData($form->xdebug['ini'])
                 ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+                ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
                 ->setService($service);
 
             $service->addVolume($xdebugIni);

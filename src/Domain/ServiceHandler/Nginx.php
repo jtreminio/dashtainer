@@ -92,7 +92,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setData($form->file['nginx.conf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $coreConf = new Entity\DockerServiceVolume();
@@ -102,7 +102,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setData($form->file['core.conf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $proxyConf = new Entity\DockerServiceVolume();
@@ -112,7 +112,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setData($form->file['proxy.conf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $vhostConf = new Entity\DockerServiceVolume();
@@ -122,7 +122,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setData($form->vhost_conf ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $service->addVolume($nginxConf)

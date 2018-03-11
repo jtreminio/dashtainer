@@ -63,7 +63,7 @@ abstract class HandlerAbstract implements CrudInterface
                 ->setData($fileConfig['data'])
                 ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+                ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
                 ->setService($service);
 
             $service->addVolume($file);
@@ -98,7 +98,7 @@ abstract class HandlerAbstract implements CrudInterface
                     ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
                     ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
-                    ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+                    ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
                     ->setService($service);
 
                 $service->addVolume($file);
@@ -156,7 +156,7 @@ abstract class HandlerAbstract implements CrudInterface
                 ->setTarget('/var/www')
                 ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                ->setFiletype(Entity\DockerServiceVolume::FILETYPE_DIR)
                 ->setService($service);
 
             $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
@@ -186,7 +186,7 @@ abstract class HandlerAbstract implements CrudInterface
                     ->setTarget('/var/www')
                     ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
                     ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-                    ->setType(Entity\DockerServiceVolume::TYPE_DIR)
+                    ->setFiletype(Entity\DockerServiceVolume::FILETYPE_DIR)
                     ->setService($service);
             }
 

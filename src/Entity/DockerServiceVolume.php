@@ -35,12 +35,12 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         self::OWNER_SYSTEM,
     ];
 
-    public const TYPE_DIR  = 'directory';
-    public const TYPE_FILE = 'file';
+    public const FILETYPE_DIR  = 'directory';
+    public const FILETYPE_FILE = 'file';
 
-    protected const ALLOWED_TYPES = [
-        self::TYPE_DIR,
-        self::TYPE_FILE,
+    protected const ALLOWED_FILETYPES = [
+        self::FILETYPE_DIR,
+        self::FILETYPE_FILE,
     ];
 
     /**
@@ -74,6 +74,13 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     protected $data;
 
     /**
+     * One of file, directory
+     *
+     * @ORM\Column(name="filetype", type="string", length=9)
+     */
+    protected $filetype;
+
+    /**
      * One of system, user
      *
      * @ORM\Column(name="owner", type="string", length=6)
@@ -85,13 +92,6 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id", nullable=false)
      */
     protected $service;
-
-    /**
-     * One of file, directory
-     *
-     * @ORM\Column(name="type", type="string", length=9)
-     */
-    protected $type;
 
     public function getData() : ?string
     {
@@ -218,22 +218,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    public function getType() : ?string
+    public function getFiletype() : ?string
     {
-        return $this->type;
+        return $this->filetype;
     }
 
     /**
-     * @param string $type
+     * @param string $filetype
      * @return $this
      */
-    public function setType(string $type)
+    public function setFiletype(string $filetype)
     {
-        if (!in_array($type, static::ALLOWED_TYPES)) {
+        if (!in_array($filetype, static::ALLOWED_FILETYPES)) {
             throw new \UnexpectedValueException();
         }
 
-        $this->type = $type;
+        $this->filetype = $filetype;
 
         return $this;
     }

@@ -85,7 +85,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
             ->setData($form->file['my.cnf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $configFileCnf = new Entity\DockerServiceVolume();
@@ -95,7 +95,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
             ->setData($form->file['config-file.cnf'] ?? '')
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setType(Entity\DockerServiceVolume::TYPE_FILE)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
         $service->addVolume($myCnf)
