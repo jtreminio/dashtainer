@@ -33,11 +33,13 @@ class DockerService
     public function setServiceHandlers(
         Handler\Apache $apache,
         Handler\Nginx $nginx,
-        Handler\PhpFpm $phpfpm
+        Handler\PhpFpm $phpfpm,
+        Handler\MariaDB $mariaDB
     ) {
         $this->handler []= $apache;
         $this->handler []= $nginx;
         $this->handler []= $phpfpm;
+        $this->handler []= $mariaDB;
     }
 
     public function createService(

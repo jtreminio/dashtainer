@@ -1,0 +1,202 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                }) }}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                Create Service: MariaDB</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="text-center">
+        <h2>MariaDB</h2>
+    </div>
+
+    <form class="mb-5" action="{{ path('project.service.create.post', {
+        'projectId': project.id,
+        'serviceTypeSlug': serviceType.slug,
+    }) }}" method="post" data-ajax>
+        <div class="row">
+            <div class="form-group col col-md-10 col-lg-6">
+                <label for="name">Service Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ serviceName }}" required data-mask-type="dns"
+                       data-error-container="name"
+                       data-update-text="datastore-local-span,initdir" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+            <div class="form-group col-12">
+                <small class="text-muted">
+                    This is the name other services in this project will use to communicate
+                    with the MariaDB service.
+                </small>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col">
+                <label>Data storage</label>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           id="datastore-docker" name="datastore" value="docker" checked>
+                    <label class="form-check-label" for="datastore-docker">
+                        Let Docker manage the storage of your database data.
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           id="datastore-local" name="datastore" value="local">
+                    <label class="form-check-label" for="datastore-local">
+                        Create a data directory on the host system.
+                        The directory will be
+                        <code><span id="datastore-local-span">{{ serviceName }}</span>/datadir</code>.
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label>Init Directory</label>
+
+                <p>
+                    Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
+                    within the
+                    <code><span id="initdir">{{ serviceName }}</span>/init</code>
+                    directory will be executed or imported into the defined database.
+                    Files will be executed in alphabetical order.
+                </p>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <h4 class="mb-3">Database Credentials</h4>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="mysql_root_password">Root Password</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_root_password" name="mysql_root_password" placeholder=""
+                       value="" required
+                       data-error-container="mysql_root_password" />
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_root_password"></div>
+                <small class="text-muted">
+                    Password for the <code>root</code> user.
+                </small>
+            </div>
+
+            <div class="form-group col">
+                <label for="mysql_database">Database</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_database" name="mysql_database" placeholder=""
+                       value="" required
+                       data-error-container="mysql_database" />
+                <div class="invalid-feedback" data-error-container-name="mysql_database"></div>
+                <small class="text-muted">
+                    Database to create on init.
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="mysql_user">User</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_user" name="mysql_user" placeholder=""
+                       value="" required
+                       data-error-container="mysql_user" />
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_user"></div>
+                <small class="text-muted">
+                    Non-root user.
+                </small>
+            </div>
+
+            <div class="form-group col">
+                <label for="mysql_password">User Password</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_password" name="mysql_password" placeholder=""
+                       value="" required
+                       data-error-container="mysql_password" />
+                <div class="invalid-feedback" data-error-container-name="mysql_password"></div>
+                <small class="text-muted">
+                    Password for User.
+                </small>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        {% set conf = serviceType.meta('conf') %}
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           data-toggle="add-block"
+                           aria-controls="#nav-file-content"
+                           href="{{ path('project.service.block-add-file.get', {
+                               'projectId': project.id,
+                               'language': 'ini',
+                           }) }}">
+                            <i class="fa fa-plus"></i> Add</a>
+                    </li>
+                    {% for key, value in conf.data %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-file-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" role="tab"
+                               href="#file-{{ key }}" aria-controls="file-{{ key }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div id="nav-file-content" class="tab-content">
+                    {% for key, value in conf.data %}
+                        <div id="file-{{ key }}" role="tabpanel"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}">
+                            <div class="row">
+                                <div class="col">
+                                    <pre class="language-ini" data-code-highlight><code
+                                            id="file-{{ key }}-source"
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false">{{ value }}</code></pre>
+                                    <input type="hidden" value="" name="file[{{ key }}]"
+                                           data-error-container="file-error"
+                                           data-get-value-source="file-{{ key }}-source" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="custom_file"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <input type="hidden" id="version" name="version" value="{{ version }}" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+    </form>
+</div>
+{% endblock %}

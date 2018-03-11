@@ -1,0 +1,272 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="container py-2">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                }) }}">{{ project.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">MariaDB: {{ service.name }}</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="container">
+    <div class="text-center">
+        <h2>MariaDB: {{ service.name }}</h2>
+    </div>
+
+    <form class="mb-5" action="{{ path('project.service.update.post', {
+        'projectId': project.id,
+        'serviceId': service.id,
+    }) }}" method="post" data-ajax>
+        <div class="row mb-3">
+            <div class="col">
+                <label>Data storage</label>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           id="datastore-docker" name="datastore" value="docker"
+                           {{ datastore == 'docker' ? 'checked' }}>
+                    <label class="form-check-label" for="datastore-docker">
+                        Let Docker manage the storage of your database data.
+                    </label>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="radio"
+                           id="datastore-local" name="datastore" value="local"
+                        {{ datastore == 'local' ? 'checked' }}>
+                    <label class="form-check-label" for="datastore-local">
+                        Create a data directory on the host system.
+                        The directory will be
+                        <code><span id="datastore-local-span">{{ service.name }}</span>/datadir</code>.
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label>Init Directory</label>
+
+                <p>
+                    Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
+                    within the
+                    <code><span id="initdir">{{ service.name }}</span>/init</code>
+                    directory will be executed or imported into the defined database.
+                    Files will be executed in alphabetical order.
+                </p>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <h4 class="mb-3">Database Credentials</h4>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="mysql_root_password">Root Password</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_root_password" name="mysql_root_password" placeholder=""
+                       value="{{ mysql_root_password }}" required
+                       data-error-container="mysql_root_password" />
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_root_password"></div>
+                <small class="text-muted">
+                    Password for the <code>root</code> user.
+                </small>
+            </div>
+
+            <div class="form-group col">
+                <label for="mysql_database">Database</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_database" name="mysql_database" placeholder=""
+                       value="{{ mysql_database }}" required
+                       data-error-container="mysql_database" />
+                <div class="invalid-feedback" data-error-container-name="mysql_database"></div>
+                <small class="text-muted">
+                    Database to create on init.
+                </small>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="form-group col">
+                <label for="mysql_user">User</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_user" name="mysql_user" placeholder=""
+                       value="{{ mysql_user }}" required
+                       data-error-container="mysql_user" />
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_user"></div>
+                <small class="text-muted">
+                    Non-root user.
+                </small>
+            </div>
+
+            <div class="form-group col">
+                <label for="mysql_password">User Password</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="mysql_password" name="mysql_password" placeholder=""
+                       value="{{ mysql_password }}" required
+                       data-error-container="mysql_password" />
+                <div class="invalid-feedback" data-error-container-name="mysql_password"></div>
+                <small class="text-muted">
+                    Password for User.
+                </small>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           data-toggle="add-block"
+                           aria-controls="#nav-file-content"
+                           href="{{ path('project.service.block-add-file.get', {
+                               'projectId': project.id,
+                               'language': 'apacheconf',
+                           }) }}">
+                            <i class="fa fa-plus"></i> Add</a>
+                    </li>
+                    {% for file in configFiles %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" role="tab"
+                               href="#file-{{ file.name }}" aria-controls="file-{{ file.name }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
+                        </li>
+                    {% endfor %}
+                    {% for file in customFiles %}
+                        <li class="nav-item">
+                            <a id="nav-custom_file-{{ file.id }}-tab"
+                               class="nav-link"
+                               data-toggle="tab" href="#custom_file-{{ file.id }}"
+                               role="tab" aria-controls="custom_file-{{ file.id }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-default"
+                                        data-toggle="delete-block"
+                                        data-target="#custom_file-{{ file.id }}">
+                                    <i class="fa fa-close"></i></button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+                <div id="nav-file-content" class="tab-content">
+                    {% for file in configFiles %}
+                        <div id="file-{{ file.name }}" role="tabpanel"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}">
+                            <div class="row">
+                                <div class="col">
+                                    <pre class="language-apacheconf" data-code-highlight><code
+                                            id="file-{{ file.name }}-source"
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false">{{ file.data }}</code></pre>
+                                    <input type="hidden" value="" name="file[{{ file.name }}]"
+                                           data-error-container="file-error"
+                                           data-get-value-source="file-{{ file.name }}-source" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% for file in customFiles %}
+                        <div id="custom_file-{{ file.id }}"
+                             class="tab-pane fade"
+                             role="tabpanel">
+                            <div class="row">
+                                <div class="form-group col">
+                                    <label for="custom_file-{{ file.id }}-filename">Filename</label>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           id="custom_file-{{ file.id }}-filename"
+                                           name="custom_file[{{ file.id }}][filename]"
+                                           placeholder="" value="{{ file.name }}"
+                                           data-update-text="nav-custom_file-{{ file.id }}-tab"
+                                           data-error-container="custom_file" />
+                                    <small class="text-muted">
+                                        Save config into this local file.
+                                    </small>
+                                </div>
+
+                                <div class="form-group col">
+                                    <label for="custom_file-{{ file.id }}-target">Target Path</label>
+                                    <input type="text" class="form-control" maxlength="255"
+                                           id="custom_file-{{ file.id }}-target"
+                                           name="custom_file[{{ file.id }}][target]"
+                                           placeholder="" value="{{ file.target }}"
+                                           data-error-container="custom_file" />
+                                    <small class="text-muted">
+                                        Make file available inside container at this location.
+                                    </small>
+                                </div>
+
+                                <div class="col-12">
+                                    <pre class="language-ini" data-code-highlight><code
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false"
+                                            id="custom_file-{{ file.id }}-data">{{ file.data }}</code></pre>
+                                    <input type="hidden" value="" name="custom_file[{{ file.id }}][data]"
+                                           data-error-container="custom_file"
+                                           data-get-value-source="custom_file-{{ file.id }}-data" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="custom_file"></div>
+            </div>
+        </div>
+
+        <hr class="mb-4" />
+
+        <input type="hidden" id="version" name="version" value="{{ version }}" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
+
+        <p class="my-3"><a href="#" data-toggle="modal"
+              data-target="#service-delete-modal">Delete service</a></p>
+    </form>
+</div>
+
+<div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-delete-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-delete-modal-title">Delete this service?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.service.delete.post', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}"
+                  method="post" data-ajax>
+                <div class="modal-body">
+                    <p>This will also delete all files attached to this service.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

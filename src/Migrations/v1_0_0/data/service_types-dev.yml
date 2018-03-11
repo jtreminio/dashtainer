@@ -28,7 +28,10 @@
     category: Database Engine
     is_public: true
     slug: mariadb
-    versions: []
+    versions:
+        - '10.3'
+        - '10.2'
+        - '10.1'
     order: 1
 -
     name: MySQL

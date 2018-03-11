@@ -48,11 +48,16 @@ $(document).ready(function() {
     });
 
     $(document).on('change keyup', '[data-update-text]', function(e) {
-        var $target = $('[id="' + $(this).data('update-text') + '"]');
-        $target.text($(this).val());
+        var ids = $(this).data('update-text').split(',');
+        var val = $(this).val();
 
-        if ($target.text() === '') {
-            $target.text('* Needs Data');
-        }
+        $.each(ids, function(_, id) {
+            var $target = $('[id="' + id + '"]');
+            $target.text(val);
+
+            if ($target.text() === '') {
+                $target.text('* Needs Data');
+            }
+        });
     });
 });
