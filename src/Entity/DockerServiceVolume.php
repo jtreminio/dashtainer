@@ -17,14 +17,14 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     use RandomIdTrait;
     use EntityBaseTrait;
 
-    public const PROPOGATION_CACHED     = 'cached';
-    public const PROPOGATION_CONSISTENT = 'consistent';
-    public const PROPOGATION_DELEGATED  = 'delegated';
+    public const CONSISTENCY_CACHED     = 'cached';
+    public const CONSISTENCY_CONSISTENT = 'consistent';
+    public const CONSISTENCY_DELEGATED  = 'delegated';
 
-    protected const ALLOWED_PROPOGATIONS = [
-        self::PROPOGATION_CACHED,
-        self::PROPOGATION_CONSISTENT,
-        self::PROPOGATION_DELEGATED,
+    protected const ALLOWED_CONSISTENCIES = [
+        self::CONSISTENCY_CACHED,
+        self::CONSISTENCY_CONSISTENT,
+        self::CONSISTENCY_DELEGATED,
     ];
 
     public const OWNER_USER   = 'user';
@@ -61,10 +61,10 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     /**
      * Only used in MacOS hosts.
      *
-     * @ORM\Column(name="propogation", type="string", length=10)
+     * @ORM\Column(name="consistency", type="string", length=10)
      * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
      */
-    protected $propogation = 'default';
+    protected $consistency = 'default';
 
     /**
      * Only set if $type is file
@@ -145,22 +145,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         return $this;
     }
 
-    public function getPropogation() : ?string
+    public function getConsistency() : ?string
     {
-        return $this->propogation;
+        return $this->consistency;
     }
 
     /**
-     * @param string $propogation
+     * @param string $consistency
      * @return $this
      */
-    public function setPropogation(string $propogation)
+    public function setConsistency(string $consistency)
     {
-        if (!in_array($propogation, static::ALLOWED_PROPOGATIONS)) {
+        if (!in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
             throw new \UnexpectedValueException();
         }
 
-        $this->propogation = $propogation;
+        $this->consistency = $consistency;
 
         return $this;
     }

@@ -83,7 +83,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/my.cnf")
             ->setTarget('/etc/mysql/my.cnf')
             ->setData($form->file['my.cnf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -93,7 +93,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/config-file.cnf")
             ->setTarget('/etc/mysql/conf.d/config-file.cnf')
             ->setData($form->file['config-file.cnf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -110,7 +110,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
                 ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data'])
-                ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                 ->setType(Entity\DockerServiceVolume::TYPE_FILE)
                 ->setService($service);
@@ -205,7 +205,7 @@ class MariaDB extends HandlerAbstract implements CrudInterface
                 $file->setName($fileConfig['filename'])
                     ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                     ->setTarget($fileConfig['target'])
-                    ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
                     ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                     ->setType(Entity\DockerServiceVolume::TYPE_FILE)

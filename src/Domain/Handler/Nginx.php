@@ -90,7 +90,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/nginx.conf")
             ->setTarget('/etc/nginx/nginx.conf')
             ->setData($form->file['nginx.conf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -100,7 +100,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/core.conf")
             ->setTarget('/etc/nginx/conf.d/core.conf')
             ->setData($form->file['core.conf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -110,7 +110,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/proxy.conf")
             ->setTarget('/etc/nginx/conf.d/proxy.conf')
             ->setData($form->file['proxy.conf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -120,7 +120,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
             ->setTarget('/etc/nginx/sites-available/default')
             ->setData($form->vhost_conf ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -129,7 +129,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
         $directory->setName('project_directory')
             ->setSource($form->directory)
             ->setTarget('/var/www')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_CACHED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_DIR)
             ->setService($service);
@@ -151,7 +151,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
                 ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data'])
-                ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                 ->setType(Entity\DockerServiceVolume::TYPE_FILE)
                 ->setService($service);
@@ -289,7 +289,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
                 $file->setName($fileConfig['filename'])
                     ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                     ->setTarget($fileConfig['target'])
-                    ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
                     ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                     ->setType(Entity\DockerServiceVolume::TYPE_FILE)

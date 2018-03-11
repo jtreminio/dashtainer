@@ -92,7 +92,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
             ->setTarget('/etc/apache2/apache2.conf')
             ->setData($form->file['apache2.conf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -102,7 +102,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
             ->setTarget('/etc/apache2/ports.conf')
             ->setData($form->file['ports.conf'] ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -112,7 +112,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
             ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
             ->setData($form->vhost_conf ?? '')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_FILE)
             ->setService($service);
@@ -121,7 +121,7 @@ class Apache extends HandlerAbstract implements CrudInterface
         $directory->setName('project_directory')
             ->setSource($form->directory)
             ->setTarget('/var/www')
-            ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_CACHED)
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_CACHED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setType(Entity\DockerServiceVolume::TYPE_DIR)
             ->setService($service);
@@ -142,7 +142,7 @@ class Apache extends HandlerAbstract implements CrudInterface
                 ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data'])
-                ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                 ->setType(Entity\DockerServiceVolume::TYPE_FILE)
                 ->setService($service);
@@ -286,7 +286,7 @@ class Apache extends HandlerAbstract implements CrudInterface
                 $file->setName($fileConfig['filename'])
                     ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
                     ->setTarget($fileConfig['target'])
-                    ->setPropogation(Entity\DockerServiceVolume::PROPOGATION_DELEGATED)
+                    ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
                     ->setOwner(Entity\DockerServiceVolume::OWNER_USER)
                     ->setType(Entity\DockerServiceVolume::TYPE_FILE)

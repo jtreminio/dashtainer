@@ -18,20 +18,30 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     use RandomIdTrait;
     use EntityBaseTrait;
 
-    public const PROPOGATION_CACHED     = 'cached';
-    public const PROPOGATION_CONSISTENT = 'consistent';
-    public const PROPOGATION_DELEGATED  = 'delegated';
+    public const CONSISTENCY_CACHED     = 'cached';
+    public const CONSISTENCY_CONSISTENT = 'consistent';
+    public const CONSISTENCY_DELEGATED  = 'delegated';
 
-    protected const ALLOWED_PROPOGATIONS = [
-        self::PROPOGATION_CACHED,
-        self::PROPOGATION_CONSISTENT,
-        self::PROPOGATION_DELEGATED,
+    protected const ALLOWED_CONSISTENCIES = [
+        self::CONSISTENCY_CACHED,
+        self::CONSISTENCY_CONSISTENT,
+        self::CONSISTENCY_DELEGATED,
     ];
 
     /**
      * @ORM\Column(name="name", type="string", length=64)
      */
     protected $name;
+
+    /**
+     * Only used in MacOS hosts.
+     *
+     * Not used directly in volumes main section, only within services.volumes
+     *
+     * @ORM\Column(name="consistency", type="string", length=10, nullable=true)
+     * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
+     */
+    protected $consistency;
 
     /**
      * @ORM\Column(name="driver", type="string", length=16, nullable=true)
@@ -77,16 +87,6 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     protected $project;
 
     /**
-     * Only used in MacOS hosts.
-     *
-     * Not used directly in volumes main section, only within services.volumes
-     *
-     * @ORM\Column(name="propogation", type="string", length=10, nullable=true)
-     * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
-     */
-    protected $propogation;
-
-    /**
      * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\DockerService", mappedBy="project_volumes")
      */
     protected $services;
@@ -94,6 +94,26 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     public function __construct()
     {
         $this->services = new Collections\ArrayCollection();
+    }
+
+    public function getConsistency() : ?string
+    {
+        return $this->consistency;
+    }
+
+    /**
+     * @param string $consistency
+     * @return $this
+     */
+    public function setConsistency(string $consistency = null)
+    {
+        if (!in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
+            throw new \UnexpectedValueException();
+        }
+
+        $this->consistency = $consistency;
+
+        return $this;
     }
 
     public function getDriver() : ?string
@@ -235,26 +255,6 @@ class DockerVolume implements Util\HydratorInterface, EntityBaseInterface, SlugI
     public function setProject(DockerProject $project)
     {
         $this->project = $project;
-
-        return $this;
-    }
-
-    public function getPropogation() : ?string
-    {
-        return $this->propogation;
-    }
-
-    /**
-     * @param string $propogation
-     * @return $this
-     */
-    public function setPropogation(string $propogation = null)
-    {
-        if (!in_array($propogation, static::ALLOWED_PROPOGATIONS)) {
-            throw new \UnexpectedValueException();
-        }
-
-        $this->propogation = $propogation;
 
         return $this;
     }
