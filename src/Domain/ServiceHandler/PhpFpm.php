@@ -66,8 +66,8 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
                 'PHP_PACKAGES'      => array_unique($phpPackages),
                 'PEAR_PACKAGES'     => array_unique($form->pear_packages),
                 'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-                'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
-                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
+                'COMPOSER_INSTALL'  => $form->composer['install'] ?? 0,
+                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? 0,
             ]);
 
         $service->setBuild($build);
@@ -121,23 +121,11 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setHighlight('ini')
             ->setService($service);
 
-        $fpmPoolConf = new Entity\DockerServiceVolume();
-        $fpmPoolConf->setName('php-fpm_pool.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/php-fpm_pool.conf")
-            ->setTarget("/etc/php/{$form->version}/fpm/pool.d/www.conf")
-            ->setData($form->file['php-fpm_pool.conf'])
-            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
-            ->setHighlight('ini')
-            ->setService($service);
-
         $service->addVolume($dockerfile)
             ->addVolume($phpIni)
-            ->addVolume($fpmConf)
-            ->addVolume($fpmPoolConf);
+            ->addVolume($fpmConf);
 
-        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $fpmPoolConf, $service);
+        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $service);
 
         $this->projectFilesCreate($service, $form);
 
@@ -197,7 +185,6 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $dockerfile = $service->getVolume('Dockerfile');
         $phpIni     = $service->getVolume('php.ini');
         $fpmConf    = $service->getVolume('php-fpm.conf');
-        $fpmPoolIni = $service->getVolume('php-fpm_pool.conf');
 
         $composer = [
             'install' => $service->getBuild()->getArgs()['COMPOSER_INSTALL'],
@@ -215,7 +202,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         ];
 
         $blackfire = [
-            'install'      => false,
+            'install'      => 0,
             'server_id'    => '',
             'server_token' => '',
         ];
@@ -223,7 +210,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         if ($blackfireService = $this->getBlackfireChild($service)) {
             $bfEnv = $blackfireService->getEnvironments();
 
-            $blackfire['install']      = true;
+            $blackfire['install']      = 1;
             $blackfire['server_id']    = $bfEnv['BLACKFIRE_SERVER_ID'];
             $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
         }
@@ -239,10 +226,9 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
-                'Dockerfile'        => $dockerfile,
-                'php.ini'           => $phpIni,
-                'php-fpm.conf'      => $fpmConf,
-                'php-fpm_pool.conf' => $fpmPoolIni,
+                'Dockerfile'   => $dockerfile,
+                'php.ini'      => $phpIni,
+                'php-fpm.conf' => $fpmConf,
             ],
             'customFiles'            => $customFiles,
             'composer'               => $composer,
@@ -274,8 +260,8 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             'PHP_PACKAGES'      => array_unique($phpPackages),
             'PEAR_PACKAGES'     => array_unique($form->pear_packages),
             'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-            'COMPOSER_INSTALL'  => $form->composer['install'] ?? false,
-            'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? false,
+            'COMPOSER_INSTALL'  => $form->composer['install'] ?? 0,
+            'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? 0,
         ]);
 
         $service->setBuild($build);
@@ -291,10 +277,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $fpmConf = $service->getVolume('php-fpm.conf');
         $fpmConf->setData($form->file['php-fpm.conf']);
 
-        $fpmPoolConf = $service->getVolume('php-fpm_pool.conf');
-        $fpmPoolConf->setData($form->file['php-fpm_pool.conf']);
-
-        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $fpmPoolConf);
+        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf);
 
         $this->projectFilesUpdate($service, $form);
 
