@@ -26,7 +26,7 @@ abstract class DateTime
         $tz = new \DateTimeZone($tzName ?? date_default_timezone_get());
 
         if (is_numeric($dtCandidate) && (int) $dtCandidate == $dtCandidate) {
-            $dt = \DateTime::createFromFormat('u', $dtCandidate);
+            $dt = \DateTime::createFromFormat('U', $dtCandidate);
             $dt->setTimezone($tz);
 
             return $dt;

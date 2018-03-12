@@ -30,6 +30,28 @@ EOD;
         );
     }
 
+    public function testDoubleQuotesNoSingleQuotes()
+    {
+        $yaml = <<<'EOD'
+bar: biz
+foo: __SPECIAL_DBL_QUOTES__must be double quoted__SPECIAL_DBL_QUOTES__
+qiz: {  }
+
+EOD;
+
+        $expected = <<<'EOD'
+bar: biz
+foo: "must be double quoted"
+qiz: {  }
+
+EOD;
+
+        $this->assertEquals(
+            $expected,
+            YamlTag::parse($yaml)
+        );
+    }
+
     public function testNilValue()
     {
         $yaml = Yaml::dump([
@@ -41,6 +63,27 @@ EOD;
         $expected = <<<'EOD'
 bar: biz
 foo: 
+qiz: {  }
+
+EOD;
+
+        $this->assertEquals(
+            $expected,
+            YamlTag::parse($yaml)
+        );
+    }
+
+    public function testEmptyHash()
+    {
+        $yaml = Yaml::dump([
+            'bar' => 'biz',
+            'foo' => YamlTag::emptyHash(),
+            'qiz' => [],
+        ]);
+
+        $expected = <<<'EOD'
+bar: biz
+foo: {  }
 qiz: {  }
 
 EOD;
