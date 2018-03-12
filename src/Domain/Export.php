@@ -11,6 +11,8 @@ use Symfony\Component\Yaml\Yaml;
 
 class Export
 {
+    const BASE_DIR = '/var/www/dashtainer/dumped';
+
     /** @var DockerNetwork */
     protected $networkDomain;
 
@@ -38,7 +40,7 @@ class Export
     public function export(Entity\DockerProject $project)
     {
         $config = [
-            'version'  => '3.1',
+            'version' => '3.2',
         ];
 
         $networks = $this->getNetworks($project->getNetworks());
@@ -54,7 +56,38 @@ class Export
 
         $yaml = Yaml::dump($config, 999, 2);
 
-        return Util\YamlTag::parse($yaml);
+        $this->writeYamlFile(Util\YamlTag::parse($yaml));
+        $this->writeServiceFiles($project->getServices());
+
+        return $yaml;
+    }
+
+    protected function writeYamlFile(string $yaml)
+    {
+        file_put_contents(static::BASE_DIR . '/docker-compose.yml', $yaml);
+    }
+
+    /**
+     * @param Entity\DockerService[]|iterable $services
+     */
+    protected function writeServiceFiles(iterable $services)
+    {
+        foreach ($services as $service) {
+            $serviceBaseDir = static::BASE_DIR . '/' . $service->getSlug();
+
+            if (!is_dir($serviceBaseDir)) {
+                mkdir($serviceBaseDir);
+            }
+
+            foreach ($service->getVolumes() as $volume) {
+                if ($volume->getFiletype() !== Entity\DockerServiceVolume::FILETYPE_FILE) {
+                    continue;
+                }
+
+                $filename = $serviceBaseDir . '/' . $volume->getName();
+                file_put_contents($filename, $volume->getData());
+            }
+        }
     }
 
     /**
@@ -337,14 +370,16 @@ class Export
             }
 
             foreach ($service->getVolumes() as $volume) {
-                $sub = [
-                    'type'        => $volume->getType(),
-                    'source'      => Util\YamlTag::doubleQuotes($volume->getSource()),
-                    'target'      => Util\YamlTag::doubleQuotes($volume->getTarget()),
-                    'propagation' => $volume->getConsistency(),
-                ];
+                if (empty($volume->getTarget())) {
+                    continue;
+                }
 
-                $current['volumes'] []= $sub;
+                $string = "{$volume->getSource()}:{$volume->getTarget()}";
+                $string = $volume->getConsistency()
+                    ? "{$string}:{$volume->getConsistency()}"
+                    : $string;
+
+                $current['volumes'] []= Util\YamlTag::doubleQuotes($string);
             }
 
             $arr[$service->getSlug()] = $current;
