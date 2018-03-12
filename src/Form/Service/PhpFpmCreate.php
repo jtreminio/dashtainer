@@ -66,12 +66,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
                 ->atPath('file[php-fpm.conf]')
                 ->addViolation();
         }
-
-        if (empty(trim($this->file['php-fpm_pool.conf'] ?? ''))) {
-            $context->buildViolation('php-fpm_pool.conf cannot be empty')
-                ->atPath('file[php-fpm_pool.conf]')
-                ->addViolation();
-        }
     }
 
     protected function validateXdebug(ExecutionContextInterface $context)
