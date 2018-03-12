@@ -71,6 +71,13 @@ class Apache extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
 
+        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
+        $service->addLabel('traefik.backend', $privateNetwork->getName())
+            ->addLabel('traefik.docker.network', 'traefik_webgateway')
+            ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
+
         $vhost = [
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
@@ -235,6 +242,11 @@ class Apache extends HandlerAbstract implements CrudInterface
         $service->setBuild($build);
 
         $this->serviceRepo->save($service);
+
+        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
+        $service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
         $vhost = [
             'server_name'   => $form->server_name,
