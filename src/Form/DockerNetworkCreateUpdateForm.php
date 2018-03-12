@@ -12,7 +12,6 @@ class DockerNetworkCreateUpdateForm implements Util\HydratorInterface
 
     /**
      * @DashAssert\NonBlankString(message = "Please enter a network name")
-     * @DashAssert\Hostname
      */
     public $name;
 
