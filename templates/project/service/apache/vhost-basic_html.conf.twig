@@ -1,8 +1,7 @@
-<VirtualHost *:80 *:443>
+<VirtualHost *:80>
     ServerName {{ form.server_name }}
     ServerAlias {{ form.server_alias|join(' ') }}
     DocumentRoot {{ form.document_root }}
-    Protocols h2 http/1.1
 
     <Directory "{{ form.document_root }}">
         Options Indexes FollowSymlinks MultiViews

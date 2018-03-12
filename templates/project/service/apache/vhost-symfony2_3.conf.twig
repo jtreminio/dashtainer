@@ -1,8 +1,7 @@
-<VirtualHost *:80 *:443>
+<VirtualHost *:80>
     ServerName {{ form.server_name }}
     ServerAlias {{ form.server_alias|join(' ') }}
     DocumentRoot {{ form.document_root }}
-    Protocols h2 http/1.1
 
     <FilesMatch "\.php$">
         SetHandler proxy:fcgi://{{ form.fcgi_handler }}
