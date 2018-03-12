@@ -15,6 +15,8 @@ class HostnameValidator extends ConstraintValidator
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ string }}', $value)
                 ->addViolation();
+
+            return;
         }
 
         if (strlen($value) < 2 || strlen($value) > 64) {
