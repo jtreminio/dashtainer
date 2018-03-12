@@ -218,7 +218,7 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      * @param DockerVolume $project_volume
      * @return $this
      */
-    public function setProjectVolume(DockerVolume $project_volume)
+    public function setProjectVolume(DockerVolume $project_volume = null)
     {
         $this->project_volume = $project_volume;
 
