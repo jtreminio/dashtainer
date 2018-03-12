@@ -30,7 +30,6 @@
         "igorw/get-in": "~1.0",
         "incenteev/composer-parameter-handler": "^2.0",
         "ircmaxell/random-lib": "^v1.2",
-        "magicalex/write-ini-file": "^v1.2",
         "ramsey/uuid-doctrine": "^1.4",
         "sensio/distribution-bundle": "^5.0.19",
         "sensio/framework-extra-bundle": "^5.0.0",
