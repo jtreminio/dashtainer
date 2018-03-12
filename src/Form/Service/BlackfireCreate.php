@@ -29,5 +29,6 @@ class BlackfireCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public function validate(ExecutionContextInterface $context, $payload)
     {
+        parent::validate($context, $payload);
     }
 }

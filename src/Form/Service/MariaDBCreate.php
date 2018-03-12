@@ -59,11 +59,7 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public function validate(ExecutionContextInterface $context, $payload)
     {
-        if ($this->service_name_used) {
-            $context->buildViolation('Name already used in this project')
-                ->atPath('name')
-                ->addViolation();
-        }
+        parent::validate($context, $payload);
 
         $this->validateFile($context);
         $this->validateCustomFile($context);
