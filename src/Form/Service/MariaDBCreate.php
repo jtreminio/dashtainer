@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use CustomFileTrait;
+    use DashAssert\CustomFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")

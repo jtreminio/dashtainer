@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use CustomFileTrait;
+    use DashAssert\CustomFileTrait;
     use ProjectFilesTrait;
 
     public $project_files = [];

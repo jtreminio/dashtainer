@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Form\Service;
+namespace Dashtainer\Validator\Constraints;
 
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
@@ -14,40 +14,43 @@ trait CustomFileTrait
         $fileTargets = [];
 
         foreach ($this->custom_file as $key => $file) {
-            $filename = trim($file['filename']) ?? '';
+            $filename = trim($file['filename'] ?? '');
             $target   = trim($file['target'] ?? '');
 
             if (empty($filename)) {
                 $context->buildViolation('Ensure all custom config files have a filename')
                     ->atPath("custom_file[{$key}][filename]")
                     ->addViolation();
-            }
 
-            if (!empty($filename) && in_array($filename, $filenames)) {
-                $context->buildViolation('Ensure all custom config filenames are unique')
-                    ->atPath("custom_file[{$key}][filename]")
-                    ->addViolation();
-            }
-
-            if (!empty($filename)) {
-                $filenames []= $filename;
+                continue;
             }
 
             if (empty($target)) {
                 $context->buildViolation('Ensure all custom config files have a target')
                     ->atPath("custom_file[{$key}][target]")
                     ->addViolation();
+
+                continue;
             }
 
-            if (!empty($target) && in_array($target, $fileTargets)) {
+            if (in_array($filename, $filenames)) {
+                $context->buildViolation('Ensure all custom config filenames are unique')
+                    ->atPath("custom_file[{$key}][filename]")
+                    ->addViolation();
+
+                continue;
+            }
+
+            if (in_array($target, $fileTargets)) {
                 $context->buildViolation('Ensure all custom config targets are unique')
                     ->atPath("custom_file[{$key}][target]")
                     ->addViolation();
+
+                continue;
             }
 
-            if (!empty($target)) {
-                $fileTargets []= $target;
-            }
+            $filenames   []= $filename;
+            $fileTargets []= $target;
         }
     }
 }
