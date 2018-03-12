@@ -37,17 +37,23 @@ class DockerNetwork
         $arr = [];
 
         foreach ($networks as $network) {
-            if ($network->getExternal()) {
-                $arr[$network->getName()] = [
-                    'external' => [
-                        'name' => $network->getExternal(),
-                    ],
-                ];
+            $current = [];
 
-                continue;
+            if (!empty($network->getDriver())) {
+                $current['driver'] = $network->getDriver();
             }
 
-            $arr[$network->getName()] = Util\YamlTag::nilValue();
+            if ($network->getExternal() === true) {
+                $current['external'] = true;
+            } elseif ($network->getExternal()) {
+                $current['external']['name'] = $network->getExternal();
+            }
+
+            foreach ($network->getLabels() as $k => $v) {
+                $sub['labels'] []= "{$k}={$v}";
+            }
+
+            $arr[$network->getName()] = empty($current) ? Util\YamlTag::nilValue() : $current;
         }
 
         return $arr;
