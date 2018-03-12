@@ -16,7 +16,10 @@ class Version1_0_0 extends FixtureMigrationAbstract
 
     public function postUp(Schema $schema)
     {
-        $dataLoader = $this->container->get('dashtainer.migrations.dataloader');
+        $serializer = $this->container->get('serializer');
+        $kernel     = $this->container->get('kernel');
+
+        $dataLoader = new DataLoader($serializer, $kernel->getEnvironment());
 
         $this->loadFixtures([
             new v1_0_0\DataFixtures($dataLoader),
