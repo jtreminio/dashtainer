@@ -5,7 +5,6 @@ namespace Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
-use Dashtainer\Util;
 
 class DockerNetwork
 {
@@ -26,36 +25,5 @@ class DockerNetwork
         $this->repo->save($network);
 
         return $network;
-    }
-
-    /**
-     * @param Entity\DockerNetwork[]|iterable $networks
-     * @return array
-     */
-    public function export(iterable $networks) : array
-    {
-        $arr = [];
-
-        foreach ($networks as $network) {
-            $current = [];
-
-            if (!empty($network->getDriver())) {
-                $current['driver'] = $network->getDriver();
-            }
-
-            if ($network->getExternal() === true) {
-                $current['external'] = true;
-            } elseif ($network->getExternal()) {
-                $current['external']['name'] = $network->getExternal();
-            }
-
-            foreach ($network->getLabels() as $k => $v) {
-                $sub['labels'] []= "{$k}={$v}";
-            }
-
-            $arr[$network->getName()] = empty($current) ? Util\YamlTag::nilValue() : $current;
-        }
-
-        return $arr;
     }
 }
