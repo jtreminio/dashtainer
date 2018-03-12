@@ -13,6 +13,7 @@ require('selectize/dist/css/selectize.bootstrap3.css');
 require('prismjs');
 require('prismjs/themes/prism.css');
 require('prismjs/components/prism-apacheconf');
+require('prismjs/components/prism-docker');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');
 require('prismjs/components/prism-nginx');
@@ -24,6 +25,7 @@ DASHTAINER.formErrors = require('./formErrors');
 DASHTAINER.eventDataToggleTab = require('./eventDataToggleTab');
 DASHTAINER.misbehave = require('misbehave');
 DASHTAINER.runMisbehave = require('./runMisbehave');
+DASHTAINER.dataMask = require('./dataMask');
 
 $(document).ready(function() {
     require('./formAjax');
@@ -32,10 +34,7 @@ $(document).ready(function() {
     require('./codeFromRemote');
 
     DASHTAINER.eventDataToggleTab();
-
-    $('[data-mask-type="dns"]').mask('X'.repeat(64), {'translation':{
-        'X': {pattern: /^[a-zA-Z0-9\-]+$/}
-    }});
+    DASHTAINER.dataMask();
 
     $.each($('pre[data-code-highlight]'), function(_, element) {
         DASHTAINER.runMisbehave(element);
