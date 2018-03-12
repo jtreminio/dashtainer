@@ -103,6 +103,39 @@ class MariaDB extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($myCnf, $configFileCnf, $service);
 
+        $serviceDatastoreVol = new Entity\DockerServiceVolume();
+        $serviceDatastoreVol->setName('datastore')
+            ->setSource("\$PWD/{$service->getSlug()}/datadir")
+            ->setTarget('/var/lib/mysql')
+            ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_DIR)
+            ->setService($service);
+
+        if ($form->datastore == 'local') {
+            $serviceDatastoreVol->setSource("\$PWD/{$service->getSlug()}/datadir")
+                ->setType(Entity\DockerServiceVolume::TYPE_BIND);
+
+            $service->addVolume($serviceDatastoreVol);
+
+            $this->serviceRepo->save($serviceDatastoreVol, $service);
+        }
+
+        if ($form->datastore !== 'local') {
+            $projectDatastoreVol = new Entity\DockerVolume();
+            $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
+                ->setProject($service->getProject());
+
+            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
+                ->setType(Entity\DockerServiceVolume::TYPE_VOLUME);
+
+            $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
+            $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
+            $service->addVolume($serviceDatastoreVol);
+
+            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol, $service);
+        }
+
         $this->customFilesCreate($service, $form);
 
         return $service;
@@ -174,6 +207,40 @@ class MariaDB extends HandlerAbstract implements CrudInterface
         $configFileCnf->setData($form->file['config-file.cnf'] ?? '');
 
         $this->serviceRepo->save($myCnf, $configFileCnf);
+
+        $serviceDatastoreVol = $service->getVolume('datastore');
+        $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();
+
+        if ($form->datastore == 'local' && $projectDatastoreVol) {
+            $projectDatastoreVol->removeServiceVolume($serviceDatastoreVol);
+            $serviceDatastoreVol->setProjectVolume(null);
+
+            $serviceDatastoreVol->setName('datastore')
+                ->setSource("\$PWD/{$service->getSlug()}/datadir")
+                ->setType(Entity\DockerServiceVolume::TYPE_BIND);
+
+            $this->serviceRepo->save($serviceDatastoreVol);
+
+            if ($projectDatastoreVol->getServiceVolumes()->isEmpty()) {
+                $this->serviceRepo->delete($projectDatastoreVol);
+            }
+        }
+
+        if ($form->datastore !== 'local') {
+            if (!$projectDatastoreVol) {
+                $projectDatastoreVol = new Entity\DockerVolume();
+                $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
+                    ->setProject($service->getProject());
+
+                $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
+                $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
+            }
+
+            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
+                ->setType(Entity\DockerServiceVolume::TYPE_VOLUME);
+
+            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol);
+        }
 
         $this->customFilesUpdate($service, $form);
 
