@@ -87,6 +87,16 @@ class Apache extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
+        $dockerfile = new Entity\DockerServiceVolume();
+        $dockerfile->setName('Dockerfile')
+            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
+            ->setData($form->file['Dockerfile'] ?? '')
+            ->setConsistency(null)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('docker')
+            ->setService($service);
+
         $apache2Conf = new Entity\DockerServiceVolume();
         $apache2Conf->setName('apache2.conf')
             ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
@@ -95,6 +105,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
             ->setService($service);
 
         $portsConf = new Entity\DockerServiceVolume();
@@ -105,6 +116,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
             ->setService($service);
 
         $vhostConf = new Entity\DockerServiceVolume();
@@ -115,13 +127,17 @@ class Apache extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
             ->setService($service);
 
-        $service->addVolume($apache2Conf)
+        $service->addVolume($dockerfile)
+            ->addVolume($apache2Conf)
             ->addVolume($portsConf)
             ->addVolume($vhostConf);
 
-        $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf, $service);
+        $this->serviceRepo->save(
+            $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
+        );
 
         $this->projectFilesCreate($service, $form);
 
@@ -158,6 +174,7 @@ class Apache extends HandlerAbstract implements CrudInterface
         $availableApacheModules += $apacheModules->getData()['default'];
         $availableApacheModules += $apacheModules->getData()['available'];
 
+        $dockerfile  = $service->getVolume('Dockerfile');
         $apache2Conf = $service->getVolume('apache2.conf');
         $portsConf   = $service->getVolume('ports.conf');
         $vhostConf   = $service->getVolume('vhost.conf');
@@ -179,6 +196,7 @@ class Apache extends HandlerAbstract implements CrudInterface
             'availableApacheModules' => $availableApacheModules,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
+                'Dockerfile'   => $dockerfile,
                 'apache2.conf' => $apache2Conf,
                 'ports.conf'   => $portsConf,
             ],
@@ -230,6 +248,9 @@ class Apache extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($vhostMeta);
 
+        $dockerfile = $service->getVolume('Dockerfile');
+        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+
         $apache2Conf = $service->getVolume('apache2.conf');
         $apache2Conf->setData($form->file['apache2.conf'] ?? '');
 
@@ -239,7 +260,7 @@ class Apache extends HandlerAbstract implements CrudInterface
         $vhostConf   = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf);
 
-        $this->serviceRepo->save($apache2Conf, $portsConf, $vhostConf);
+        $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
 
         $this->projectFilesUpdate($service, $form);
 

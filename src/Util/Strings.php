@@ -13,4 +13,9 @@ abstract class Strings
     {
         return preg_replace("/[^a-zA-Z0-9\-]/", '-', $string);
     }
+
+    public static function filename(string $string) : string
+    {
+        return preg_replace("/[^a-zA-Z0-9._\-]/", '', $string);
+    }
 }

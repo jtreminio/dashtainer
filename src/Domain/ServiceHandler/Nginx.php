@@ -85,6 +85,16 @@ class Nginx extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
+        $dockerfile = new Entity\DockerServiceVolume();
+        $dockerfile->setName('Dockerfile')
+            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
+            ->setData($form->file['Dockerfile'] ?? '')
+            ->setConsistency(null)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('docker')
+            ->setService($service);
+
         $nginxConf = new Entity\DockerServiceVolume();
         $nginxConf->setName('nginx.conf')
             ->setSource("\$PWD/{$service->getSlug()}/nginx.conf")
@@ -93,6 +103,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('nginx')
             ->setService($service);
 
         $coreConf = new Entity\DockerServiceVolume();
@@ -103,6 +114,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('nginx')
             ->setService($service);
 
         $proxyConf = new Entity\DockerServiceVolume();
@@ -113,6 +125,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('nginx')
             ->setService($service);
 
         $vhostConf = new Entity\DockerServiceVolume();
@@ -123,14 +136,18 @@ class Nginx extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('nginx')
             ->setService($service);
 
-        $service->addVolume($nginxConf)
+        $service->addVolume($dockerfile)
+            ->addVolume($nginxConf)
             ->addVolume($coreConf)
             ->addVolume($proxyConf)
             ->addVolume($vhostConf);
 
-        $this->serviceRepo->save($nginxConf, $coreConf, $proxyConf, $vhostConf, $service);
+        $this->serviceRepo->save(
+            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf, $service
+        );
 
         $this->projectFilesCreate($service, $form);
 
@@ -159,6 +176,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
     {
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
+        $dockerfile  = $service->getVolume('Dockerfile');
         $nginxConf   = $service->getVolume('nginx.conf');
         $coreConf    = $service->getVolume('core.conf');
         $proxyConf   = $service->getVolume('proxy.conf');
@@ -178,6 +196,7 @@ class Nginx extends HandlerAbstract implements CrudInterface
             'projectFiles'           => $this->projectFilesViewParams($service),
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
+                'Dockerfile' => $dockerfile,
                 'nginx.conf' => $nginxConf,
                 'core.conf'  => $coreConf,
                 'proxy.conf' => $proxyConf,
@@ -228,6 +247,9 @@ class Nginx extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($vhostMeta);
 
+        $dockerfile = $service->getVolume('Dockerfile');
+        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+
         $nginxConf = $service->getVolume('nginx.conf');
         $nginxConf->setData($form->file['nginx.conf'] ?? '');
 
@@ -240,7 +262,9 @@ class Nginx extends HandlerAbstract implements CrudInterface
         $vhostConf = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf ?? '');
 
-        $this->serviceRepo->save($nginxConf, $coreConf, $proxyConf, $vhostConf);
+        $this->serviceRepo->save(
+            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf
+        );
 
         $this->projectFilesUpdate($service, $form);
 

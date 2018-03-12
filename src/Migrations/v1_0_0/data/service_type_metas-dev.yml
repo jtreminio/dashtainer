@@ -389,7 +389,322 @@
             xdebug.remote_enable = 1
             xdebug.remote_handler = "dbgp"
             xdebug.remote_port = 9000
+-
+    type: PHP-FPM
+    name: Dockerfile-5.6
+    data:
+        - |
+            FROM ubuntu:16.04
 
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV PHP_DIR /etc/php/5.6
+            ENV PHP_FPM php5.6-fpm
+            ARG SYSTEM_PACKAGES
+            ARG PHP_MODULES
+            WORKDIR $PHP_DIR
+
+            COPY ./version-specific-packages.sh version-specific-packages.sh
+
+            RUN chmod +x ${PHP_DIR}/version-specific-packages.sh \
+                && add-apt-repository ppa:ondrej/php \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_MODULES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+            ARG PEAR_MODULES
+            RUN if [ ! -z "$PEAR_MODULES" ]; then \
+                printf "\n" | pear install -o -f ${PEAR_MODULES} \
+            ;fi
+
+            ARG PECL_MODULES
+            RUN if [ ! -z "$PECL_MODULES" ]; then \
+                pecl channel-update pecl.php.net \
+                && printf "\n" | pecl install -o -f ${PECL_MODULES} \
+            ;fi
+
+            ARG INSTALL_COMPOSER=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+                    --filename=composer \
+            ;fi
+
+            ARG INSTALL_BLACKFIRE=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+            ;fi
+
+            EXPOSE 9000
+
+            CMD ["/usr/sbin/php-fpm5.6", "--nodaemonize", "--force-stderr", "--allow-to-run-as-root"]
+-
+    type: PHP-FPM
+    name: Dockerfile-7.0
+    data:
+        - |
+            FROM ubuntu:16.04
+
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV PHP_DIR /etc/php/7.0
+            ENV PHP_FPM php7.0-fpm
+            ARG SYSTEM_PACKAGES
+            ARG PHP_MODULES
+            WORKDIR $PHP_DIR
+
+            COPY ./version-specific-packages.sh version-specific-packages.sh
+
+            RUN chmod +x ${PHP_DIR}/version-specific-packages.sh \
+                && add-apt-repository ppa:ondrej/php \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_MODULES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+            ARG PEAR_MODULES
+            RUN if [ ! -z "$PEAR_MODULES" ]; then \
+                printf "\n" | pear install -o -f ${PEAR_MODULES} \
+            ;fi
+
+            ARG PECL_MODULES
+            RUN if [ ! -z "$PECL_MODULES" ]; then \
+                pecl channel-update pecl.php.net \
+                && printf "\n" | pecl install -o -f ${PECL_MODULES} \
+            ;fi
+
+            ARG INSTALL_COMPOSER=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+                    --filename=composer \
+            ;fi
+
+            ARG INSTALL_BLACKFIRE=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+            ;fi
+
+            EXPOSE 9000
+
+            CMD ["/usr/sbin/php-fpm7.0", "--nodaemonize", "--force-stderr", "--allow-to-run-as-root"]
+-
+    type: PHP-FPM
+    name: Dockerfile-7.1
+    data:
+        - |
+            FROM ubuntu:16.04
+
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV PHP_DIR /etc/php/7.1
+            ENV PHP_FPM php7.1-fpm
+            ARG SYSTEM_PACKAGES
+            ARG PHP_MODULES
+            WORKDIR $PHP_DIR
+
+            COPY ./version-specific-packages.sh version-specific-packages.sh
+
+            RUN chmod +x ${PHP_DIR}/version-specific-packages.sh \
+                && add-apt-repository ppa:ondrej/php \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_MODULES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+            ARG PEAR_MODULES
+            RUN if [ ! -z "$PEAR_MODULES" ]; then \
+                printf "\n" | pear install -o -f ${PEAR_MODULES} \
+            ;fi
+
+            ARG PECL_MODULES
+            RUN if [ ! -z "$PECL_MODULES" ]; then \
+                pecl channel-update pecl.php.net \
+                && printf "\n" | pecl install -o -f ${PECL_MODULES} \
+            ;fi
+
+            ARG INSTALL_COMPOSER=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+                    --filename=composer \
+            ;fi
+
+            ARG INSTALL_BLACKFIRE=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+            ;fi
+
+            EXPOSE 9000
+
+            CMD ["/usr/sbin/php-fpm7.1", "--nodaemonize", "--force-stderr", "--allow-to-run-as-root"]
+-
+    type: PHP-FPM
+    name: Dockerfile-7.2
+    data:
+        - |
+            FROM ubuntu:16.04
+
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV PHP_DIR /etc/php/7.2
+            ENV PHP_FPM php7.2-fpm
+            ARG SYSTEM_PACKAGES
+            ARG PHP_MODULES
+            WORKDIR $PHP_DIR
+
+            COPY ./version-specific-packages.sh version-specific-packages.sh
+
+            RUN chmod +x ${PHP_DIR}/version-specific-packages.sh \
+                && add-apt-repository ppa:ondrej/php \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_MODULES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+            ARG PEAR_MODULES
+            RUN if [ ! -z "$PEAR_MODULES" ]; then \
+                printf "\n" | pear install -o -f ${PEAR_MODULES} \
+            ;fi
+
+            ARG PECL_MODULES
+            RUN if [ ! -z "$PECL_MODULES" ]; then \
+                pecl channel-update pecl.php.net \
+                && printf "\n" | pecl install -o -f ${PECL_MODULES} \
+            ;fi
+
+            ARG INSTALL_COMPOSER=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+                    --filename=composer \
+            ;fi
+
+            ARG INSTALL_BLACKFIRE=false
+            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+            ;fi
+
+            EXPOSE 9000
+
+            CMD ["/usr/sbin/php-fpm7.2", "--nodaemonize", "--force-stderr", "--allow-to-run-as-root"]
 -
     type: Apache
     name: modules
@@ -581,6 +896,66 @@
             <IfModule mod_gnutls.c>
                 Listen 443
             </IfModule>
+-
+    type: Apache
+    name: Dockerfile
+    data:
+        - |
+            FROM ubuntu:16.04
+
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV HTTPD_PREFIX /etc/apache2
+            ARG SYSTEM_PACKAGES
+            WORKDIR $HTTPD_PREFIX
+
+            RUN add-apt-repository ppa:ondrej/apache2 \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apache2 ${SYSTEM_PACKAGES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                    conf-enabled/serve-cgi-bin.conf \
+                    mods-enabled/autoindex.conf \
+                    mods-enabled/autoindex.load \
+                && echo "ServerName localhost" >> apache2.conf \
+                && ln -sf /dev/stdout /var/log/apache2/access.log \
+                && ln -sf /dev/stderr /var/log/apache2/error.log
+
+            EXPOSE 80 443
+
+            ARG APACHE_MODULES_DISABLE
+            RUN if [ ! -z "$APACHE_MODULES_DISABLE" ]; then \
+                a2dismod $APACHE_MODULES_DISABLE \
+            ;fi
+
+            ARG APACHE_MODULES_ENABLE
+            RUN if [ ! -z "$APACHE_MODULES_ENABLE" ]; then \
+                a2enmod $APACHE_MODULES_ENABLE \
+            ;fi
+
+            CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 
 -
     type: Nginx
@@ -639,6 +1014,52 @@
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_headers_hash_bucket_size 64;
+-
+    type: Nginx
+    name: Dockerfile
+    data:
+        - |
+            FROM ubuntu:16.04
+
+            ENV DEBIAN_FRONTEND noninteractive
+
+            RUN apt-get update && apt-get install -y apt-utils
+
+            # Install common / shared packages
+            RUN apt-get install -y \
+                curl \
+                locales \
+                software-properties-common \
+                python-software-properties
+
+            # Set up locales
+            RUN locale-gen en_US.UTF-8
+            ENV LANG C.UTF-8
+            ENV LANGUAGE C.UTF-8
+            ENV LC_ALL C.UTF-8
+            RUN /usr/sbin/update-locale
+
+            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+                    14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+                && apt-get update
+
+            # Per-image commands
+            ENV NGINX_PREFIX /etc/nginx
+            ARG SYSTEM_PACKAGES
+            WORKDIR $NGINX_PREFIX
+
+            RUN add-apt-repository ppa:ondrej/nginx \
+                && apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    nginx ${SYSTEM_PACKAGES} \
+                && apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && ln -sf /dev/stdout /var/log/nginx/access.log \
+                && ln -sf /dev/stderr /var/log/nginx/error.log
+
+            EXPOSE 80 443
+
+            CMD ["nginx", "-g", "daemon off;"]
 
 -
     type: MariaDB

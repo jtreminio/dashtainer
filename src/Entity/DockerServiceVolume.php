@@ -64,14 +64,14 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
     protected $source;
 
     /**
-     * @ORM\Column(name="target", type="string", length=255)
+     * @ORM\Column(name="target", type="string", length=255, nullable=true)
      */
     protected $target;
 
     /**
      * Only used in MacOS hosts.
      *
-     * @ORM\Column(name="consistency", type="string", length=10)
+     * @ORM\Column(name="consistency", type="string", length=10, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#caching-options-for-volume-mounts-docker-for-mac
      */
     protected $consistency = 'default';
@@ -89,6 +89,11 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      * @ORM\Column(name="filetype", type="string", length=9)
      */
     protected $filetype;
+
+    /**
+     * @ORM\Column(name="highlight", type="string", length=16, nullable=true)
+     */
+    protected $highlight;
 
     /**
      * One of system, user
@@ -178,9 +183,9 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
      * @param string $consistency
      * @return $this
      */
-    public function setConsistency(string $consistency)
+    public function setConsistency(string $consistency = null)
     {
-        if (!in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
+        if ($consistency && !in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
             throw new \UnexpectedValueException();
         }
 
@@ -205,6 +210,22 @@ class DockerServiceVolume implements Util\HydratorInterface, EntityBaseInterface
         }
 
         $this->filetype = $filetype;
+
+        return $this;
+    }
+
+    public function getHighlight() : ?string
+    {
+        return $this->highlight;
+    }
+
+    /**
+     * @param string $highlight
+     * @return $this
+     */
+    public function setHighlight(string $highlight)
+    {
+        $this->highlight = $highlight;
 
         return $this;
     }

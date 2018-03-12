@@ -5,6 +5,7 @@ namespace Dashtainer\Domain\ServiceHandler;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
+use Dashtainer\Util;
 
 abstract class HandlerAbstract implements CrudInterface
 {
@@ -56,9 +57,11 @@ abstract class HandlerAbstract implements CrudInterface
     ) {
         $files = [];
         foreach ($form->custom_file as $fileConfig) {
+            $name = Util\Strings::filename($fileConfig['filename']);
+
             $file = new Entity\DockerServiceVolume();
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+            $file->setName($name)
+                ->setSource("\$PWD/{$service->getSlug()}/{$name}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data'])
                 ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
@@ -91,9 +94,11 @@ abstract class HandlerAbstract implements CrudInterface
         $files = [];
         foreach ($form->custom_file as $id => $fileConfig) {
             if (empty($existingUserFiles[$id])) {
+                $name = Util\Strings::filename($fileConfig['filename']);
+
                 $file = new Entity\DockerServiceVolume();
-                $file->setName($fileConfig['filename'])
-                    ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+                $file->setName($name)
+                    ->setSource("\$PWD/{$service->getSlug()}/{$name}")
                     ->setTarget($fileConfig['target'])
                     ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
@@ -112,8 +117,8 @@ abstract class HandlerAbstract implements CrudInterface
             $file = $existingUserFiles[$id];
             unset($existingUserFiles[$id]);
 
-            $file->setName($fileConfig['filename'])
-                ->setSource("\$PWD/{$service->getSlug()}/{$fileConfig['filename']}")
+            $file->setName($name)
+                ->setSource("\$PWD/{$service->getSlug()}/{$name}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data']);
 

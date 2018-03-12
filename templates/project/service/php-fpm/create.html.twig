@@ -128,6 +128,7 @@
 
         <hr class="mb-4" />
 
+        {% set Dockerfile = serviceType.meta("Dockerfile-#{version}") %}
         {% set iniMeta = serviceType.meta("ini-#{version}") %}
         <h4 class="mb-3">Config Files</h4>
 
@@ -144,22 +145,42 @@
                            }) }}">
                             <i class="fa fa-plus"></i> Add</a>
                     </li>
+                    <li class="nav-item active">
+                        <a id="nav-Dockerfile-tab" class="nav-link active"
+                           data-toggle="tab" role="tab"
+                           href="#file-Dockerfile" aria-controls="file-Dockerfile"
+                           aria-selected="true">Dockerfile</a>
+                    </li>
                     {% if iniMeta %}
                         {% for key, value in iniMeta.data %}
-                            <li class="nav-item {{ loop.first ? 'active' }}">
-                                <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                            <li class="nav-item">
+                                <a id="nav-{{ key }}-tab" class="nav-link"
                                    data-toggle="tab" role="tab"
                                    href="#file-{{ key }}" aria-controls="file-{{ key }}"
-                                   aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
+                                   aria-selected="false">{{ key }}</a>
                             </li>
                         {% endfor %}
                     {% endif %}
                 </ul>
                 <div id="nav-file-content" class="tab-content">
+                    <div id="file-Dockerfile" role="tabpanel"
+                         class="tab-pane fade show active">
+                        <div class="row">
+                            <div class="col">
+                                <pre class="language-docker" data-code-highlight><code
+                                        id="file-Dockerfile-source"
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false">{{ Dockerfile.data[0] }}</code></pre>
+                                <input type="hidden" value="" name="file[Dockerfile]"
+                                       data-error-container="file-error"
+                                       data-get-value-source="file-Dockerfile-source" />
+                            </div>
+                        </div>
+                    </div>
                     {% if iniMeta %}
                         {% for key, value in iniMeta.data %}
                             <div id="file-{{ key }}" role="tabpanel"
-                                 class="tab-pane fade {{ loop.first ? 'show active' }}">
+                                 class="tab-pane fade">
                                 <div class="row">
                                     <div class="col">
                                         <pre class="language-ini" data-code-highlight><code

@@ -214,7 +214,7 @@
                              class="tab-pane fade {{ loop.first ? 'show active' }}">
                             <div class="row">
                                 <div class="col">
-                                    <pre class="language-nginx" data-code-highlight><code
+                                    <pre class="language-{{ value.highlight ?? 'nginx' }}" data-code-highlight><code
                                             id="file-{{ file.name }}-source"
                                             contenteditable autocorrect="off" autocapitalize="off"
                                             spellcheck="false">{{ file.data }}</code></pre>
@@ -238,6 +238,7 @@
                                            name="custom_file[{{ file.id }}][filename]"
                                            placeholder="" value="{{ file.name }}"
                                            data-update-text="nav-custom_file-{{ file.id }}-tab"
+                                           data-mask-type="filename"
                                            data-error-container="custom_file" />
                                     <small class="text-muted">
                                         Save config into this local file.

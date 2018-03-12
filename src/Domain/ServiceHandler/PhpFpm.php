@@ -89,6 +89,16 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($versionMeta, $service);
 
+        $dockerfile = new Entity\DockerServiceVolume();
+        $dockerfile->setName('Dockerfile')
+            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
+            ->setData($form->file['Dockerfile'] ?? '')
+            ->setConsistency(null)
+            ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('docker')
+            ->setService($service);
+
         $phpIni = new Entity\DockerServiceVolume();
         $phpIni->setName('php.ini')
             ->setSource("\$PWD/{$service->getSlug()}/php.ini")
@@ -97,6 +107,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('ini')
             ->setService($service);
 
         $fpmConf = new Entity\DockerServiceVolume();
@@ -107,6 +118,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('ini')
             ->setService($service);
 
         $fpmPoolConf = new Entity\DockerServiceVolume();
@@ -117,13 +129,15 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             ->setConsistency(Entity\DockerServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\DockerServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\DockerServiceVolume::FILETYPE_FILE)
+            ->setHighlight('ini')
             ->setService($service);
 
-        $service->addVolume($phpIni)
+        $service->addVolume($dockerfile)
+            ->addVolume($phpIni)
             ->addVolume($fpmConf)
             ->addVolume($fpmPoolConf);
 
-        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf, $service);
+        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $fpmPoolConf, $service);
 
         $this->projectFilesCreate($service, $form);
 
@@ -180,6 +194,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $peclPackagesSelected   = $service->getBuild()->getArgs()['PECL_PACKAGES'];
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
+        $dockerfile = $service->getVolume('Dockerfile');
         $phpIni     = $service->getVolume('php.ini');
         $fpmConf    = $service->getVolume('php-fpm.conf');
         $fpmPoolIni = $service->getVolume('php-fpm_pool.conf');
@@ -224,6 +239,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
+                'Dockerfile'        => $dockerfile,
                 'php.ini'           => $phpIni,
                 'php-fpm.conf'      => $fpmConf,
                 'php-fpm_pool.conf' => $fpmPoolIni,
@@ -266,6 +282,9 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
 
         $this->serviceRepo->save($service);
 
+        $dockerfile = $service->getVolume('Dockerfile');
+        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+
         $phpIni = $service->getVolume('php.ini');
         $phpIni->setData($form->file['php.ini'] ?? '');
 
@@ -275,7 +294,7 @@ class PhpFpm extends HandlerAbstract implements CrudInterface
         $fpmPoolConf = $service->getVolume('php-fpm_pool.conf');
         $fpmPoolConf->setData($form->file['php-fpm_pool.conf']);
 
-        $this->serviceRepo->save($phpIni, $fpmConf, $fpmPoolConf);
+        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $fpmPoolConf);
 
         $this->projectFilesUpdate($service, $form);
 
