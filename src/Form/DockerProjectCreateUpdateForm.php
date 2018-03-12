@@ -11,14 +11,8 @@ class DockerProjectCreateUpdateForm implements Util\HydratorInterface
     use Util\HydratorTrait;
 
     /**
-     * @Assert\NotBlank(message = "Please enter a project name.")
-     * @Assert\Length(
-     *      min = 1,
-     *      max = 64,
-     *      minMessage = "Please enter a project name.",
-     *      maxMessage = "Project name max length is {{ limit }} characters."
-     * )
-     * @todo enforce hostname regex
+     * @DashAssert\NonBlankString(message = "Please enter a project name")
+     * @DashAssert\Hostname
      */
     public $name;
 }

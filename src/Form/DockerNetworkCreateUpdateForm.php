@@ -11,14 +11,8 @@ class DockerNetworkCreateUpdateForm implements Util\HydratorInterface
     use Util\HydratorTrait;
 
     /**
-     * @Assert\NotBlank(message = "Please enter a network name.")
-     * @Assert\Length(
-     *      min = 1,
-     *      max = 64,
-     *      minMessage = "Please enter a network name.",
-     *      maxMessage = Project network max length is {{ limit }} characters."
-     * )
-     * @todo enforce hostname regex
+     * @DashAssert\NonBlankString(message = "Please enter a network name")
+     * @DashAssert\Hostname
      */
     public $name;
 
