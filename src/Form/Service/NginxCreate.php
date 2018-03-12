@@ -12,7 +12,7 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\CustomFileTrait;
-    use ProjectFilesTrait;
+    use DashAssert\ProjectFilesTrait;
 
     public $project_files = [];
 

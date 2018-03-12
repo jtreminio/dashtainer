@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Form\Service;
+namespace Dashtainer\Validator\Constraints;
 
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 

@@ -12,7 +12,7 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\CustomFileTrait;
-    use ProjectFilesTrait;
+    use DashAssert\ProjectFilesTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
