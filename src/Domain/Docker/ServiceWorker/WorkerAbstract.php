@@ -11,7 +11,7 @@ use Dashtainer\Validator\Constraints;
 abstract class WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Service */
-    protected $repoDockService;
+    protected $serviceRepo;
 
     public function delete(Entity\Docker\Service $service)
     {
@@ -33,7 +33,7 @@ abstract class WorkerAbstract implements WorkerInterface
             $service->setParent(null);
             $parent->removeChild($service);
 
-            $this->repoDockService->save($parent);
+            $this->serviceRepo->save($parent);
         }
 
         $children = [];
@@ -44,8 +44,8 @@ abstract class WorkerAbstract implements WorkerInterface
             $children []= $child;
         }
 
-        $this->repoDockService->delete(...$metas, ...$volumes, ...$children);
-        $this->repoDockService->delete($service);
+        $this->serviceRepo->delete(...$metas, ...$volumes, ...$children);
+        $this->serviceRepo->delete($service);
     }
 
     /**
@@ -76,7 +76,7 @@ abstract class WorkerAbstract implements WorkerInterface
         }
 
         if (!empty($files)) {
-            $this->repoDockService->save($service, ...$files);
+            $this->serviceRepo->save($service, ...$files);
         }
     }
 
@@ -127,13 +127,13 @@ abstract class WorkerAbstract implements WorkerInterface
         }
 
         if (!empty($files)) {
-            $this->repoDockService->save($service, ...$files);
+            $this->serviceRepo->save($service, ...$files);
         }
 
         foreach ($existingUserFiles as $file) {
             $service->removeVolume($file);
-            $this->repoDockService->delete($file);
-            $this->repoDockService->save($service);
+            $this->serviceRepo->delete($file);
+            $this->serviceRepo->save($service);
         }
     }
 
@@ -165,7 +165,7 @@ abstract class WorkerAbstract implements WorkerInterface
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
                 ->setService($service);
 
-            $this->repoDockService->save(
+            $this->serviceRepo->save(
                 $projectFilesMeta, $projectFilesSource, $service
             );
         }
@@ -200,7 +200,7 @@ abstract class WorkerAbstract implements WorkerInterface
 
             $projectFilesSource->setSource($form->project_files['local']['source']);
 
-            $this->repoDockService->save(
+            $this->serviceRepo->save(
                 $projectFilesMeta, $projectFilesSource, $service
             );
         }
@@ -209,9 +209,9 @@ abstract class WorkerAbstract implements WorkerInterface
             $projectFilesSource->setService(null);
             $service->removeVolume($projectFilesSource);
 
-            $this->repoDockService->delete($projectFilesSource);
+            $this->serviceRepo->delete($projectFilesSource);
 
-            $this->repoDockService->save($service);
+            $this->serviceRepo->save($service);
         }
 
         // todo: Add support for non-local project files source, ie github

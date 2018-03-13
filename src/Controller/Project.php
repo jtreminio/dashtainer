@@ -16,33 +16,33 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Project extends Controller
 {
-    /** @var Domain\Docker\Project */
-    protected $domDockProject;
+    /** @var Domain\Docker\Export */
+    protected $dExportDomain;
 
-    /** @var Domain\Export */
-    protected $domExport;
+    /** @var Domain\Docker\Project */
+    protected $dProjectDomain;
 
     /** @var Repository\Docker\Project */
-    protected $repoDockProject;
+    protected $dProjectRepo;
 
     /** @var Repository\Docker\ServiceCategory */
-    protected $repoDockServiceCat;
+    protected $dServiceCatRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\Docker\Project $domDockProject,
-        Domain\Export $domExport,
-        Repository\Docker\Project $repoDockProject,
-        Repository\Docker\ServiceCategory $repoDockServiceCat,
+        Domain\Docker\Export $dExportDomain,
+        Domain\Docker\Project $dProjectDomain,
+        Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
     ) {
-        $this->domDockProject = $domDockProject;
-        $this->domExport      = $domExport;
+        $this->dProjectDomain = $dProjectDomain;
+        $this->dExportDomain  = $dExportDomain;
 
-        $this->repoDockProject    = $repoDockProject;
-        $this->repoDockServiceCat = $repoDockServiceCat;
+        $this->dProjectRepo    = $dProjectRepo;
+        $this->dServiceCatRepo = $dServiceCatRepo;
 
         $this->validator = $validator;
     }
@@ -85,7 +85,7 @@ class Project extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $project = $this->domDockProject->createProjectFromForm($form, $user);
+        $project = $this->dProjectDomain->createProjectFromForm($form, $user);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -108,13 +108,13 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project' => $project,
-            'serviceCategories' => $this->repoDockServiceCat->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 
@@ -131,7 +131,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -155,7 +155,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        $project = $this->repoDockProject->findByUser($user, $projectId);
+        $project = $this->dProjectRepo->findByUser($user, $projectId);
 
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($project->toArray());
@@ -172,7 +172,7 @@ class Project extends Controller
 
         $project->fromArray($form->toArray());
 
-        $this->repoDockProject->save($project);
+        $this->dProjectRepo->save($project);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -195,8 +195,8 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if ($project = $this->repoDockProject->findByUser($user, $projectId)) {
-            $this->domDockProject->delete($project);
+        if ($project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            $this->dProjectDomain->delete($project);
         }
 
         return new AjaxResponse([
@@ -218,7 +218,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -242,11 +242,11 @@ class Project extends Controller
         string $projectId,
         string $exportType
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $yaml = $this->domExport->export($project);
+        $yaml = $this->dExportDomain->export($project);
 
         $response = new Response();
         $response->setContent("<pre>$yaml");

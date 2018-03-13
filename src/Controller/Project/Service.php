@@ -17,37 +17,37 @@ use Symfony\Component\HttpFoundation\Response;
 class Service extends Controller
 {
     /** @var Domain\Docker\Service */
-    protected $domDockService;
+    protected $dServiceDomain;
 
     /** @var Repository\Docker\Project */
-    protected $repoDockProject;
+    protected $dProjectRepo;
 
     /** @var Repository\Docker\Service */
-    protected $repoDockService;
+    protected $dServiceRepo;
 
     /** @var Repository\Docker\ServiceCategory */
-    protected $repoDockServiceCat;
+    protected $dServiceCatRepo;
 
     /** @var Repository\Docker\ServiceType */
-    protected $repoDockServiceType;
+    protected $dServiceTypeRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\Docker\Service $domDockService,
-        Repository\Docker\Project $repoDockProject,
-        Repository\Docker\Service $repoDockService,
-        Repository\Docker\ServiceCategory $repoDockServiceCat,
-        Repository\Docker\ServiceType $repoDockServiceType,
+        Domain\Docker\Service $dServiceDomain,
+        Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\Service $dServiceRepo,
+        Repository\Docker\ServiceCategory $dServiceCatRepo,
+        Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
-        $this->domDockService = $domDockService;
+        $this->dServiceDomain = $dServiceDomain;
 
-        $this->repoDockProject     = $repoDockProject;
-        $this->repoDockService     = $repoDockService;
-        $this->repoDockServiceCat  = $repoDockServiceCat;
-        $this->repoDockServiceType = $repoDockServiceType;
+        $this->dProjectRepo     = $dProjectRepo;
+        $this->dServiceRepo     = $dServiceRepo;
+        $this->dServiceCatRepo  = $dServiceCatRepo;
+        $this->dServiceTypeRepo = $dServiceTypeRepo;
 
         $this->validator = $validator;
     }
@@ -65,14 +65,14 @@ class Service extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         return $this->render('@Dashtainer/project/service/index.html.twig', [
             'user'              => $user,
             'project'           => $project,
-            'serviceCategories' => $this->repoDockServiceCat->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }
 
@@ -133,15 +133,15 @@ class Service extends Controller
         string $serviceTypeSlug,
         string $version = null
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$serviceType = $this->repoDockServiceType->findBySlug($serviceTypeSlug)) {
+        if (!$serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $serviceName = $this->domDockService->generateServiceName(
+        $serviceName = $this->dServiceDomain->generateServiceName(
             $project,
             $serviceType,
             $version
@@ -151,7 +151,7 @@ class Service extends Controller
             strtolower($serviceTypeSlug)
         );
 
-        $params = $this->domDockService->getCreateParams($project, $serviceType);
+        $params = $this->dServiceDomain->getCreateParams($project, $serviceType);
 
         return $this->render($template, array_merge([
             'user'        => $user,
@@ -179,11 +179,11 @@ class Service extends Controller
         string $projectId,
         string $serviceTypeSlug
     ) : AjaxResponse {
-        $project = $this->repoDockProject->findByUser($user, $projectId);
+        $project = $this->dProjectRepo->findByUser($user, $projectId);
 
-        $serviceType = $this->repoDockServiceType->findBySlug($serviceTypeSlug);
+        $serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug);
 
-        if (!$form = $this->domDockService->getCreateForm($serviceType)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -192,7 +192,7 @@ class Service extends Controller
 
         $form->fromArray($request->request->all());
 
-        $form->service_name_used = $this->repoDockService->findOneBy([
+        $form->service_name_used = $this->dServiceRepo->findOneBy([
             'project' => $project,
             'name'    => $form->name,
         ]);
@@ -209,7 +209,7 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->domDockService->createService($form);
+        $service = $this->dServiceDomain->createService($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -235,11 +235,11 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$service = $this->repoDockService->findByProject($project, $serviceId)) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -250,7 +250,7 @@ class Service extends Controller
             strtolower($serviceType->getName())
         );
 
-        $params = $this->domDockService->getViewParams($service);
+        $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
             'service' => $service,
@@ -273,11 +273,11 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$service = $this->repoDockService->findByProject($project, $serviceId)) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -288,7 +288,7 @@ class Service extends Controller
             strtolower($serviceType->getName())
         );
 
-        $params = $this->domDockService->getViewParams($service);
+        $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
             'service' => $service,
@@ -314,14 +314,14 @@ class Service extends Controller
         string $serviceId
     ) : AjaxResponse {
         ;
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        if (!$service = $this->repoDockService->findByProject($project, $serviceId)) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -330,7 +330,7 @@ class Service extends Controller
 
         $serviceType = $service->getType();
 
-        if (!$form = $this->domDockService->getCreateForm($serviceType)) {
+        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -352,7 +352,7 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->domDockService->updateService($service, $form);
+        $service = $this->dServiceDomain->updateService($service, $form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -378,21 +378,21 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : AjaxResponse {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
             ], AjaxResponse::HTTP_OK);
         }
 
-        if (!$service = $this->repoDockService->findByProject($project, $serviceId)) {
+        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
             ], AjaxResponse::HTTP_OK);
         }
 
-        $this->domDockService->deleteService($service);
+        $this->dServiceDomain->deleteService($service);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,

@@ -9,19 +9,20 @@ use Dashtainer\Repository;
 class Apache extends WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $repoDockNetwork;
+    protected $networkRepo;
 
     /** @var Repository\Docker\ServiceType */
-    protected $repoDockServiceType;
+    protected $serviceTypeRepo;
 
     public function __construct(
-        Repository\Docker\Service $repoDockService,
-        Repository\Docker\ServiceType $repoDockServiceType,
-        Repository\Docker\Network $repoDockNetwork
+        Repository\Docker\Service $serviceRepo,
+        Repository\Docker\Network $networkRepo,
+        Repository\Docker\ServiceType $serviceTypeRepo
     ) {
-        $this->repoDockNetwork     = $repoDockNetwork;
-        $this->repoDockService     = $repoDockService;
-        $this->repoDockServiceType = $repoDockServiceType;
+        $this->serviceRepo = $serviceRepo;
+        $this->networkRepo = $networkRepo;
+
+        $this->serviceTypeRepo = $serviceTypeRepo;
     }
 
     public function getServiceTypeSlug() : string
@@ -57,18 +58,18 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
-        $publicNetwork = $this->repoDockNetwork->getPrimaryPublicNetwork(
+        $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork);
 
-        $this->repoDockService->save($service, $privateNetwork, $publicNetwork);
+        $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -91,7 +92,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $service->addMeta($vhostMeta);
 
-        $this->repoDockService->save($vhostMeta, $service);
+        $this->serviceRepo->save($vhostMeta, $service);
 
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
@@ -141,7 +142,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
             ->addVolume($portsConf)
             ->addVolume($vhostConf);
 
-        $this->repoDockService->save(
+        $this->serviceRepo->save(
             $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
         );
 
@@ -154,9 +155,9 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
+        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->repoDockService->findByProjectAndType(
+        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
             $project,
             $phpFpmType
         );
@@ -192,9 +193,9 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $vhostMeta = $service->getMeta('vhost');
 
-        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
+        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->repoDockService->findByProjectAndType(
+        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
             $service->getProject(),
             $phpFpmType
         );
@@ -244,7 +245,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $this->repoDockService->save($service);
+        $this->serviceRepo->save($service);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -261,7 +262,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $vhostMeta = $service->getMeta('vhost');
         $vhostMeta->setData($vhost);
 
-        $this->repoDockService->save($vhostMeta);
+        $this->serviceRepo->save($vhostMeta);
 
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
@@ -275,7 +276,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $vhostConf   = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf);
 
-        $this->repoDockService->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
+        $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
 
         $this->projectFilesUpdate($service, $form);
 

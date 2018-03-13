@@ -14,12 +14,12 @@ use Symfony\Component\HttpFoundation\Request;
 class Apache extends Controller
 {
     /** @var Repository\Docker\Project */
-    protected $repoDockProject;
+    protected $dProjectRepo;
 
     public function __construct(
-        Repository\Docker\Project $repoDockProject
+        Repository\Docker\Project $dProjectRepo
     ) {
-        $this->repoDockProject = $repoDockProject;
+        $this->dProjectRepo = $dProjectRepo;
     }
 
     /**
@@ -39,7 +39,7 @@ class Apache extends Controller
         string $projectId,
         string $type
     ) : AjaxResponse {
-        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',

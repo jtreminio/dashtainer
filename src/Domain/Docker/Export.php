@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Domain;
+namespace Dashtainer\Domain\Docker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
@@ -11,30 +11,6 @@ use Symfony\Component\Yaml\Yaml;
 class Export
 {
     const BASE_DIR = '/var/www/dashtainer/dumped';
-
-    /** @var Docker\Network */
-    protected $networkDomain;
-
-    /** @var Docker\Project */
-    protected $projectDomain;
-
-    /** @var Docker\Service */
-    protected $serviceDomain;
-
-    /** @var Docker\Volume */
-    protected $volumeDomain;
-
-    public function __construct(
-        Docker\Network $networkDomain,
-        Docker\Project $projectDomain,
-        Docker\Service $serviceDomain,
-        Docker\Volume $volumeDomain
-    ) {
-        $this->networkDomain = $networkDomain;
-        $this->projectDomain = $projectDomain;
-        $this->serviceDomain = $serviceDomain;
-        $this->volumeDomain  = $volumeDomain;
-    }
 
     public function export(Entity\Docker\Project $project)
     {

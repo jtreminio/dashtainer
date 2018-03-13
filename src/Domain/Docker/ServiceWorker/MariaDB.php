@@ -9,14 +9,14 @@ use Dashtainer\Repository;
 class MariaDB extends WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $repoDockNetwork;
+    protected $networkRepo;
 
     public function __construct(
-        Repository\Docker\Service $repoDockService,
-        Repository\Docker\Network $repoDockNetwork
+        Repository\Docker\Service $serviceRepo,
+        Repository\Docker\Network $networkRepo
     ) {
-        $this->repoDockNetwork = $repoDockNetwork;
-        $this->repoDockService = $repoDockService;
+        $this->serviceRepo = $serviceRepo;
+        $this->networkRepo = $networkRepo;
     }
 
     public function getServiceTypeSlug() : string
@@ -53,13 +53,13 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             'MYSQL_PASSWORD'      => $form->mysql_password,
         ]);
 
-        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork);
 
-        $this->repoDockService->save($service, $privateNetwork);
+        $this->serviceRepo->save($service, $privateNetwork);
 
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
@@ -75,7 +75,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $service->addMeta($versionMeta);
 
-        $this->repoDockService->save($dataStoreMeta, $versionMeta, $service);
+        $this->serviceRepo->save($dataStoreMeta, $versionMeta, $service);
 
         $myCnf = new Entity\Docker\ServiceVolume();
         $myCnf->setName('my.cnf')
@@ -100,7 +100,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $service->addVolume($myCnf)
             ->addVolume($configFileCnf);
 
-        $this->repoDockService->save($myCnf, $configFileCnf, $service);
+        $this->serviceRepo->save($myCnf, $configFileCnf, $service);
 
         $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
         $serviceDatastoreVol->setName('datastore')
@@ -117,7 +117,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
             $service->addVolume($serviceDatastoreVol);
 
-            $this->repoDockService->save($serviceDatastoreVol, $service);
+            $this->serviceRepo->save($serviceDatastoreVol, $service);
         }
 
         if ($form->datastore !== 'local') {
@@ -132,7 +132,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
             $service->addVolume($serviceDatastoreVol);
 
-            $this->repoDockService->save(
+            $this->serviceRepo->save(
                 $projectDatastoreVol, $serviceDatastoreVol, $service
             );
         }
@@ -201,7 +201,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);
 
-        $this->repoDockService->save($dataStoreMeta);
+        $this->serviceRepo->save($dataStoreMeta);
 
         $myCnf = $service->getVolume('my.cnf');
         $myCnf->setData($form->file['my.cnf'] ?? '');
@@ -209,7 +209,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $configFileCnf = $service->getVolume('config-file.cnf');
         $configFileCnf->setData($form->file['config-file.cnf'] ?? '');
 
-        $this->repoDockService->save($myCnf, $configFileCnf);
+        $this->serviceRepo->save($myCnf, $configFileCnf);
 
         $serviceDatastoreVol = $service->getVolume('datastore');
         $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();
@@ -222,10 +222,10 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
                 ->setSource("\$PWD/{$service->getSlug()}/datadir")
                 ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
 
-            $this->repoDockService->save($serviceDatastoreVol);
+            $this->serviceRepo->save($serviceDatastoreVol);
 
             if ($projectDatastoreVol->getServiceVolumes()->isEmpty()) {
-                $this->repoDockService->delete($projectDatastoreVol);
+                $this->serviceRepo->delete($projectDatastoreVol);
             }
         }
 
@@ -242,7 +242,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
                 ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
 
-            $this->repoDockService->save($projectDatastoreVol, $serviceDatastoreVol);
+            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol);
         }
 
         $this->customFilesUpdate($service, $form);
