@@ -10,20 +10,19 @@ use Dashtainer\Repository;
 class Nginx extends HandlerAbstract implements HandlerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    protected $repoDockNetwork;
 
     /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
+    protected $repoDockServiceType;
 
     public function __construct(
-        Repository\Docker\Project $projectRepo,
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Service $repoDockService,
+        Repository\Docker\ServiceType $repoDockServiceType,
+        Repository\Docker\Network $repoDockNetwork
     ) {
-        $this->networkRepo     = $networkRepo;
-        $this->serviceRepo     = $serviceRepo;
-        $this->serviceTypeRepo = $serviceTypeRepo;
+        $this->repoDockNetwork     = $repoDockNetwork;
+        $this->repoDockService     = $repoDockService;
+        $this->repoDockServiceType = $repoDockServiceType;
     }
 
     public function getServiceTypeSlug() : string
@@ -57,18 +56,18 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
-        $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
+        $publicNetwork = $this->repoDockNetwork->getPrimaryPublicNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
+        $this->repoDockService->save($service, $privateNetwork, $publicNetwork);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -91,7 +90,7 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
         $service->addMeta($vhostMeta);
 
-        $this->serviceRepo->save($vhostMeta, $service);
+        $this->repoDockService->save($vhostMeta, $service);
 
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
@@ -153,7 +152,7 @@ class Nginx extends HandlerAbstract implements HandlerInterface
             ->addVolume($proxyConf)
             ->addVolume($vhostConf);
 
-        $this->serviceRepo->save(
+        $this->repoDockService->save(
             $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf, $service
         );
 
@@ -166,9 +165,9 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $phpFpmServices = $this->repoDockService->findByProjectAndType(
             $project,
             $phpFpmType
         );
@@ -193,9 +192,9 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
         $vhostMeta = $service->getMeta('vhost');
 
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $phpFpmServices = $this->repoDockService->findByProjectAndType(
             $service->getProject(),
             $phpFpmType
         );
@@ -241,7 +240,7 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
+        $this->repoDockService->save($service);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -258,7 +257,7 @@ class Nginx extends HandlerAbstract implements HandlerInterface
         $vhostMeta = $service->getMeta('vhost');
         $vhostMeta->setData($vhost);
 
-        $this->serviceRepo->save($vhostMeta);
+        $this->repoDockService->save($vhostMeta);
 
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
@@ -275,7 +274,7 @@ class Nginx extends HandlerAbstract implements HandlerInterface
         $vhostConf = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf ?? '');
 
-        $this->serviceRepo->save(
+        $this->repoDockService->save(
             $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf
         );
 

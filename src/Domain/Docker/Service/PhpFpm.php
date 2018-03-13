@@ -10,25 +10,25 @@ use Dashtainer\Repository;
 class PhpFpm extends HandlerAbstract implements HandlerInterface
 {
     /** @var Blackfire */
-    protected $blackfireHandler;
+    protected $blackfire;
 
     /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    protected $repoDockNetwork;
 
     /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
+    protected $repoDockServiceType;
 
     public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Blackfire $blackfireHandler
+        Repository\Docker\Service $repoDockService,
+        Repository\Docker\Network $repoDockNetwork,
+        Repository\Docker\ServiceType $repoDockServiceType,
+        Blackfire $blackfire
     ) {
-        $this->serviceRepo     = $serviceRepo;
-        $this->networkRepo     = $networkRepo;
-        $this->serviceTypeRepo = $serviceTypeRepo;
+        $this->repoDockService     = $repoDockService;
+        $this->repoDockNetwork     = $repoDockNetwork;
+        $this->repoDockServiceType = $repoDockServiceType;
 
-        $this->blackfireHandler = $blackfireHandler;
+        $this->blackfire = $blackfire;
     }
 
     public function getServiceTypeSlug() : string
@@ -73,13 +73,13 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->repoDockService->save($service, $privateNetwork);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -88,7 +88,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
 
         $service->addMeta($versionMeta);
 
-        $this->serviceRepo->save($versionMeta, $service);
+        $this->repoDockService->save($versionMeta, $service);
 
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
@@ -126,7 +126,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
             ->addVolume($phpIni)
             ->addVolume($fpmConf);
 
-        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf, $service);
+        $this->repoDockService->save($dockerfile, $phpIni, $fpmConf, $service);
 
         $this->projectFilesCreate($service, $form);
 
@@ -143,7 +143,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
 
             $service->addVolume($xdebugIni);
 
-            $this->serviceRepo->save($xdebugIni, $service);
+            $this->repoDockService->save($xdebugIni, $service);
         }
 
         $this->customFilesCreate($service, $form);
@@ -267,7 +267,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
+        $this->repoDockService->save($service);
 
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
@@ -278,7 +278,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
         $fpmConf = $service->getVolume('php-fpm.conf');
         $fpmConf->setData($form->file['php-fpm.conf']);
 
-        $this->serviceRepo->save($dockerfile, $phpIni, $fpmConf);
+        $this->repoDockService->save($dockerfile, $phpIni, $fpmConf);
 
         $this->projectFilesUpdate($service, $form);
 
@@ -286,7 +286,7 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
             $xdebugIni = $service->getVolume('xdebug.ini');
             $xdebugIni->setData($form->xdebug['ini']);
 
-            $this->serviceRepo->save($xdebugIni);
+            $this->repoDockService->save($xdebugIni);
         }
 
         // create or update blackfire service
@@ -309,28 +309,30 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
         Form\Docker\Service\PhpFpmCreate $form
     ) : Entity\Docker\Service {
         /** @var Form\Docker\Service\BlackfireCreate $blackfireForm */
-        $blackfireForm = $this->blackfireHandler->getCreateForm();
+        $blackfireForm = $this->blackfire->getCreateForm();
 
         $blackfireForm->fromArray($form->blackfire);
 
         if (!$blackfireService = $this->getBlackfireChild($parent)) {
-            $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
+            $blackfireSlug = $this->blackfire->getServiceTypeSlug();
 
             $blackfireForm->name    = "{$blackfireSlug}-{$form->name}";
             $blackfireForm->project = $form->project;
-            $blackfireForm->type    = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+            $blackfireForm->type    = $this->repoDockServiceType->findBySlug(
+                $blackfireSlug
+            );
 
-            $blackfireService = $this->blackfireHandler->create($blackfireForm);
+            $blackfireService = $this->blackfire->create($blackfireForm);
 
             $blackfireService->setParent($parent);
             $parent->addChild($blackfireService);
 
-            $this->serviceRepo->save($blackfireService, $parent);
+            $this->repoDockService->save($blackfireService, $parent);
 
             return $blackfireService;
         }
 
-        $this->blackfireHandler->update($blackfireService, $blackfireForm);
+        $this->blackfire->update($blackfireService, $blackfireForm);
 
         return $blackfireService;
     }
@@ -338,32 +340,32 @@ class PhpFpm extends HandlerAbstract implements HandlerInterface
     protected function getBlackfireChild(
         Entity\Docker\Service $parent
     ) : ?Entity\Docker\Service {
-        $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
-        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+        $blackfireSlug = $this->blackfire->getServiceTypeSlug();
+        $blackfireType = $this->repoDockServiceType->findBySlug($blackfireSlug);
 
-        return $this->serviceRepo->findChildByType(
+        return $this->repoDockService->findChildByType(
             $parent,
             $blackfireType
         );
     }
 
     protected function deleteBlackfireChild(Entity\Docker\Service $parent) {
-        $blackfireSlug = $this->blackfireHandler->getServiceTypeSlug();
-        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
+        $blackfireSlug = $this->blackfire->getServiceTypeSlug();
+        $blackfireType = $this->repoDockServiceType->findBySlug($blackfireSlug);
 
-        $blackfire = $this->serviceRepo->findChildByType(
+        $blackfireService = $this->repoDockService->findChildByType(
             $parent,
             $blackfireType
         );
 
-        if (!$blackfire) {
+        if (!$blackfireService) {
             return;
         }
 
-        $blackfire->setParent(null);
-        $parent->removeChild($blackfire);
+        $blackfireService->setParent(null);
+        $parent->removeChild($blackfireService);
 
-        $this->serviceRepo->save($parent);
-        $this->serviceRepo->delete($blackfire);
+        $this->repoDockService->save($parent);
+        $this->repoDockService->delete($blackfireService);
     }
 }

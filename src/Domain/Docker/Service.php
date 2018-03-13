@@ -12,19 +12,14 @@ class Service
     /** @var Repository\Docker\Service */
     protected $repo;
 
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
-
     /** @var HandlerStore */
     protected $serviceHandler;
 
     public function __construct(
         Repository\Docker\Service $repo,
-        Repository\Docker\Network $networkRepo,
         HandlerStore $serviceHandler
     ) {
         $this->repo           = $repo;
-        $this->networkRepo    = $networkRepo;
         $this->serviceHandler = $serviceHandler;
     }
 

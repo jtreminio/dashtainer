@@ -11,7 +11,7 @@ use Dashtainer\Validator\Constraints;
 abstract class HandlerAbstract implements HandlerInterface
 {
     /** @var Repository\Docker\Service */
-    protected $serviceRepo;
+    protected $repoDockService;
 
     public function delete(Entity\Docker\Service $service)
     {
@@ -33,7 +33,7 @@ abstract class HandlerAbstract implements HandlerInterface
             $service->setParent(null);
             $parent->removeChild($service);
 
-            $this->serviceRepo->save($parent);
+            $this->repoDockService->save($parent);
         }
 
         $children = [];
@@ -44,8 +44,8 @@ abstract class HandlerAbstract implements HandlerInterface
             $children []= $child;
         }
 
-        $this->serviceRepo->delete(...$metas, ...$volumes, ...$children);
-        $this->serviceRepo->delete($service);
+        $this->repoDockService->delete(...$metas, ...$volumes, ...$children);
+        $this->repoDockService->delete($service);
     }
 
     /**
@@ -76,7 +76,7 @@ abstract class HandlerAbstract implements HandlerInterface
         }
 
         if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
+            $this->repoDockService->save($service, ...$files);
         }
     }
 
@@ -127,13 +127,13 @@ abstract class HandlerAbstract implements HandlerInterface
         }
 
         if (!empty($files)) {
-            $this->serviceRepo->save($service, ...$files);
+            $this->repoDockService->save($service, ...$files);
         }
 
         foreach ($existingUserFiles as $file) {
             $service->removeVolume($file);
-            $this->serviceRepo->delete($file);
-            $this->serviceRepo->save($service);
+            $this->repoDockService->delete($file);
+            $this->repoDockService->save($service);
         }
     }
 
@@ -165,7 +165,9 @@ abstract class HandlerAbstract implements HandlerInterface
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
                 ->setService($service);
 
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+            $this->repoDockService->save(
+                $projectFilesMeta, $projectFilesSource, $service
+            );
         }
     }
 
@@ -198,16 +200,18 @@ abstract class HandlerAbstract implements HandlerInterface
 
             $projectFilesSource->setSource($form->project_files['local']['source']);
 
-            $this->serviceRepo->save($projectFilesMeta, $projectFilesSource, $service);
+            $this->repoDockService->save(
+                $projectFilesMeta, $projectFilesSource, $service
+            );
         }
 
         if ($form->project_files['type'] !== 'local' && $projectFilesSource) {
             $projectFilesSource->setService(null);
             $service->removeVolume($projectFilesSource);
 
-            $this->serviceRepo->delete($projectFilesSource);
+            $this->repoDockService->delete($projectFilesSource);
 
-            $this->serviceRepo->save($service);
+            $this->repoDockService->save($service);
         }
 
         // todo: Add support for non-local project files source, ie github

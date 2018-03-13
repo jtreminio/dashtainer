@@ -10,14 +10,14 @@ use Dashtainer\Repository;
 class Blackfire extends HandlerAbstract implements HandlerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    protected $repoDockNetwork;
 
     public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Service $repoDockService,
+        Repository\Docker\Network $repoDockNetwork
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        $this->repoDockService = $repoDockService;
+        $this->repoDockNetwork = $repoDockNetwork;
     }
 
     public function getServiceTypeSlug() : string
@@ -48,13 +48,13 @@ class Blackfire extends HandlerAbstract implements HandlerInterface
             'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->repoDockService->save($service, $privateNetwork);
 
         return $service;
     }
@@ -83,7 +83,7 @@ class Blackfire extends HandlerAbstract implements HandlerInterface
             'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
         ]);
 
-        $this->serviceRepo->save($service);
+        $this->repoDockService->save($service);
 
         return $service;
     }

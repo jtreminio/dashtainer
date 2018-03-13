@@ -10,20 +10,19 @@ use Dashtainer\Repository;
 class Apache extends HandlerAbstract implements HandlerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    protected $repoDockNetwork;
 
     /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
+    protected $repoDockServiceType;
 
     public function __construct(
-        Repository\Docker\Project $projectRepo,
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Service $repoDockService,
+        Repository\Docker\ServiceType $repoDockServiceType,
+        Repository\Docker\Network $repoDockNetwork
     ) {
-        $this->networkRepo     = $networkRepo;
-        $this->serviceRepo     = $serviceRepo;
-        $this->serviceTypeRepo = $serviceTypeRepo;
+        $this->repoDockNetwork     = $repoDockNetwork;
+        $this->repoDockService     = $repoDockService;
+        $this->repoDockServiceType = $repoDockServiceType;
     }
 
     public function getServiceTypeSlug() : string
@@ -59,18 +58,18 @@ class Apache extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
-        $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
+        $publicNetwork = $this->repoDockNetwork->getPrimaryPublicNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
+        $this->repoDockService->save($service, $privateNetwork, $publicNetwork);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -93,7 +92,7 @@ class Apache extends HandlerAbstract implements HandlerInterface
 
         $service->addMeta($vhostMeta);
 
-        $this->serviceRepo->save($vhostMeta, $service);
+        $this->repoDockService->save($vhostMeta, $service);
 
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
@@ -143,7 +142,7 @@ class Apache extends HandlerAbstract implements HandlerInterface
             ->addVolume($portsConf)
             ->addVolume($vhostConf);
 
-        $this->serviceRepo->save(
+        $this->repoDockService->save(
             $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
         );
 
@@ -156,9 +155,9 @@ class Apache extends HandlerAbstract implements HandlerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $phpFpmServices = $this->repoDockService->findByProjectAndType(
             $project,
             $phpFpmType
         );
@@ -172,9 +171,11 @@ class Apache extends HandlerAbstract implements HandlerInterface
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $apacheModulesEnable    = $service->getBuild()->getArgs()['APACHE_MODULES_ENABLE'];
-        $apacheModulesDisable   = $service->getBuild()->getArgs()['APACHE_MODULES_DISABLE'];
-        $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
+        $args = $service->getBuild()->getArgs();
+
+        $apacheModulesEnable    = $args['APACHE_MODULES_ENABLE'];
+        $apacheModulesDisable   = $args['APACHE_MODULES_DISABLE'];
+        $systemPackagesSelected = $args['SYSTEM_PACKAGES'];
 
         $availableApacheModules = [];
 
@@ -186,13 +187,15 @@ class Apache extends HandlerAbstract implements HandlerInterface
         $apache2Conf = $service->getVolume('apache2.conf');
         $portsConf   = $service->getVolume('ports.conf');
         $vhostConf   = $service->getVolume('vhost.conf');
-        $customFiles = $service->getVolumesByOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $customFiles = $service->getVolumesByOwner(
+            Entity\Docker\ServiceVolume::OWNER_USER
+        );
 
         $vhostMeta = $service->getMeta('vhost');
 
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmType = $this->repoDockServiceType->findBySlug('php-fpm');
 
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $phpFpmServices = $this->repoDockService->findByProjectAndType(
             $service->getProject(),
             $phpFpmType
         );
@@ -242,7 +245,7 @@ class Apache extends HandlerAbstract implements HandlerInterface
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
+        $this->repoDockService->save($service);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -259,7 +262,7 @@ class Apache extends HandlerAbstract implements HandlerInterface
         $vhostMeta = $service->getMeta('vhost');
         $vhostMeta->setData($vhost);
 
-        $this->serviceRepo->save($vhostMeta);
+        $this->repoDockService->save($vhostMeta);
 
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
@@ -273,7 +276,7 @@ class Apache extends HandlerAbstract implements HandlerInterface
         $vhostConf   = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf);
 
-        $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
+        $this->repoDockService->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
 
         $this->projectFilesUpdate($service, $form);
 

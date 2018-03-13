@@ -14,12 +14,12 @@ use Symfony\Component\HttpFoundation\Request;
 class Nginx extends Controller
 {
     /** @var Repository\Docker\Project */
-    protected $dProjectRepo;
+    protected $repoDockProject;
 
     public function __construct(
-        Repository\Docker\Project $dProjectRepo
+        Repository\Docker\Project $repoDockProject
     ) {
-        $this->dProjectRepo = $dProjectRepo;
+        $this->repoDockProject = $repoDockProject;
     }
 
     /**
@@ -39,7 +39,7 @@ class Nginx extends Controller
         string $projectId,
         string $type
     ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->repoDockProject->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -49,10 +49,9 @@ class Nginx extends Controller
         $form = new Form\Docker\Service\NginxVhost();
         $form->fromArray($request->request->all());
 
-        $template = "@Dashtainer/project/service/nginx/vhost-{$type}.conf.twig";
-
         try {
-            $content = $this->renderView($template, [
+            $template = "@Dashtainer/project/service/nginx/vhost-{$type}.conf.twig";
+            $content  = $this->renderView($template, [
                 'form' => $form,
             ]);
         } catch (\Exception $e) {

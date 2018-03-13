@@ -10,15 +10,14 @@ use Dashtainer\Repository;
 class MariaDB extends HandlerAbstract implements HandlerInterface
 {
     /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    protected $repoDockNetwork;
 
     public function __construct(
-        Repository\Docker\Project $projectRepo,
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Service $repoDockService,
+        Repository\Docker\Network $repoDockNetwork
     ) {
-        $this->networkRepo = $networkRepo;
-        $this->serviceRepo = $serviceRepo;
+        $this->repoDockNetwork = $repoDockNetwork;
+        $this->repoDockService = $repoDockService;
     }
 
     public function getServiceTypeSlug() : string
@@ -55,13 +54,13 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
             'MYSQL_PASSWORD'      => $form->mysql_password,
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
+        $privateNetwork = $this->repoDockNetwork->getPrimaryPrivateNetwork(
             $service->getProject()
         );
 
         $service->addNetwork($privateNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->repoDockService->save($service, $privateNetwork);
 
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
@@ -77,7 +76,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
 
         $service->addMeta($versionMeta);
 
-        $this->serviceRepo->save($dataStoreMeta, $versionMeta, $service);
+        $this->repoDockService->save($dataStoreMeta, $versionMeta, $service);
 
         $myCnf = new Entity\Docker\ServiceVolume();
         $myCnf->setName('my.cnf')
@@ -102,7 +101,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
         $service->addVolume($myCnf)
             ->addVolume($configFileCnf);
 
-        $this->serviceRepo->save($myCnf, $configFileCnf, $service);
+        $this->repoDockService->save($myCnf, $configFileCnf, $service);
 
         $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
         $serviceDatastoreVol->setName('datastore')
@@ -119,7 +118,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
 
             $service->addVolume($serviceDatastoreVol);
 
-            $this->serviceRepo->save($serviceDatastoreVol, $service);
+            $this->repoDockService->save($serviceDatastoreVol, $service);
         }
 
         if ($form->datastore !== 'local') {
@@ -134,7 +133,9 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
             $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
             $service->addVolume($serviceDatastoreVol);
 
-            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol, $service);
+            $this->repoDockService->save(
+                $projectDatastoreVol, $serviceDatastoreVol, $service
+            );
         }
 
         $this->customFilesCreate($service, $form);
@@ -163,7 +164,9 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
         $myCnf         = $service->getVolume('my.cnf');
         $configFileCnf = $service->getVolume('config-file.cnf');
 
-        $customFiles = $service->getVolumesByOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $customFiles = $service->getVolumesByOwner(
+            Entity\Docker\ServiceVolume::OWNER_USER
+        );
 
         return [
             'version'             => $version,
@@ -199,7 +202,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);
 
-        $this->serviceRepo->save($dataStoreMeta);
+        $this->repoDockService->save($dataStoreMeta);
 
         $myCnf = $service->getVolume('my.cnf');
         $myCnf->setData($form->file['my.cnf'] ?? '');
@@ -207,7 +210,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
         $configFileCnf = $service->getVolume('config-file.cnf');
         $configFileCnf->setData($form->file['config-file.cnf'] ?? '');
 
-        $this->serviceRepo->save($myCnf, $configFileCnf);
+        $this->repoDockService->save($myCnf, $configFileCnf);
 
         $serviceDatastoreVol = $service->getVolume('datastore');
         $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();
@@ -220,10 +223,10 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
                 ->setSource("\$PWD/{$service->getSlug()}/datadir")
                 ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
 
-            $this->serviceRepo->save($serviceDatastoreVol);
+            $this->repoDockService->save($serviceDatastoreVol);
 
             if ($projectDatastoreVol->getServiceVolumes()->isEmpty()) {
-                $this->serviceRepo->delete($projectDatastoreVol);
+                $this->repoDockService->delete($projectDatastoreVol);
             }
         }
 
@@ -240,7 +243,7 @@ class MariaDB extends HandlerAbstract implements HandlerInterface
             $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
                 ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
 
-            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol);
+            $this->repoDockService->save($projectDatastoreVol, $serviceDatastoreVol);
         }
 
         $this->customFilesUpdate($service, $form);
