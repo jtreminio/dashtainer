@@ -56,6 +56,12 @@ class Project
         $saved   = [];
 
         foreach ($project->getServices() as $service) {
+            foreach ($service->getMetas() as $meta) {
+                $service->removeMeta($meta);
+
+                $deleted []= $meta;
+            }
+
             foreach ($service->getNetworks() as $network) {
                 $service->removeNetwork($network);
                 $network->removeService($service);
@@ -72,30 +78,38 @@ class Project
 
             foreach ($service->getVolumes() as $volume) {
                 $service->removeVolume($volume);
-                $volume->removeService($service);
 
-                $saved []= $volume;
+                if ($projectVolume = $volume->getProjectVolume()) {
+                    $volume->setProjectVolume(null);
+                    $projectVolume->removeServiceVolume($volume);
+                }
+
+                $saved   []= $volume;
+                $deleted []= $volume;
             }
 
-            $service->setProject(null);
             $project->removeService($service);
 
-            $saved []= $service;
+            $saved   []= $service;
             $deleted []= $service;
         }
 
         foreach ($project->getNetworks() as $network) {
             $project->removeNetwork($network);
+
+            $saved   []= $network;
             $deleted []= $network;
         }
 
         foreach ($project->getSecrets() as $secret) {
             $project->removeSecret($secret);
+
             $deleted []= $secret;
         }
 
         foreach ($project->getVolumes() as $volume) {
             $project->removeVolume($volume);
+
             $deleted []= $volume;
         }
 
