@@ -1,6 +1,6 @@
 <?php
 
-namespace Dashtainer\Domain\Docker\Service;
+namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
@@ -8,7 +8,7 @@ use Dashtainer\Repository;
 use Dashtainer\Util;
 use Dashtainer\Validator\Constraints;
 
-abstract class HandlerAbstract implements HandlerInterface
+abstract class WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Service */
     protected $repoDockService;

@@ -1,13 +1,12 @@
 <?php
 
-namespace Dashtainer\Domain\Docker\Service;
+namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class Blackfire extends HandlerAbstract implements HandlerInterface
+class Blackfire extends WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Network */
     protected $repoDockNetwork;

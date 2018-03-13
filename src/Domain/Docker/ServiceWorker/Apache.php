@@ -1,13 +1,12 @@
 <?php
 
-namespace Dashtainer\Domain\Docker\Service;
+namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class Nginx extends HandlerAbstract implements HandlerInterface
+class Apache extends WorkerAbstract implements WorkerInterface
 {
     /** @var Repository\Docker\Network */
     protected $repoDockNetwork;
@@ -27,17 +26,17 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
     public function getServiceTypeSlug() : string
     {
-        return 'nginx';
+        return 'apache';
     }
 
     public function getCreateForm(
         Entity\Docker\ServiceType $serviceType = null
     ) : Form\Docker\Service\CreateAbstract {
-        return new Form\Docker\Service\NginxCreate();
+        return new Form\Docker\Service\ApacheCreate();
     }
 
     /**
-     * @param Form\Docker\Service\NginxCreate $form
+     * @param Form\Docker\Service\ApacheCreate $form
      * @return Entity\Docker\Service
      */
     public function create($form) : Entity\Docker\Service
@@ -51,7 +50,9 @@ class Nginx extends HandlerAbstract implements HandlerInterface
         $build->setContext("./{$service->getSlug()}")
             ->setDockerfile('Dockerfile')
             ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($form->system_packages),
+                'SYSTEM_PACKAGES'       => array_unique($form->system_packages),
+                'APACHE_MODULES_ENABLE' => array_unique($form->enabled_modules),
+                'APACHE_MODULES_DISABLE'=> array_unique($form->disabled_modules),
             ]);
 
         $service->setBuild($build);
@@ -102,58 +103,46 @@ class Nginx extends HandlerAbstract implements HandlerInterface
             ->setHighlight('docker')
             ->setService($service);
 
-        $nginxConf = new Entity\Docker\ServiceVolume();
-        $nginxConf->setName('nginx.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/nginx.conf")
-            ->setTarget('/etc/nginx/nginx.conf')
-            ->setData($form->file['nginx.conf'] ?? '')
+        $apache2Conf = new Entity\Docker\ServiceVolume();
+        $apache2Conf->setName('apache2.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
+            ->setTarget('/etc/apache2/apache2.conf')
+            ->setData($form->file['apache2.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
+            ->setHighlight('apacheconf')
             ->setService($service);
 
-        $coreConf = new Entity\Docker\ServiceVolume();
-        $coreConf->setName('core.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/core.conf")
-            ->setTarget('/etc/nginx/conf.d/core.conf')
-            ->setData($form->file['core.conf'] ?? '')
+        $portsConf = new Entity\Docker\ServiceVolume();
+        $portsConf->setName('ports.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
+            ->setTarget('/etc/apache2/ports.conf')
+            ->setData($form->file['ports.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
-            ->setService($service);
-
-        $proxyConf = new Entity\Docker\ServiceVolume();
-        $proxyConf->setName('proxy.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/proxy.conf")
-            ->setTarget('/etc/nginx/conf.d/proxy.conf')
-            ->setData($form->file['proxy.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
+            ->setHighlight('apacheconf')
             ->setService($service);
 
         $vhostConf = new Entity\Docker\ServiceVolume();
         $vhostConf->setName('vhost.conf')
             ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
-            ->setTarget('/etc/nginx/sites-available/default')
+            ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
             ->setData($form->vhost_conf ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
+            ->setHighlight('apacheconf')
             ->setService($service);
 
         $service->addVolume($dockerfile)
-            ->addVolume($nginxConf)
-            ->addVolume($coreConf)
-            ->addVolume($proxyConf)
+            ->addVolume($apache2Conf)
+            ->addVolume($portsConf)
             ->addVolume($vhostConf);
 
         $this->repoDockService->save(
-            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf, $service
+            $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
         );
 
         $this->projectFilesCreate($service, $form);
@@ -181,14 +170,25 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
+        $args = $service->getBuild()->getArgs();
+
+        $apacheModulesEnable    = $args['APACHE_MODULES_ENABLE'];
+        $apacheModulesDisable   = $args['APACHE_MODULES_DISABLE'];
+        $systemPackagesSelected = $args['SYSTEM_PACKAGES'];
+
+        $availableApacheModules = [];
+
+        $apacheModules          = $service->getType()->getMeta('modules');
+        $availableApacheModules += $apacheModules->getData()['default'];
+        $availableApacheModules += $apacheModules->getData()['available'];
 
         $dockerfile  = $service->getVolume('Dockerfile');
-        $nginxConf   = $service->getVolume('nginx.conf');
-        $coreConf    = $service->getVolume('core.conf');
-        $proxyConf   = $service->getVolume('proxy.conf');
+        $apache2Conf = $service->getVolume('apache2.conf');
+        $portsConf   = $service->getVolume('ports.conf');
         $vhostConf   = $service->getVolume('vhost.conf');
-        $customFiles = $service->getVolumesByOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $customFiles = $service->getVolumesByOwner(
+            Entity\Docker\ServiceVolume::OWNER_USER
+        );
 
         $vhostMeta = $service->getMeta('vhost');
 
@@ -201,12 +201,14 @@ class Nginx extends HandlerAbstract implements HandlerInterface
 
         return [
             'projectFiles'           => $this->projectFilesViewParams($service),
+            'apacheModulesEnable'    => $apacheModulesEnable,
+            'apacheModulesDisable'   => $apacheModulesDisable,
+            'availableApacheModules' => $availableApacheModules,
             'systemPackagesSelected' => $systemPackagesSelected,
             'configFiles'            => [
-                'Dockerfile' => $dockerfile,
-                'nginx.conf' => $nginxConf,
-                'core.conf'  => $coreConf,
-                'proxy.conf' => $proxyConf,
+                'Dockerfile'   => $dockerfile,
+                'apache2.conf' => $apache2Conf,
+                'ports.conf'   => $portsConf,
             ],
             'customFiles'            => $customFiles,
             'vhost'                  => [
@@ -223,8 +225,8 @@ class Nginx extends HandlerAbstract implements HandlerInterface
     }
 
     /**
-     * @param Entity\Docker\Service    $service
-     * @param Form\Docker\Service\NginxCreate $form
+     * @param Entity\Docker\Service      $service
+     * @param Form\Docker\Service\ApacheCreate $form
      * @return Entity\Docker\Service
      */
     public function update(
@@ -235,7 +237,9 @@ class Nginx extends HandlerAbstract implements HandlerInterface
         $build->setContext("./{$service->getSlug()}")
             ->setDockerfile('DockerFile')
             ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($form->system_packages),
+                'SYSTEM_PACKAGES'       => array_unique($form->system_packages),
+                'APACHE_MODULES_ENABLE' => array_unique($form->enabled_modules),
+                'APACHE_MODULES_DISABLE'=> array_unique($form->disabled_modules),
             ]);
 
         $service->setBuild($build);
@@ -262,21 +266,16 @@ class Nginx extends HandlerAbstract implements HandlerInterface
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
-        $nginxConf = $service->getVolume('nginx.conf');
-        $nginxConf->setData($form->file['nginx.conf'] ?? '');
+        $apache2Conf = $service->getVolume('apache2.conf');
+        $apache2Conf->setData($form->file['apache2.conf'] ?? '');
 
-        $coreConf = $service->getVolume('core.conf');
-        $coreConf->setData($form->file['core.conf'] ?? '');
+        $portsConf   = $service->getVolume('ports.conf');
+        $portsConf->setData($form->file['ports.conf'] ?? '');
 
-        $proxyConf = $service->getVolume('proxy.conf');
-        $proxyConf->setData($form->file['proxy.conf'] ?? '');
+        $vhostConf   = $service->getVolume('vhost.conf');
+        $vhostConf->setData($form->vhost_conf);
 
-        $vhostConf = $service->getVolume('vhost.conf');
-        $vhostConf->setData($form->vhost_conf ?? '');
-
-        $this->repoDockService->save(
-            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf
-        );
+        $this->repoDockService->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
 
         $this->projectFilesUpdate($service, $form);
 

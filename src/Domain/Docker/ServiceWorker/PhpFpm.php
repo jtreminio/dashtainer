@@ -1,13 +1,12 @@
 <?php
 
-namespace Dashtainer\Domain\Docker\Service;
+namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
 
-class PhpFpm extends HandlerAbstract implements HandlerInterface
+class PhpFpm extends WorkerAbstract implements WorkerInterface
 {
     /** @var Blackfire */
     protected $blackfire;

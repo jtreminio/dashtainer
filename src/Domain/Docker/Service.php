@@ -12,28 +12,28 @@ class Service
     /** @var Repository\Docker\Service */
     protected $repo;
 
-    /** @var HandlerStore */
-    protected $serviceHandler;
+    /** @var ServiceManager */
+    protected $manager;
 
     public function __construct(
         Repository\Docker\Service $repo,
-        HandlerStore $serviceHandler
+        ServiceManager $manager
     ) {
-        $this->repo           = $repo;
-        $this->serviceHandler = $serviceHandler;
+        $this->repo    = $repo;
+        $this->manager = $manager;
     }
 
     public function createService(
         Form\Docker\Service\CreateAbstract $form
     ) : Entity\Docker\Service {
-        $handler = $this->serviceHandler->getHandlerFromForm($form);
+        $handler = $this->manager->getWorkerFromForm($form);
 
         return $handler->create($form);
     }
 
     public function deleteService(Entity\Docker\Service $service)
     {
-        $handler = $this->serviceHandler->getHandlerFromType($service->getType());
+        $handler = $this->manager->getWorkerFromType($service->getType());
 
         $handler->delete($service);
     }
@@ -42,7 +42,7 @@ class Service
         Entity\Docker\Service $service,
         Form\Docker\Service\CreateAbstract $form
     ) : Entity\Docker\Service {
-        $handler = $this->serviceHandler->getHandlerFromForm($form);
+        $handler = $this->manager->getWorkerFromForm($form);
 
         return $handler->update($service, $form);
     }
@@ -50,7 +50,7 @@ class Service
     public function getCreateForm(
         Entity\Docker\ServiceType $serviceType
     ) : Form\Docker\Service\CreateAbstract {
-        $handler = $this->serviceHandler->getHandlerFromType($serviceType);
+        $handler = $this->manager->getWorkerFromType($serviceType);
 
         return $handler->getCreateForm($serviceType);
     }
@@ -59,14 +59,14 @@ class Service
         Entity\Docker\Project $project,
         Entity\Docker\ServiceType $serviceType
     ) : array {
-        $handler = $this->serviceHandler->getHandlerFromType($serviceType);
+        $handler = $this->manager->getWorkerFromType($serviceType);
 
         return $handler->getCreateParams($project);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $handler = $this->serviceHandler->getHandlerFromType($service->getType());
+        $handler = $this->manager->getWorkerFromType($service->getType());
 
         return $handler->getViewParams($service);
     }

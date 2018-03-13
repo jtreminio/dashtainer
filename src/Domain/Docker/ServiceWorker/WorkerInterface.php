@@ -1,11 +1,11 @@
 <?php
 
-namespace Dashtainer\Domain\Docker\Service;
+namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-interface HandlerInterface
+interface WorkerInterface
 {
     public function getServiceTypeSlug() : string;
 
