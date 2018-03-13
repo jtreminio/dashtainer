@@ -13,11 +13,11 @@ use Symfony\Component\HttpFoundation\Request;
 
 class NginxController extends Controller
 {
-    /** @var Repository\DockerProjectRepository */
+    /** @var Repository\Docker\Project */
     protected $dProjectRepo;
 
     public function __construct(
-        Repository\DockerProjectRepository $dProjectRepo
+        Repository\Docker\Project $dProjectRepo
     ) {
         $this->dProjectRepo = $dProjectRepo;
     }
@@ -46,7 +46,7 @@ class NginxController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $form = new Form\Service\NginxVhost();
+        $form = new Form\Docker\Service\NginxVhost();
         $form->fromArray($request->request->all());
 
         $template = "@Dashtainer/project/service/nginx/vhost-{$type}.conf.twig";

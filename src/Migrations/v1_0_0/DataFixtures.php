@@ -48,7 +48,7 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
     protected function loadServiceCategories()
     {
         foreach ($this->dataLoader->getData('service_categories') as $row) {
-            $entity = new Entity\DockerServiceCategory();
+            $entity = new Entity\Docker\ServiceCategory();
             $entity->fromArray($row);
 
             $this->em->persist($entity);
@@ -67,7 +67,7 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
                 "service_category-{$row['category']}"
             );
 
-            $entity = new Entity\DockerServiceType();
+            $entity = new Entity\Docker\ServiceType();
             $entity->fromArray($row);
 
             $this->em->persist($entity);
@@ -86,7 +86,7 @@ class DataFixtures extends AbstractFixture implements OrderedFixtureInterface
                 "service_type-{$row['type']}"
             );
 
-            $entity = new Entity\DockerServiceTypeMeta();
+            $entity = new Entity\Docker\ServiceTypeMeta();
             $entity->fromArray($row);
 
             $this->em->persist($entity);

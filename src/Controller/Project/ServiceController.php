@@ -16,30 +16,30 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ServiceController extends Controller
 {
-    /** @var Domain\DockerService */
+    /** @var Domain\Docker\Service */
     protected $dServiceDomain;
 
-    /** @var Repository\DockerProjectRepository */
+    /** @var Repository\Docker\Project */
     protected $dProjectRepo;
 
-    /** @var Repository\DockerServiceCategoryRepository */
+    /** @var Repository\Docker\ServiceCategory */
     protected $dServiceCatRepo;
 
-    /** @var Repository\DockerServiceRepository */
+    /** @var Repository\Docker\Service */
     protected $dServiceRepo;
 
-    /** @var Repository\DockerServiceTypeRepository */
+    /** @var Repository\Docker\ServiceType */
     protected $dServiceTypeRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\DockerService $dServiceDomain,
-        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
-        Repository\DockerProjectRepository $dProjectRepo,
-        Repository\DockerServiceRepository $dServiceRepo,
-        Repository\DockerServiceTypeRepository $dServiceTypeRepo,
+        Domain\Docker\Service $dServiceDomain,
+        Repository\Docker\ServiceCategory $dServiceCatRepo,
+        Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\Service $dServiceRepo,
+        Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
         $this->dServiceDomain = $dServiceDomain;

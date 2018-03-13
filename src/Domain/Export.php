@@ -4,7 +4,6 @@ namespace Dashtainer\Domain;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 use Dashtainer\Util;
 
 use Symfony\Component\Yaml\Yaml;
@@ -13,23 +12,23 @@ class Export
 {
     const BASE_DIR = '/var/www/dashtainer/dumped';
 
-    /** @var DockerNetwork */
+    /** @var Docker\Network */
     protected $networkDomain;
 
-    /** @var DockerProject */
+    /** @var Docker\Project */
     protected $projectDomain;
 
-    /** @var DockerService */
+    /** @var Docker\Service */
     protected $serviceDomain;
 
-    /** @var DockerVolume */
+    /** @var Docker\Volume */
     protected $volumeDomain;
 
     public function __construct(
-        DockerNetwork $networkDomain,
-        DockerProject $projectDomain,
-        DockerService $serviceDomain,
-        DockerVolume $volumeDomain
+        Docker\Network $networkDomain,
+        Docker\Project $projectDomain,
+        Docker\Service $serviceDomain,
+        Docker\Volume $volumeDomain
     ) {
         $this->networkDomain = $networkDomain;
         $this->projectDomain = $projectDomain;
@@ -37,7 +36,7 @@ class Export
         $this->volumeDomain  = $volumeDomain;
     }
 
-    public function export(Entity\DockerProject $project)
+    public function export(Entity\Docker\Project $project)
     {
         $config = [
             'version' => '3.2',
@@ -68,7 +67,7 @@ class Export
     }
 
     /**
-     * @param Entity\DockerService[]|iterable $services
+     * @param Entity\Docker\Service[]|iterable $services
      */
     protected function writeServiceFiles(iterable $services)
     {
@@ -80,7 +79,7 @@ class Export
             }
 
             foreach ($service->getVolumes() as $volume) {
-                if ($volume->getFiletype() !== Entity\DockerServiceVolume::FILETYPE_FILE) {
+                if ($volume->getFiletype() !== Entity\Docker\ServiceVolume::FILETYPE_FILE) {
                     continue;
                 }
 
@@ -91,7 +90,7 @@ class Export
     }
 
     /**
-     * @param Entity\DockerNetwork[]|iterable $networks
+     * @param Entity\Docker\Network[]|iterable $networks
      * @return array
      */
     protected function getNetworks(iterable $networks) : array
@@ -122,7 +121,7 @@ class Export
     }
 
     /**
-     * @param Entity\DockerVolume[]|iterable $volumes
+     * @param Entity\Docker\Volume[]|iterable $volumes
      * @return array
      */
     protected function getVolumes(iterable $volumes) : array
@@ -157,7 +156,7 @@ class Export
     }
 
     /**
-     * @param Entity\DockerService[]|iterable $services
+     * @param Entity\Docker\Service[]|iterable $services
      * @return array
      */
     protected function getServices(iterable $services) : array

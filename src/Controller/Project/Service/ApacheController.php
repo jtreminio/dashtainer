@@ -13,11 +13,11 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ApacheController extends Controller
 {
-    /** @var Repository\DockerProjectRepository */
+    /** @var Repository\Docker\Project */
     protected $dProjectRepo;
 
     public function __construct(
-        Repository\DockerProjectRepository $dProjectRepo
+        Repository\Docker\Project $dProjectRepo
     ) {
         $this->dProjectRepo = $dProjectRepo;
     }
@@ -46,7 +46,7 @@ class ApacheController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $form = new Form\Service\ApacheVhost();
+        $form = new Form\Docker\Service\ApacheVhost();
         $form->fromArray($request->request->all());
 
         $template = "@Dashtainer/project/service/apache/vhost-{$type}.conf.twig";

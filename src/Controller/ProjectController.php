@@ -16,26 +16,26 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProjectController extends Controller
 {
-    /** @var Domain\DockerProject */
+    /** @var Domain\Docker\Project */
     protected $dockerProjectDomain;
 
     /** @var Domain\Export */
     protected $exportDomain;
 
-    /** @var Repository\DockerProjectRepository */
+    /** @var Repository\Docker\Project */
     protected $dProjectRepo;
 
-    /** @var Repository\DockerServiceCategoryRepository */
+    /** @var Repository\Docker\ServiceCategory */
     protected $dServiceCatRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\DockerProject $dockerProjectDomain,
+        Domain\Docker\Project $dockerProjectDomain,
         Domain\Export $exportDomain,
-        Repository\DockerProjectRepository $dProjectRepo,
-        Repository\DockerServiceCategoryRepository $dServiceCatRepo,
+        Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
     ) {
         $this->dockerProjectDomain = $dockerProjectDomain;
@@ -73,7 +73,7 @@ class ProjectController extends Controller
      */
     public function postCreate(Request $request, Entity\User $user) : AjaxResponse
     {
-        $form = new Form\DockerProjectCreateUpdateForm();
+        $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($request->request->all());
 
         $this->validator->setSource($form);
@@ -157,7 +157,7 @@ class ProjectController extends Controller
     ) : AjaxResponse {
         $project = $this->dProjectRepo->findByUser($user, $projectId);
 
-        $form = new Form\DockerProjectCreateUpdateForm();
+        $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($project->toArray());
         $form->fromArray($request->request->all());
 
