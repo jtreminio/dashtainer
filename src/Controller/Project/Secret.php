@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class SecretController extends Controller
+class Secret extends Controller
 {
     /**
      * @Route(name="project.secret.create.post",

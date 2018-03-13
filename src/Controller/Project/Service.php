@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class ServiceController extends Controller
+class Service extends Controller
 {
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;

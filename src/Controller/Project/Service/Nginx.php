@@ -11,7 +11,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 
-class ApacheController extends Controller
+class Nginx extends Controller
 {
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
@@ -23,8 +23,8 @@ class ApacheController extends Controller
     }
 
     /**
-     * @Route(name="project.service.apache.vhost.post",
-     *     path="/project/{projectId}/service/apache/vhost/{type}",
+     * @Route(name="project.service.nginx.vhost.post",
+     *     path="/project/{projectId}/service/nginx/vhost/{type}",
      *     methods={"POST"}
      * )
      * @param Request     $request,
@@ -46,10 +46,10 @@ class ApacheController extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $form = new Form\Docker\Service\ApacheVhost();
+        $form = new Form\Docker\Service\NginxVhost();
         $form->fromArray($request->request->all());
 
-        $template = "@Dashtainer/project/service/apache/vhost-{$type}.conf.twig";
+        $template = "@Dashtainer/project/service/nginx/vhost-{$type}.conf.twig";
 
         try {
             $content = $this->renderView($template, [
