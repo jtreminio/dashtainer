@@ -58,6 +58,10 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service, $privateNetwork);
 
+        $ulimits = $service->getUlimits();
+        $ulimits->setMemlock(-1, -1);
+        $service->setUlimits($ulimits);
+
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
             ->setData([$form->datastore])

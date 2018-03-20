@@ -8,9 +8,31 @@ class Ulimits implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
+    protected $memlock = [];
+
     protected $nofile = [];
 
     protected $nproc;
+
+    public function getMemlock() : array
+    {
+        return $this->memlock;
+    }
+
+    /**
+     * @param int $soft
+     * @param int $hard
+     * @return $this
+     */
+    public function setMemlock(int $soft, int $hard)
+    {
+        $this->memlock = [
+            'soft' => $soft,
+            'hard' => $hard,
+        ];
+
+        return $this;
+    }
 
     public function getNofile() : array
     {
