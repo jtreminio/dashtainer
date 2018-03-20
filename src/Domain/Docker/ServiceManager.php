@@ -16,7 +16,8 @@ class ServiceManager
         ServiceWorker\PhpFpm $phpfpm,
         ServiceWorker\MariaDB $mariaDB,
         ServiceWorker\MySQL $mySQL,
-        ServiceWorker\PostgreSQL $postgreSQL
+        ServiceWorker\PostgreSQL $postgreSQL,
+        ServiceWorker\MongoDB $mongoDB
     ) {
         $this->workers []= $apache;
         $this->workers []= $nginx;
@@ -24,6 +25,7 @@ class ServiceManager
         $this->workers []= $mariaDB;
         $this->workers []= $mySQL;
         $this->workers []= $postgreSQL;
+        $this->workers []= $mongoDB;
     }
 
     public function getWorkerFromForm(

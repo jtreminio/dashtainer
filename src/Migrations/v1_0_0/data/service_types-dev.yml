@@ -60,7 +60,12 @@
     category: Database Engine
     is_public: true
     slug: mongodb
-    versions: []
+    versions:
+        - '3.7'
+        - '3.6'
+        - '3.4'
+        - '3.2'
+        - '3.0'
     order: 4
 -
     name: Redis

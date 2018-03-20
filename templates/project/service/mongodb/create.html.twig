@@ -1,0 +1,118 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        Create MongoDB Service
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Project
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.create.post', {
+    'projectId': project.id,
+    'serviceTypeSlug': serviceType.slug,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Service Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ serviceName }}" required data-mask-type="dns"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+
+                <small class="text-muted">
+                    This is the name other services in this project will use to communicate
+                    with the MongoDB service.
+                </small>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <h4 class="mb-3">Data Storage</h4>
+
+        <div class="row">
+            <div class="col">
+                <div class="selectgroup" role="tablist">
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-docker" name="datastore"
+                               value="docker" checked role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-docker-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-anchor"></i> Docker</span>
+                    </label>
+
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-local" name="datastore"
+                               value="local" role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-local-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-hard-drive"></i> Local</span>
+                    </label>
+                </div>
+
+                <div id="nav-datastore-content" class="tab-content">
+                    <div id="datastore-docker-tab" role="tabpanel"
+                         class="tab-pane show active">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Let Docker manage the storage of your database data.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="datastore-local-tab" role="tabpanel"
+                         class="tab-pane">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Create a data directory on the host system.
+                                    The directory will be
+                                    <code><span id="datastore-local-span">
+                                            {{ serviceName }}</span>/datadir</code>.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="datastore"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <input type="hidden" id="version" name="version" value="{{ version }}" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+    </div>
+</form>
+
+    </div>
+</div>
+{% endblock %}
