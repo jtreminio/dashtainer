@@ -30,8 +30,9 @@ class Export
         $config['services'] = empty($services) ? Util\YamlTag::emptyHash() : $services;
 
         $yaml = Yaml::dump($config, 999, 2);
+        $yaml = Util\YamlTag::parse($yaml);
 
-        $this->writeYamlFile(Util\YamlTag::parse($yaml));
+        $this->writeYamlFile($yaml);
         $this->writeServiceFiles($project->getServices());
 
         return $yaml;
