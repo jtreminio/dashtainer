@@ -1,0 +1,138 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        Update MongoDB Service "{{ service.name }}"
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Service
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.update.post', {
+    'projectId': project.id,
+    'serviceId': service.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service is available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ service.name }}</span>:6379</span>
+        </div>
+
+        <h4 class="mb-3">Data Storage</h4>
+
+        <div class="row">
+            <div class="col">
+                <div class="selectgroup" role="tablist">
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-docker" name="datastore"
+                               value="docker" {{ datastore == 'docker' ? 'checked' }} role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-docker-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-anchor"></i> Docker</span>
+                    </label>
+
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-local" name="datastore"
+                               value="local" {{ datastore == 'local' ? 'checked' }} role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-local-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-hard-drive"></i> Local</span>
+                    </label>
+                </div>
+
+                <div id="nav-datastore-content" class="tab-content">
+                    <div id="datastore-docker-tab" role="tabpanel"
+                         class="tab-pane {{ datastore == 'docker' ? 'show active' }}">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Let Docker manage the storage of your database data.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="datastore-local-tab" role="tabpanel"
+                         class="tab-pane {{ datastore == 'local' ? 'show active' }}">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Create a data directory on the host system.
+                                    The directory will be
+                                    <code><span id="datastore-local-span">
+                                            {{ service.name }}</span>/datadir</code>.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="datastore"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <input type="hidden" id="version" name="version" value="{{ version }}" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
+
+        <p class="my-3"><a href="#" data-toggle="modal"
+              data-target="#service-delete-modal">Delete service</a></p>
+    </div>
+</form>
+
+    </div>
+</div>
+
+<div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-delete-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-delete-modal-title">Delete this service?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ path('project.service.delete.post', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}"
+                  method="post" data-ajax>
+                <div class="modal-body">
+                    <p>This will also delete all files attached to this service.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

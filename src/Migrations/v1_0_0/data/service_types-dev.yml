@@ -72,7 +72,9 @@
     category: Database Engine
     is_public: true
     slug: redis
-    versions: []
+    versions:
+        - '4.0'
+        - '3.2'
     order: 5
 -
     name: Elasticsearch
