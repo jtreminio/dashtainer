@@ -20,6 +20,7 @@ require('prismjs/components/prism-docker');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');
 require('prismjs/components/prism-nginx');
+require('prismjs/components/prism-yaml');
 
 require('jquery-circle-progress');
 require('jquery-mask-plugin');

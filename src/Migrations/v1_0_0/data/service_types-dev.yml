@@ -81,7 +81,10 @@
     category: Other
     is_public: true
     slug: elasticsearch
-    versions: []
+    versions:
+        - '6.2.3'
+        - '6.1.4'
+        - '6.0.1'
     order: 1
 -
     name: MailHog
