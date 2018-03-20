@@ -48,7 +48,12 @@
     category: Database Engine
     is_public: true
     slug: postgresql
-    versions: []
+    versions:
+        - '10.3'
+        - '9.6'
+        - '9.5'
+        - '9.4'
+        - '9.3'
     order: 3
 -
     name: MongoDB
