@@ -170,7 +170,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service      $service
+     * @param Entity\Docker\Service           $service
      * @param Form\Docker\Service\MySQLCreate $form
      * @return Entity\Docker\Service
      */

@@ -223,7 +223,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service    $service
+     * @param Entity\Docker\Service           $service
      * @param Form\Docker\Service\NginxCreate $form
      * @return Entity\Docker\Service
      */

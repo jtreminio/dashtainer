@@ -183,7 +183,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service      $service
+     * @param Entity\Docker\Service             $service
      * @param Form\Docker\Service\MariaDBCreate $form
      * @return Entity\Docker\Service
      */

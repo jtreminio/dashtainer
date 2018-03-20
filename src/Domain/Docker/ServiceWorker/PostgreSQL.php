@@ -167,7 +167,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service      $service
+     * @param Entity\Docker\Service                $service
      * @param Form\Docker\Service\PostgreSQLCreate $form
      * @return Entity\Docker\Service
      */

@@ -226,7 +226,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service      $service
+     * @param Entity\Docker\Service            $service
      * @param Form\Docker\Service\ApacheCreate $form
      * @return Entity\Docker\Service
      */

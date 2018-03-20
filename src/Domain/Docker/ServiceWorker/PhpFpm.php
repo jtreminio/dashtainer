@@ -239,7 +239,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service     $service
+     * @param Entity\Docker\Service            $service
      * @param Form\Docker\Service\PhpFpmCreate $form
      * @return Entity\Docker\Service
      */
