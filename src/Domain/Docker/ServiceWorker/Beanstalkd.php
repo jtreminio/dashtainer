@@ -64,6 +64,20 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($dataStoreMeta, $service);
 
+        $dockerfile = new Entity\Docker\ServiceVolume();
+        $dockerfile->setName('Dockerfile')
+            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
+            ->setData($form->file['Dockerfile'] ?? '')
+            ->setConsistency(null)
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setHighlight('docker')
+            ->setService($service);
+
+        $service->addVolume($dockerfile);
+
+        $this->serviceRepo->save($dockerfile, $service);
+
         $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
         $serviceDatastoreVol->setName('datastore')
             ->setSource("\$PWD/{$service->getSlug()}/datadir")
@@ -111,8 +125,13 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
     {
         $datastore = $service->getMeta('datastore')->getData()[0];
 
+        $dockerfile  = $service->getVolume('Dockerfile');
+
         return [
-            'datastore' => $datastore,
+            'datastore'   => $datastore,
+            'configFiles' => [
+                'Dockerfile' => $dockerfile,
+            ],
         ];
     }
 
@@ -129,6 +148,11 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $dataStoreMeta->setData([$form->datastore]);
 
         $this->serviceRepo->save($dataStoreMeta);
+
+        $dockerfile = $service->getVolume('Dockerfile');
+        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+
+        $this->serviceRepo->save($dockerfile);
 
         $serviceDatastoreVol = $service->getVolume('datastore');
         $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();

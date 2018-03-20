@@ -97,6 +97,50 @@
 
         <hr class="my-6" />
 
+        <h4 class="mb-3">Config Files</h4>
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    {% for file in configFiles %}
+                        <li class="nav-item {{ loop.first ? 'active' }}">
+                            <a id="nav-file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                               data-toggle="tab" role="tab"
+                               href="#file-{{ file.name }}" aria-controls="file-{{ file.name }}"
+                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                <div id="nav-file-content" class="tab-content">
+                    {% for file in configFiles %}
+                        <div id="file-{{ file.name }}" role="tabpanel"
+                             class="tab-pane fade {{ loop.first ? 'show active' }}">
+                            <div class="row">
+                                <div class="col">
+                                    <pre class="language-{{ value.highlight ?? 'apacheconf' }}" data-code-highlight><code
+                                            id="file-{{ file.name }}-source"
+                                            contenteditable autocorrect="off" autocapitalize="off"
+                                            spellcheck="false">{{ file.data }}</code></pre>
+                                    <input type="hidden" value="" name="file[{{ file.name }}]"
+                                           data-error-container="file-error"
+                                           data-get-value-source="file-{{ file.name }}-source" />
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="custom_file"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
         <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 
         <p class="my-3"><a href="#" data-toggle="modal"

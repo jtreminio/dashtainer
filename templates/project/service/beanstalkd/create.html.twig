@@ -111,6 +111,47 @@
 
         <hr class="my-6" />
 
+        <h4 class="mb-3">Config Files</h4>
+        {% set Dockerfile = serviceType.meta('Dockerfile') %}
+
+        <div class="row">
+            <div class="col">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item active">
+                        <a id="nav-Dockerfile-tab" class="nav-link active"
+                           data-toggle="tab" role="tab"
+                           href="#file-Dockerfile" aria-controls="file-Dockerfile"
+                           aria-selected="true">Dockerfile</a>
+                    </li>
+                </ul>
+
+                <div id="nav-file-content" class="tab-content">
+                    <div id="file-Dockerfile" role="tabpanel"
+                         class="tab-pane fade show active">
+                        <div class="row">
+                            <div class="col">
+                                <pre class="language-docker" data-code-highlight><code
+                                        id="file-Dockerfile-source"
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false">{{ Dockerfile.data[0] }}</code></pre>
+                                <input type="hidden" value="" name="file[Dockerfile]"
+                                       data-error-container="file-error"
+                                       data-get-value-source="file-Dockerfile-source" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="file-error"></div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="custom_file"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
         <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
 </form>
