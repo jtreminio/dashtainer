@@ -1,0 +1,65 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        Create MailHog Service
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Project
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.create.post', {
+    'projectId': project.id,
+    'serviceTypeSlug': serviceType.slug,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Service Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ serviceName }}" required data-mask-type="dns"
+                       data-update-text="service-name-tag,server-name-tag"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+        </div>
+
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service will be available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ serviceName }}</span>:1025</span>
+
+            and <strong>publicly</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+                http://<span id="server-name-tag">{{ serviceName }}</span>.localhost:8025</span>
+        </div>
+
+        <hr class="my-6" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
+    </div>
+</form>
+
+    </div>
+</div>
+{% endblock %}

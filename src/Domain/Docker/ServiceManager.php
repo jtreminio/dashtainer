@@ -19,7 +19,8 @@ class ServiceManager
         ServiceWorker\PostgreSQL $postgreSQL,
         ServiceWorker\MongoDB $mongoDB,
         ServiceWorker\Redis $redis,
-        ServiceWorker\Elasticsearch $elasticsearch
+        ServiceWorker\Elasticsearch $elasticsearch,
+        ServiceWorker\MailHog $mailHog
     ) {
         $this->workers []= $apache;
         $this->workers []= $nginx;
@@ -30,6 +31,7 @@ class ServiceManager
         $this->workers []= $mongoDB;
         $this->workers []= $redis;
         $this->workers []= $elasticsearch;
+        $this->workers []= $mailHog;
     }
 
     public function getWorkerFromForm(
