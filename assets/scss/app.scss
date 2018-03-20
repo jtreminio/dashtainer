@@ -30,6 +30,10 @@
     }
 }
 
+.nav-tabs .nav-item + .nav-item {
+    margin-left: .5rem;
+}
+
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.5);
     &.in {
@@ -61,6 +65,12 @@
         cursor: text;
         display: inline-block;
         width: 100%;
+    }
+
+    // Tabler adds background and cursor
+    .tag {
+        background-color: transparent !important;
+        cursor: text;
     }
 }
 
