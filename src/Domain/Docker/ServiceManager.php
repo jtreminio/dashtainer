@@ -20,7 +20,8 @@ class ServiceManager
         ServiceWorker\MongoDB $mongoDB,
         ServiceWorker\Redis $redis,
         ServiceWorker\Elasticsearch $elasticsearch,
-        ServiceWorker\MailHog $mailHog
+        ServiceWorker\MailHog $mailHog,
+        ServiceWorker\Beanstalkd $beanstalkd
     ) {
         $this->workers []= $apache;
         $this->workers []= $nginx;
@@ -32,6 +33,7 @@ class ServiceManager
         $this->workers []= $redis;
         $this->workers []= $elasticsearch;
         $this->workers []= $mailHog;
+        $this->workers []= $beanstalkd;
     }
 
     public function getWorkerFromForm(
