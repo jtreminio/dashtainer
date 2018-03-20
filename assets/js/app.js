@@ -1,11 +1,14 @@
-require('../css/app.scss');
-require('bootstrap/scss/bootstrap.scss');
+const imagesCtx = require.context('../images', true, /\.(png|jpg|jpeg|gif|ico|svg|webp)$/);
+imagesCtx.keys().forEach(imagesCtx);
+
+require('../scss/bundle.scss');
+require('../scss/app.scss');
 
 const $ = require('jquery');
 global.$ = global.jQuery = $;
+
 require('bootstrap');
 require('font-awesome/scss/font-awesome.scss');
-require('jquery-mask-plugin');
 
 require('selectize');
 require('selectize/dist/css/selectize.bootstrap3.css');
@@ -17,6 +20,12 @@ require('prismjs/components/prism-docker');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');
 require('prismjs/components/prism-nginx');
+
+require('jquery-circle-progress');
+require('jquery-mask-plugin');
+require('jquery-sparkline');
+
+//require('./tabler-core');
 
 require('./tabToSpacesInput');
 
@@ -58,5 +67,11 @@ $(document).ready(function() {
                 $target.text('* Needs Data');
             }
         });
+    });
+
+    $(document).on('click', 'input[data-toggle="radio-tab"]', function(e) {
+        var $target = $($(this).data('target'));
+        $target.siblings().hide();
+        $target.show();
     });
 });

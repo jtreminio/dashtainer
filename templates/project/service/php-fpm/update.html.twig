@@ -1,29 +1,37 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">PHP-FPM: {{ service.name }}</li>
-        </ol>
-    </nav>
+<div class="page-header">
+    <h1 class="page-title">
+        Update PHP-FPM Service "{{ service.name }}"
+    </h1>
 </div>
 
-<div class="container">
-    <div class="text-center">
-        <h2>PHP-FPM: {{ service.name }}</h2>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Service
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
     </div>
 
-    <form class="mb-5" action="{{ path('project.service.update.post', {
-        'projectId': project.id,
-        'serviceId': service.id,
-    }) }}" method="post" data-ajax>
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.update.post', {
+    'projectId': project.id,
+    'serviceId': service.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
         {% include '@Dashtainer/project/service/snippets/_project_files_update.html.twig' %}
+
+        <hr class="my-6" />
 
         <h4 class="mb-3">Packages</h4>
 
@@ -82,7 +90,7 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Config Files</h4>
 
@@ -124,6 +132,7 @@
                         </li>
                     {% endfor %}
                 </ul>
+
                 <div id="nav-file-content" class="tab-content">
                     {% for key, value in configFiles %}
                         <div id="file-{{ key }}" role="tabpanel"
@@ -192,7 +201,7 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Additional Tools</h4>
         <div class="row">
@@ -217,6 +226,7 @@
                            aria-selected="false">Blackfire</a>
                     </li>
                 </ul>
+
                 <div id="nav-addons-content" class="tab-content">
                     <div id="addons-composer" role="tabpanel"
                          class="tab-pane fade show active">
@@ -318,7 +328,7 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <input type="hidden" id="version" name="version" value="{{ version }}" />
 
@@ -326,8 +336,8 @@
 
         <p class="my-3"><a href="#" data-toggle="modal"
               data-target="#service-delete-modal">Delete service</a></p>
-    </form>
-</div>
+    </div>
+</form>
 
 <div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
      aria-labelledby="service-delete-modal-title" aria-hidden="true">

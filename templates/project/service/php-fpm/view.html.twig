@@ -1,27 +1,42 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">PHP-FPM: {{ service.name }}</li>
-        </ol>
-    </nav>
+<div class="page-header">
+    <h1 class="page-title">
+        {{ service.name }}
+    </h1>
 </div>
 
-<div class="container">
-    <p>Service details:</p>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Service
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
+    </div>
 
-    <p>ID: {{ service.id }}</p>
-    <p>Name: {{ service.name }}</p>
-    <p><a href="{{ path('project.service.update.get', {
-            'projectId': project.id,
-            'serviceId': service.id,
-        }) }}">Edit service</a></p>
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap p-lg-6">
+                    <h3>{{ service.name }}</h3>
+
+                    <p>ID: {{ service.id }}</p>
+                    <p>Name: {{ service.name }}</p>
+                    <p><a href="{{ path('project.service.update.get', {
+                            'projectId': project.id,
+                            'serviceId': service.id,
+                        }) }}">Edit service</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

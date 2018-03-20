@@ -1,4 +1,4 @@
-@import "~bootstrap/scss/bootstrap";
+@import "../scss/bundle";
 
 #ajax-spinner {
     z-index: 9999;
@@ -15,6 +15,18 @@
 #dynamic-modal {
     .modal-content {
         margin-bottom: 200px;
+    }
+}
+
+// https://github.com/tabler/tabler/issues/8
+.nav {
+    .dropdown-menu-right {
+        right: 0;
+        left: auto;
+    }
+
+    .dropdown-item {
+        white-space: normal;
     }
 }
 

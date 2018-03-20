@@ -1,39 +1,43 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">
-                Create Service: Nginx</li>
-        </ol>
-    </nav>
+<div class="page-header">
+    <h1 class="page-title">
+        Create Nginx Service
+    </h1>
 </div>
 
-<div class="container">
-    <div class="text-center">
-        <h2>Nginx</h2>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Project
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
     </div>
 
-    <form class="mb-5" action="{{ path('project.service.create.post', {
-        'projectId': project.id,
-        'serviceTypeSlug': serviceType.slug,
-    }) }}" method="post" data-ajax>
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.create.post', {
+    'projectId': project.id,
+    'serviceTypeSlug': serviceType.slug,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
         <div class="row">
-            <div class="form-group col col-md-10 col-lg-6">
-                <label for="name">Service Name</label>
+            <div class="form-group col">
+                <label class="form-label" for="name">Service Name</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="name" name="name" placeholder=""
                        value="{{ serviceName }}" required data-mask-type="dns"
                        data-error-container="name" />
                 <div class="invalid-feedback" data-error-container-name="name"></div>
-            </div>
-            <div class="form-group col-12">
+
                 <small class="text-muted">
                     This is the name other services in this project will use to communicate
                     with the Nginx service.
@@ -41,7 +45,11 @@
             </div>
         </div>
 
+        <hr class="my-6" />
+
         {% include '@Dashtainer/project/service/snippets/_project_files_create.html.twig' %}
+
+        <hr class="my-6" />
 
         <h4 class="mb-3">Packages</h4>
 
@@ -58,12 +66,12 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Virtual Host Config</h4>
 
         <div class="row">
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
@@ -74,7 +82,7 @@
                 </small>
             </div>
 
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="server_alias">Server Aliases</label>
                 <select class="form-control" id="server_alias"
                         name="server_alias[]"
@@ -89,7 +97,7 @@
         </div>
 
         <div class="row">
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="document_root">Document Root</label>
                 <input type="text" class="form-control"
                        id="document_root" name="document_root" placeholder=""
@@ -102,7 +110,7 @@
             </div>
 
             {% set has_fcgi_handlers = false %}
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="fcgi_handler">FCGI Handler</label>
                 <select class="form-control" id="fcgi_handler"
                         name="fcgi_handler"
@@ -172,6 +180,7 @@
                         </div>
                     </li>
                 </ul>
+
                 <div id="nav-vhost_conf-content" class="tab-content">
                     <div class="tab-pane fade show active" role="tabpanel"
                          data-role="empty-tab">
@@ -194,11 +203,11 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
+        <h4 class="mb-3">Config Files</h4>
         {% set Dockerfile = serviceType.meta('Dockerfile') %}
         {% set conf = serviceType.meta('conf') %}
-        <h4 class="mb-3">Config Files</h4>
 
         <div class="row">
             <div class="col">
@@ -269,9 +278,12 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
-    </form>
+    </div>
+</form>
+
+    </div>
 </div>
 {% endblock %}

@@ -1,74 +1,112 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">MariaDB: {{ service.name }}</li>
-        </ol>
-    </nav>
+<div class="page-header">
+    <h1 class="page-title">
+        Update MariaDB Service "{{ service.name }}"
+    </h1>
 </div>
 
-<div class="container">
-    <div class="text-center">
-        <h2>MariaDB: {{ service.name }}</h2>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Service
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
     </div>
 
-    <form class="mb-5" action="{{ path('project.service.update.post', {
-        'projectId': project.id,
-        'serviceId': service.id,
-    }) }}" method="post" data-ajax>
-        <div class="row mb-3">
-            <div class="col">
-                <label>Data storage</label>
+    <div class="col-lg-9">
 
-                <div class="form-check">
-                    <input class="form-check-input" type="radio"
-                           id="datastore-docker" name="datastore" value="docker"
-                           {{ datastore == 'docker' ? 'checked' }}>
-                    <label class="form-check-label" for="datastore-docker">
-                        Let Docker manage the storage of your database data.
-                    </label>
-                </div>
-
-                <div class="form-check">
-                    <input class="form-check-input" type="radio"
-                           id="datastore-local" name="datastore" value="local"
-                        {{ datastore == 'local' ? 'checked' }}>
-                    <label class="form-check-label" for="datastore-local">
-                        Create a data directory on the host system.
-                        The directory will be
-                        <code><span id="datastore-local-span">{{ service.name }}</span>/datadir</code>.
-                    </label>
-                </div>
-            </div>
-        </div>
+<form class="card" action="{{ path('project.service.update.post', {
+    'projectId': project.id,
+    'serviceId': service.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <h4 class="mb-3">Data Storage</h4>
 
         <div class="row">
-            <div class="form-group col">
-                <label>Init Directory</label>
+            <div class="col">
+                <div class="selectgroup" role="tablist">
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-docker" name="datastore"
+                               value="docker" {{ datastore == 'docker' ? 'checked' }} role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-docker-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-hard-drive"></i> Docker</span>
+                    </label>
 
-                <p>
-                    Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
-                    within the
-                    <code><span id="initdir">{{ service.name }}</span>/init</code>
-                    directory will be executed or imported into the defined database.
-                    Files will be executed in alphabetical order.
-                </p>
+                    <label class="selectgroup-item">
+                        <input type="radio" class="selectgroup-input"
+                               id="datastore-local" name="datastore"
+                               value="local" {{ datastore == 'local' ? 'checked' }} role="tab"
+                               data-toggle="radio-tab" data-target="#datastore-local-tab"
+                               data-error-container="datastore" />
+                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                            <i class="fe fe-github"></i> Local</span>
+                    </label>
+                </div>
+
+                <div id="nav-datastore-content" class="tab-content">
+                    <div id="datastore-docker-tab" role="tabpanel"
+                         class="tab-pane {{ datastore == 'docker' ? 'show active' }}">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Let Docker manage the storage of your database data.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="datastore-local-tab" role="tabpanel"
+                         class="tab-pane {{ datastore == 'local' ? 'show active' }}">
+                        <div class="row">
+                            <div class="form-group col">
+                                <small class="text-muted">
+                                    Create a data directory on the host system.
+                                    The directory will be
+                                    <code><span id="datastore-local-span">
+                                            {{ service.name }}</span>/datadir</code>.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="form-group col">
+                                <label>Init Directory</label>
+
+                                <p>
+                                    Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
+                                    within the
+                                    <code><span id="initdir">{{ service.name }}</span>/init</code>
+                                    directory will be executed or imported into the defined database.
+                                    Files will be executed in alphabetical order.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="datastore"></div>
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Database Credentials</h4>
 
         <div class="row">
-            <div class="form-group col">
+            <div class="col-12 col-xl form-group">
                 <label for="mysql_root_password">Root Password</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="mysql_root_password" name="mysql_root_password" placeholder=""
@@ -81,7 +119,7 @@
                 </small>
             </div>
 
-            <div class="form-group col">
+            <div class="col-12 col-xl form-group">
                 <label for="mysql_database">Database</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="mysql_database" name="mysql_database" placeholder=""
@@ -95,7 +133,7 @@
         </div>
 
         <div class="row">
-            <div class="form-group col">
+            <div class="col-12 col-xl form-group">
                 <label for="mysql_user">User</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="mysql_user" name="mysql_user" placeholder=""
@@ -108,7 +146,7 @@
                 </small>
             </div>
 
-            <div class="form-group col">
+            <div class="col-12 col-xl form-group">
                 <label for="mysql_password">User Password</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="mysql_password" name="mysql_password" placeholder=""
@@ -121,7 +159,7 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Config Files</h4>
 
@@ -162,6 +200,7 @@
                         </li>
                     {% endfor %}
                 </ul>
+
                 <div id="nav-file-content" class="tab-content">
                     {% for file in configFiles %}
                         <div id="file-{{ file.name }}" role="tabpanel"
@@ -232,7 +271,7 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <input type="hidden" id="version" name="version" value="{{ version }}" />
 
@@ -240,7 +279,10 @@
 
         <p class="my-3"><a href="#" data-toggle="modal"
               data-target="#service-delete-modal">Delete service</a></p>
-    </form>
+    </div>
+</form>
+
+    </div>
 </div>
 
 <div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"

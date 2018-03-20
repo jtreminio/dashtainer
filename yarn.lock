@@ -3006,11 +3006,21 @@ isstream@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
 
+jquery-circle-progress@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/jquery-circle-progress/-/jquery-circle-progress-1.2.2.tgz#260e9130ac8e2b5572eaa7a93b9e8a6b27bc8eea"
+  dependencies:
+    jquery "*"
+
 jquery-mask-plugin@^1.14.13:
   version "1.14.13"
   resolved "https://registry.yarnpkg.com/jquery-mask-plugin/-/jquery-mask-plugin-1.14.13.tgz#a80368d3b1d1402e4d6963a8ae7797c49bc21fc6"
 
-jquery@^3.3.1:
+jquery-sparkline@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/jquery-sparkline/-/jquery-sparkline-2.4.0.tgz#1be8b7b704dd3857152708aefb1d4a4b3a69fb33"
+
+jquery@*, jquery@>=3.2.1, jquery@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.3.1.tgz#958ce29e81c9790f31be7792df5d4d95fc57fbca"
 
@@ -5289,6 +5299,12 @@ svgo@^0.7.0:
     mkdirp "~0.5.1"
     sax "~1.2.1"
     whet.extend "~0.9.9"
+
+tablesorter@^2.29.6:
+  version "2.29.6"
+  resolved "https://registry.yarnpkg.com/tablesorter/-/tablesorter-2.29.6.tgz#625bcc6a00c25be4b12246143ee3ed4c8cde6827"
+  dependencies:
+    jquery ">=3.2.1"
 
 tapable@^0.2.7:
   version "0.2.8"

@@ -17,4 +17,16 @@ Encore
     .enableBuildNotifications()
 ;
 
+if (Encore.isProduction()) {
+    Encore.configureFilenames({
+        images: '[path][name].[hash:8].[ext]',
+        fonts: '[path][name].[hash:8].[ext]'
+    });
+} else {
+    Encore.configureFilenames({
+        images: '[path][name].[ext]',
+        fonts: '[path][name].[ext]'
+    });
+}
+
 module.exports = Encore.getWebpackConfig();

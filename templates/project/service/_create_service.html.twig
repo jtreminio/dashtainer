@@ -1,36 +1,53 @@
 {% for category in serviceCategories if category is not empty %}
-    <div class="card mb-4">
-        <h5 class="card-header">{{ category.name }}</h5>
-        <div class="card-body">
-            <div class="row">
-                {% for type in category.types if type.isPublic %}
-                    <div class="col-sm-6 col-lg-3 mb-4">
-                        {% if type.versions is not empty %}
-                            <div class="dropdown">
-                                <button class="btn btn-primary btn-block dropdown-toggle"
-                                        type="button" id="{{ type.slug }}-dropdown"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    {{ type.name }}
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="{{ type.slug }}-dropdown">
-                                    {% for version in type.versions %}
-                                        <a href="{{ path('project.service.create.get', {
-                                            'projectId': project.id,
-                                            'serviceTypeSlug': type.slug,
-                                            'version': version,
-                                        }) }}" class="dropdown-item">{{ type.name }} {{ version }}</a>
-                                    {% endfor %}
+    <h5>{{ category.name }}</h5>
+    <div class="row row-cards">
+        {% for type in category.types if type.isPublic %}
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    {% if type.versions is not empty %}
+                        <a href="#" class="p-3"
+                           id="{{ type.slug }}-dropdown"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <span class="stamp stamp-md bg-blue mr-3">
+                                    {{ type.name|first }}</span>
+                                <div>
+                                    <h4 class="m-0">
+                                        {{ type.name }}
+                                    </h4>
                                 </div>
                             </div>
-                        {% else %}
-                            <a href="{{ path('project.service.create.get', {
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="{{ type.slug }}-dropdown">
+                            <h6 class="dropdown-header">Version</h6>
+
+                            <div class="dropdown-divider"></div>
+                            {% for version in type.versions %}
+                                <a href="{{ path('project.service.create.get', {
+                                    'projectId': project.id,
+                                    'serviceTypeSlug': type.slug,
+                                    'version': version,
+                                }) }}" class="dropdown-item">{{ type.name }} {{ version }}</a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <a href="{{ path('project.service.create.get', {
                                 'projectId': project.id,
                                 'serviceTypeSlug': type.slug,
-                            }) }}" class="btn btn-primary btn-block">{{ type.name }}</a>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+                            }) }}" class="p-3">
+                            <div class="d-flex align-items-center">
+                                <span class="stamp stamp-md bg-blue mr-3">
+                                    {{ type.name|first }}</span>
+                                <div>
+                                    <h4 class="m-0">
+                                        {{ type.name }}
+                                    </h4>
+                                </div>
+                            </div>
+                        </a>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+        {% endfor %}
     </div>
 {% endfor %}

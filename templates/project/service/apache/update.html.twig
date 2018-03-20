@@ -1,29 +1,37 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                    'projectId': project.id,
-                }) }}">{{ project.name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Apache: {{ service.name }}</li>
-        </ol>
-    </nav>
+<div class="page-header">
+    <h1 class="page-title">
+        Update Apache Service "{{ service.name }}"
+    </h1>
 </div>
 
-<div class="container">
-    <div class="text-center">
-        <h2>Apache: {{ service.name }}</h2>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Service
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
     </div>
 
-    <form class="mb-5" action="{{ path('project.service.update.post', {
-        'projectId': project.id,
-        'serviceId': service.id,
-    }) }}" method="post" data-ajax>
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.service.update.post', {
+    'projectId': project.id,
+    'serviceId': service.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
         {% include '@Dashtainer/project/service/snippets/_project_files_update.html.twig' %}
+
+        <hr class="my-6" />
 
         <h4 class="mb-3">Packages</h4>
 
@@ -77,19 +85,23 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <h4 class="mb-3">Virtual Host Config</h4>
 
         <div class="row">
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
                        value="{{ vhost.server_name }}" />
+                <small class="text-muted">
+                    Your server name <strong>must</strong> be <code>.localhost</code>
+                    for local development.
+                </small>
             </div>
 
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="server_alias">Server Aliases</label>
                 <select class="form-control" id="server_alias"
                         name="server_alias[]"
@@ -98,22 +110,28 @@
                         <option value="{{ alias }}" selected>{{ alias }}</option>
                     {% endfor %}
                 </select>
+                <small class="text-muted">
+                    Your server aliases <strong>must</strong> be <code>.localhost</code>
+                    for local development.
+                </small>
             </div>
         </div>
 
         <div class="row">
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="document_root">Document Root</label>
                 <input type="text" class="form-control"
                        id="document_root" name="document_root" placeholder=""
                        value="{{ vhost.document_root }}" />
                 <small class="text-muted">
                     Location of your site's index.php file, or other landing page.
+                    Symfony 2 &amp; 3 use <code>web</code>. Laravel and Symfony 4 use
+                    <code>public</code>.
                 </small>
             </div>
 
             {% set has_fcgi_handlers = false %}
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label for="fcgi_handler">FCGI Handler</label>
                 <select class="form-control" id="fcgi_handler"
                         name="fcgi_handler"
@@ -183,6 +201,7 @@
                         </div>
                     </li>
                 </ul>
+
                 <div id="nav-vhost_conf-content" class="tab-content">
                     <div class="tab-pane fade show active" role="tabpanel"
                          data-role="empty-tab">
@@ -245,6 +264,7 @@
                         </li>
                     {% endfor %}
                 </ul>
+
                 <div id="nav-file-content" class="tab-content">
                     {% for file in configFiles %}
                         <div id="file-{{ file.name }}" role="tabpanel"
@@ -316,13 +336,16 @@
             </div>
         </div>
 
-        <hr class="mb-4" />
+        <hr class="my-6" />
 
         <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 
         <p class="my-3"><a href="#" data-toggle="modal"
               data-target="#service-delete-modal">Delete service</a></p>
-    </form>
+    </div>
+</form>
+
+    </div>
 </div>
 
 <div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
