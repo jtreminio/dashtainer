@@ -38,7 +38,10 @@
     category: Database Engine
     is_public: true
     slug: mysql
-    versions: []
+    versions:
+        - '5.7'
+        - '5.6'
+        - '5.5'
     order: 2
 -
     name: PostgreSQL

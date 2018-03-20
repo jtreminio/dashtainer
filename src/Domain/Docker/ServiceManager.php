@@ -14,12 +14,14 @@ class ServiceManager
         ServiceWorker\Apache $apache,
         ServiceWorker\Nginx $nginx,
         ServiceWorker\PhpFpm $phpfpm,
-        ServiceWorker\MariaDB $mariaDB
+        ServiceWorker\MariaDB $mariaDB,
+        ServiceWorker\MySQL $mySQL
     ) {
         $this->workers []= $apache;
         $this->workers []= $nginx;
         $this->workers []= $phpfpm;
         $this->workers []= $mariaDB;
+        $this->workers []= $mySQL;
     }
 
     public function getWorkerFromForm(

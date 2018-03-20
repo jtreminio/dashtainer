@@ -1227,3 +1227,10 @@
             !includedir /etc/mysql/conf.d/
         config-file.cnf: |
             # /etc/mysql/conf.d/config-file.cnf
+
+-
+    type: MySQL
+    name: conf
+    data:
+        config-file.cnf: |
+            # /etc/mysql/conf.d/config-file.cnf
