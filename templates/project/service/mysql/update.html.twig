@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-header">
     <h1 class="page-title">
-        Update MariaDB Service "{{ service.name }}"
+        Update MySQL Service "{{ service.name }}"
     </h1>
 </div>
 
@@ -207,7 +207,7 @@
                              class="tab-pane fade {{ loop.first ? 'show active' }}">
                             <div class="row">
                                 <div class="col">
-                                    <pre class="language-apacheconf" data-code-highlight><code
+                                    <pre class="language-ini" data-code-highlight><code
                                             id="file-{{ file.name }}-source"
                                             contenteditable autocorrect="off" autocapitalize="off"
                                             spellcheck="false">{{ file.data }}</code></pre>
