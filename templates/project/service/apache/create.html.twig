@@ -35,14 +35,24 @@
                 <input type="text" class="form-control" maxlength="64"
                        id="name" name="name" placeholder=""
                        value="{{ serviceName }}" required data-mask-type="dns"
+                       data-update-text="service-name-tag"
                        data-error-container="name" />
                 <div class="invalid-feedback" data-error-container-name="name"></div>
-
-                <small class="text-muted">
-                    This is the name other services in this project will use to communicate
-                    with the Apache service.
-                </small>
             </div>
+        </div>
+
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service will be available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ serviceName }}</span>:80</span>
+
+            and <strong>publicly</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+                http://<span id="server-name-tag">awesome.localhost</span></span>
+             and server aliases you define below
         </div>
 
         <hr class="my-6" />
@@ -113,7 +123,8 @@
                 <label for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
-                       value="awesome.localhost" />
+                       value="awesome.localhost"
+                       data-update-text="server-name-tag" />
                 <small class="text-muted">
                     Your server name <strong>must</strong> be <code>.localhost</code>
                     for local development.

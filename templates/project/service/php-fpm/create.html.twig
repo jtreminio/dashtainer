@@ -35,16 +35,18 @@
                 <input type="text" class="form-control" maxlength="64"
                        id="name" name="name" placeholder=""
                        value="{{ serviceName }}" required data-mask-type="dns"
+                       data-update-text="service-name-tag"
                        data-error-container="name" />
                 <div class="invalid-feedback" data-error-container-name="name"></div>
-
-                <small class="text-muted">
-                    This is the name your Nginx or Apache webserver will use to
-                    communicate with PHP-FPM.<br />
-                    Apache Example: <code>SetHandler proxy:fcgi://{service-name-here}:9000</code><br />
-                    Nginx Example: <code>fastcgi_pass {service-name-here}:9000</code><br />
-                </small>
             </div>
+        </div>
+
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service will be available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ serviceName }}</span>:9000</span>
         </div>
 
         <hr class="my-6" />

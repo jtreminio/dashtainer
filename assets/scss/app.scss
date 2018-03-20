@@ -1,5 +1,7 @@
 @import "../scss/bundle";
 
+.text-muted { color: $text-muted-dark !important; }
+
 #ajax-spinner {
     z-index: 9999;
 
@@ -158,4 +160,16 @@ ul[role="tablist"] {
             color: #000;
         }
     }
+}
+
+.badge {
+    &.text-lg {
+        font-size: 100%;
+    }
+}
+
+.tag-addon-left {
+    @extend .tag-addon;
+
+    margin: 0;
 }

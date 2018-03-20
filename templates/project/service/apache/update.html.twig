@@ -29,6 +29,20 @@
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
     <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service is available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ service.name }}</span>:80</span>
+
+            and <strong>publicly</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+                http://<span id="server-name-tag">{{ vhost.server_name }}</span></span>
+             and server aliases you defined below
+        </div>
+
         {% include '@Dashtainer/project/service/snippets/_project_files_update.html.twig' %}
 
         <hr class="my-6" />
@@ -94,7 +108,8 @@
                 <label for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
-                       value="{{ vhost.server_name }}" />
+                       value="{{ vhost.server_name }}"
+                       data-update-text="server-name-tag" />
                 <small class="text-muted">
                     Your server name <strong>must</strong> be <code>.localhost</code>
                     for local development.

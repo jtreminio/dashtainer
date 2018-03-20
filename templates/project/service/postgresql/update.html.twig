@@ -29,6 +29,14 @@
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
     <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            This service is available <strong>privately</strong> at
+            <span class="badge badge-primary text-lg">
+                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+                <span id="service-name-tag">{{ service.name }}</span>:5432</span>
+        </div>
+
         <h4 class="mb-3">Data Storage</h4>
 
         <div class="row">
