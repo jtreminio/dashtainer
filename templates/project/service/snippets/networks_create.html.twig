@@ -27,7 +27,8 @@
                         </div>
 
                         {% include '@Dashtainer/project/service/snippets/network_new_card.html.twig' with {
-                            'networkName': networkName
+                            'networkName': networkName,
+                            'removable': false,
                         } %}
                     {% endif %}
                 </div>

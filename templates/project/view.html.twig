@@ -117,14 +117,16 @@
                         </div>
                     </div>
 
-                    {% for network in project.networks %}
+                    {% set hasPrivateNetworks = false %}
+                    {% for network in project.networks if not network.isPublic %}
+                        {% set hasPrivateNetworks = true %}
                         <p><a href="{{ path('project.network.view.get', {
                                 'projectId': project.id,
                                 'networkId': network.id
                             }) }}">{{ network.name }}</a></p>
                     {% endfor %}
 
-                    {% if project.networks is empty %}
+                    {% if not hasPrivateNetworks %}
                         <p>You have no networks.</p>
                     {% endif %}
 

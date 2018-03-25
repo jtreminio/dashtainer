@@ -119,7 +119,7 @@ class Network implements Repository\ObjectPersistInterface
             ->where(':service MEMBER OF n.services');
 
         if (!$public) {
-            $qb->andWhere('n.is_primary_public = 0');
+            $qb->andWhere('n.is_public = 0');
         }
 
         $qb->setParameters(['service' => $service]);
@@ -140,7 +140,7 @@ class Network implements Repository\ObjectPersistInterface
             ->where(':service NOT MEMBER OF n.services');
 
         if (!$public) {
-            $qb->andWhere('n.is_primary_public = 0');
+            $qb->andWhere('n.is_public = 0');
         }
 
         $qb->setParameters(['service' => $service]);
@@ -148,39 +148,25 @@ class Network implements Repository\ObjectPersistInterface
         return $qb->getQuery()->getResult();
     }
 
-    public function getPrimaryPublicNetwork(
+    public function getPublicNetwork(
         Entity\Docker\Project $project
     ) : ?Entity\Docker\Network {
         return $this->findOneBy([
-            'project'           => $project,
-            'is_primary_public' => true,
+            'project'   => $project,
+            'is_public' => true,
         ]);
     }
 
-    public function getPrimaryPrivateNetwork(
-        Entity\Docker\Project $project
-    ) : ?Entity\Docker\Network {
-        return $this->findOneBy([
-            'project'            => $project,
-            'is_primary_private' => true,
-        ]);
-    }
-
+    /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\Network[]
+     */
     public function getPrivateNetworks(
         Entity\Docker\Project $project
     ) : array {
-        $publicNetwork = $this->getPrimaryPublicNetwork($project);
-
-        $allNetworks = $this->findAllByProject($project);
-
-        foreach ($allNetworks as $key => $network) {
-            if ($network->getId() === $publicNetwork->getId()) {
-                unset($allNetworks[$key]);
-
-                break;
-            }
-        }
-
-        return $allNetworks;
+        return $this->findBy([
+            'project'   => $project,
+            'is_public' => false,
+        ]);
     }
 }

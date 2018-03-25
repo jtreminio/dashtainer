@@ -31,8 +31,8 @@ class Project
 
         $publicNetwork = new Entity\Docker\Network();
         $publicNetwork->setName("{$hostname}-public")
-            ->setIsRemovable(false)
-            ->setIsPrimaryPublic(true)
+            ->setIsEditable(false)
+            ->setIsPublic(true)
             ->setExternal('traefik_webgateway')
             ->setProject($project);
 

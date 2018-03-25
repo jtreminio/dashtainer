@@ -113,7 +113,7 @@ class Project extends Controller
         }
 
         return $this->render('@Dashtainer/project/view.html.twig', [
-            'project' => $project,
+            'project'           => $project,
             'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ]);
     }

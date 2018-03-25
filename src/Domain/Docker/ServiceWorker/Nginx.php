@@ -56,7 +56,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
+        $publicNetwork = $this->networkRepo->getPublicNetwork(
             $service->getProject()
         );
 

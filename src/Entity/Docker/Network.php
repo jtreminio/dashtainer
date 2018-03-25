@@ -59,19 +59,14 @@ class Network implements Util\HydratorInterface, Entity\EntityBaseInterface
     protected $external;
 
     /**
-     * @ORM\Column(name="is_primary_public", type="boolean")
+     * @ORM\Column(name="is_public", type="boolean")
      */
-    protected $is_primary_public = false;
+    protected $is_public = false;
 
     /**
-     * @ORM\Column(name="is_primary_private", type="boolean")
+     * @ORM\Column(name="is_editable", type="boolean")
      */
-    protected $is_primary_private = false;
-
-    /**
-     * @ORM\Column(name="is_removable", type="boolean")
-     */
-    protected $is_removable = true;
+    protected $is_editable = true;
 
     /**
      * @ORM\Column(name="labels", type="json_array", nullable=true)
@@ -144,50 +139,34 @@ class Network implements Util\HydratorInterface, Entity\EntityBaseInterface
         return $this;
     }
 
-    public function getIsPrimaryPublic() : bool
+    public function getIsPublic() : bool
     {
-        return $this->is_primary_public;
+        return $this->is_public;
     }
 
     /**
-     * @param bool $is_primary_public
+     * @param bool $is_public
      * @return $this
      */
-    public function setIsPrimaryPublic(bool $is_primary_public)
+    public function setIsPublic(bool $is_public)
     {
-        $this->is_primary_public = $is_primary_public;
+        $this->is_public = $is_public;
 
         return $this;
     }
 
-    public function getIsPrimaryPrivate() : bool
+    public function getIsEditable() : bool
     {
-        return $this->is_primary_private;
+        return $this->is_editable;
     }
 
     /**
-     * @param bool $is_primary_private
+     * @param bool $is_editable
      * @return $this
      */
-    public function setIsPrimaryPrivate(bool $is_primary_private)
+    public function setIsEditable(bool $is_editable)
     {
-        $this->is_primary_private = $is_primary_private;
-
-        return $this;
-    }
-
-    public function getIsRemovable() : bool
-    {
-        return $this->is_removable;
-    }
-
-    /**
-     * @param bool $is_removable
-     * @return $this
-     */
-    public function setIsRemovable(bool $is_removable)
-    {
-        $this->is_removable = $is_removable;
+        $this->is_editable = $is_editable;
 
         return $this;
     }

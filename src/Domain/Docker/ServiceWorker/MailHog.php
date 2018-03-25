@@ -43,7 +43,7 @@ class MailHog extends WorkerAbstract implements WorkerInterface
 
         $service->setImage('mailhog/mailhog:latest');
 
-        $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
+        $publicNetwork = $this->networkRepo->getPublicNetwork(
             $service->getProject()
         );
 

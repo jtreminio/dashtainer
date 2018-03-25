@@ -25,7 +25,7 @@
                 </div>
 
                 <div class="row">
-                    {% for network in service.networks if not network.isPrimaryPublic %}
+                    {% for network in service.networks if not network.isPublic %}
                         {% include '@Dashtainer/project/service/snippets/network_existing_card.html.twig' with {
                             'network': network,
                             'joined': true

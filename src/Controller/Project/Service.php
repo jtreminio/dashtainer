@@ -158,6 +158,7 @@ class Service extends Controller
             'name'           => $name,
             'errorContainer' => 'network_new',
             'networkName'    => $networkName,
+            'removable'      => true,
         ]);
 
         return new AjaxResponse([

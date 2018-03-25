@@ -37,7 +37,7 @@ class Network
 
         $network = new Entity\Docker\Network();
         $network->setName($form->name)
-            ->setIsRemovable(true)
+            ->setIsEditable(true)
             ->setProject($form->project);
 
         foreach ($services as $service) {

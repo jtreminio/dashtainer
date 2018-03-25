@@ -14,8 +14,10 @@
                     <span class="custom-switch-indicator"></span>
                     <span class="custom-switch-description">Joined</span>
                 </label>
-                <a href="#" class="card-options-remove"
-                   data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                {% if removable %}
+                    <a href="#" class="card-options-remove"
+                       data-toggle="card-remove"><i class="fe fe-x"></i></a>
+                {% endif %}
             </div>
         </div>
         <div class="card-body">

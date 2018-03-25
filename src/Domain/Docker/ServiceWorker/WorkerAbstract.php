@@ -254,11 +254,7 @@ abstract class WorkerAbstract implements WorkerInterface
 
         $removedNetworks = [];
 
-        foreach ($this->networkRepo->findByProject($form->project) as $network) {
-            if ($network->getIsPrimaryPublic()) {
-                continue;
-            }
-
+        foreach ($this->networkRepo->getPrivateNetworks($form->project) as $network) {
             $projectNetworks[$network->getName()] = $network;
         }
 
@@ -273,7 +269,7 @@ abstract class WorkerAbstract implements WorkerInterface
             $network = new Entity\Docker\Network();
             $network->setName($networkName)
                 ->setProject($service->getProject())
-                ->setIsRemovable(true)
+                ->setIsEditable(true)
                 ->addService($service);
 
             $service->addNetwork($network);
