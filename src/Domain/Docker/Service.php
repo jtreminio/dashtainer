@@ -103,4 +103,33 @@ class Service
 
         return "{$hostname}-" . uniqid();
     }
+
+    /**
+     * Takes list of service names and returns names that
+     * are not valid services in this project.
+     *
+     * @param Entity\Docker\Project $project
+     * @param string[]              $servicesList
+     * @return array
+     */
+    public function validateByName(
+        Entity\Docker\Project $project,
+        array $servicesList
+    ) : array {
+        $services = $this->repo->findBy([
+            'project' => $project,
+            'name'    => $servicesList,
+        ]);
+
+        if (count($services) === count($servicesList)) {
+            return [];
+        }
+
+        $servicesFound = [];
+        foreach ($services as $service) {
+            $servicesFound []= $service->getName();
+        }
+
+        return array_diff($servicesList, $servicesFound);
+    }
 }

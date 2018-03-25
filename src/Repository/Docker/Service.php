@@ -98,6 +98,18 @@ class Service implements Repository\ObjectPersistInterface
     }
 
     /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\Service[]
+     */
+    public function findAllByProject(
+        Entity\Docker\Project $project
+    ) : array {
+        return $this->findBy([
+            'project' => $project,
+        ]);
+    }
+
+    /**
      * @param Entity\Docker\Project     $project
      * @param Entity\Docker\ServiceType $type
      * @return Entity\Docker\Service[]
@@ -120,5 +132,20 @@ class Service implements Repository\ObjectPersistInterface
             'parent' => $parent,
             'type'   => $childType,
         ]);
+    }
+
+    /**
+     * @param Entity\Docker\Network $network
+     * @return Entity\Docker\Service[]
+     */
+    public function findByNotNetwork(Entity\Docker\Network $network) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->where(':network NOT MEMBER OF s.networks')
+            ->setParameters(['network' => $network]);
+
+        return $qb->getQuery()->getResult();
     }
 }
