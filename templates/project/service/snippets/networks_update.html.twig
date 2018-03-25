@@ -26,14 +26,14 @@
 
                 <div class="row">
                     {% for network in service.networks if not network.isPrimaryPublic %}
-                        {% include '@Dashtainer/project/service/snippets/network_card.html.twig' with {
+                        {% include '@Dashtainer/project/service/snippets/network_existing_card.html.twig' with {
                             'network': network,
                             'joined': true
                         } %}
                     {% endfor %}
 
                     {% for network in nonJoinedNetworks %}
-                        {% include '@Dashtainer/project/service/snippets/network_card.html.twig' with {
+                        {% include '@Dashtainer/project/service/snippets/network_existing_card.html.twig' with {
                             'network': network,
                             'joined': false
                         } %}

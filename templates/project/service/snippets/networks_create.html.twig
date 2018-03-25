@@ -34,7 +34,7 @@
 
                 <div class="row">
                     {% for network in networks %}
-                        {% include '@Dashtainer/project/service/snippets/network_card.html.twig' with {
+                        {% include '@Dashtainer/project/service/snippets/network_existing_card.html.twig' with {
                             'network': network,
                             'joined': false
                         } %}
