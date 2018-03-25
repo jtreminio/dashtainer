@@ -47,13 +47,9 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
             'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         return $service;
     }
@@ -83,6 +79,8 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
         ]);
 
         $this->serviceRepo->save($service);
+
+        $this->addToPrivateNetworks($service, $form);
 
         return $service;
     }

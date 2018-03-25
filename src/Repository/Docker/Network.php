@@ -87,6 +87,57 @@ class Network implements Repository\ObjectPersistInterface
         return self::ENTITY_CLASS;
     }
 
+    /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\Network[]
+     */
+    public function findByProject(Entity\Docker\Project $project) : array
+    {
+        return $this->repo->findBy(['project' => $project]);
+    }
+
+    /**
+     * @param Entity\Docker\Service $service
+     * @param bool                  $public
+     * @return Entity\Docker\Network[]
+     */
+    public function findByService(Entity\Docker\Service $service, bool $public = false) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('n')
+            ->from('Dashtainer:Docker\Network', 'n')
+            ->where(':service MEMBER OF n.services');
+
+        if (!$public) {
+            $qb->andWhere('n.is_primary_public = 0');
+        }
+
+        $qb->setParameters(['service' => $service]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param Entity\Docker\Service $service
+     * @param bool                  $public
+     * @return Entity\Docker\Network[]
+     */
+    public function findByNotService(Entity\Docker\Service $service, bool $public = false) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('n')
+            ->from('Dashtainer:Docker\Network', 'n')
+            ->where(':service NOT MEMBER OF n.services');
+
+        if (!$public) {
+            $qb->andWhere('n.is_primary_public = 0');
+        }
+
+        $qb->setParameters(['service' => $service]);
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function getPrimaryPublicNetwork(
         Entity\Docker\Project $project
     ) : ?Entity\Docker\Network {
@@ -103,5 +154,23 @@ class Network implements Repository\ObjectPersistInterface
             'project'            => $project,
             'is_primary_private' => true,
         ]);
+    }
+
+    public function getPrivateNetworks(
+        Entity\Docker\Project $project
+    ) : array {
+        $publicNetwork = $this->getPrimaryPublicNetwork($project);
+
+        $allNetworks = $this->findByProject($project);
+
+        foreach ($allNetworks as $key => $network) {
+            if ($network->getId() === $publicNetwork->getId()) {
+                unset($allNetworks[$key]);
+
+                break;
+            }
+        }
+
+        return $allNetworks;
     }
 }

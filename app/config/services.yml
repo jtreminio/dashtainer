@@ -5,6 +5,8 @@ services:
         autowire: true
         autoconfigure: true
         public: false
+        bind:
+            $wordListFile: '%kernel.project_dir%/assets/data/words-list.txt'
 
     security_lib.strength:
         class: SecurityLib\Strength

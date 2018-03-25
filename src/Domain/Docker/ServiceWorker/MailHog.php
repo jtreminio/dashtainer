@@ -43,22 +43,19 @@ class MailHog extends WorkerAbstract implements WorkerInterface
 
         $service->setImage('mailhog/mailhog:latest');
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
-
         $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
             $service->getProject()
         );
 
-        $service->addNetwork($privateNetwork)
-            ->addNetwork($publicNetwork);
+        $service->addNetwork($publicNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
+        $this->serviceRepo->save($service, $publicNetwork);
 
-        $service->addLabel('traefik.backend', $privateNetwork->getName())
+        $this->addToPrivateNetworks($service, $form);
+
+        $service->addLabel('traefik.backend', $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', "Host:{$privateNetwork->getName()}.localhost")
+            ->addLabel('traefik.frontend.rule', "Host:{$service->getName()}.localhost")
             ->addLabel('traefik.port', 8025);
 
         return $service;
@@ -83,6 +80,8 @@ class MailHog extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
+        $this->addToPrivateNetworks($service, $form);
+
         return $service;
     }
 }

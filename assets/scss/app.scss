@@ -36,6 +36,10 @@
     margin-left: .5rem;
 }
 
+.nav-item .btn-group {
+    margin-left: 5px;
+}
+
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.5);
     &.in {
@@ -44,7 +48,7 @@
 }
 
 [data-code-highlight] {
-    height: 30em;
+    height: 50em;
     resize: vertical;
     cursor: text;
     position: relative;
@@ -73,6 +77,15 @@
     .tag {
         background-color: transparent !important;
         cursor: text;
+
+        font-size: inherit;
+        color: inherit;
+        border-radius: 0;
+        padding: inherit;
+        line-height: inherit;
+        display: inherit;
+        font-weight: inherit;
+        user-select: inherit;
     }
 }
 
@@ -156,6 +169,7 @@ ul[role="tablist"] {
         }
 
         a[data-toggle="add-block"],
+        a[data-toggle="add-block-inline"],
         a[data-toggle="dropdown"] {
             color: #000;
         }
@@ -174,4 +188,12 @@ ul[role="tablist"] {
     @extend .tag-addon;
 
     margin: 0;
+}
+
+.card-category {
+    &.title {
+        margin-top: -20px;
+        margin-left: -15px;
+        margin-bottom: 10px;
+    }
 }

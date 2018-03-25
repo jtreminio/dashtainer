@@ -42,6 +42,7 @@ $(document).ready(function() {
     require('./addBlock');
     require('./removeBlock');
     require('./codeFromRemote');
+    require('./card');
 
     DASHTAINER.eventDataToggleTab();
     DASHTAINER.dataMask();

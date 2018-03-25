@@ -16,8 +16,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Service extends Controller
 {
+    /** @var Domain\Docker\Network */
+    protected $dNetworkDomain;
+
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;
+
+    /** @var Repository\Docker\Network */
+    protected $dNetworkRepo;
 
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
@@ -35,15 +41,19 @@ class Service extends Controller
     protected $validator;
 
     public function __construct(
+        Domain\Docker\Network $dNetworkDomain,
         Domain\Docker\Service $dServiceDomain,
+        Repository\Docker\Network $dNetworkRepo,
         Repository\Docker\Project $dProjectRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
+        $this->dNetworkDomain = $dNetworkDomain;
         $this->dServiceDomain = $dServiceDomain;
 
+        $this->dNetworkRepo     = $dNetworkRepo;
         $this->dProjectRepo     = $dProjectRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
@@ -141,11 +151,15 @@ class Service extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $serviceName = $this->dServiceDomain->generateServiceName(
+        $networks = $this->dNetworkRepo->getPrivateNetworks($project);
+
+        $serviceName = $this->dServiceDomain->generateName(
             $project,
             $serviceType,
             $version
         );
+
+        $networkName = $this->dNetworkDomain->generateName($project);
 
         $template = sprintf('@Dashtainer/project/service/%s/create.html.twig',
             strtolower($serviceTypeSlug)
@@ -159,6 +173,8 @@ class Service extends Controller
             'serviceName' => $serviceName,
             'serviceType' => $serviceType,
             'version'     => $version,
+            'networks'    => $networks,
+            'networkName' => $networkName,
         ], $params));
     }
 
@@ -283,6 +299,8 @@ class Service extends Controller
             ]);
         }
 
+        $nonJoinedNetworks = $this->dNetworkRepo->findByNotService($service);
+
         $serviceType = $service->getType();
         $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getName())
@@ -291,8 +309,9 @@ class Service extends Controller
         $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
-            'service' => $service,
-            'project' => $project,
+            'service'           => $service,
+            'project'           => $project,
+            'nonJoinedNetworks' => $nonJoinedNetworks,
         ], $params));
     }
 

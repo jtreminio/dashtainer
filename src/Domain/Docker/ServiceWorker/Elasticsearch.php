@@ -50,13 +50,9 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
             'ES_JAVA_OPTS' => "-Xms{$form->heap_size} -Xmx{$form->heap_size}",
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         $ulimits = $service->getUlimits();
         $ulimits->setMemlock(-1, -1);
@@ -172,6 +168,8 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $service->setEnvironments([
             'ES_JAVA_OPTS' => "-Xms{$form->heap_size} -Xmx{$form->heap_size}",
         ]);
+
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);

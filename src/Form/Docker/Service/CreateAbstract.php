@@ -28,6 +28,8 @@ abstract class CreateAbstract implements Util\HydratorInterface
      */
     public $type;
 
+    public $networks = [];
+
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -38,6 +40,12 @@ abstract class CreateAbstract implements Util\HydratorInterface
         if ($this->service_name_used) {
             $context->buildViolation('Name already used in this project')
                 ->atPath('name')
+                ->addViolation();
+        }
+
+        if (empty($this->networks)) {
+            $context->buildViolation('You must join or create at least one network')
+                ->atPath('networks')
                 ->addViolation();
         }
     }

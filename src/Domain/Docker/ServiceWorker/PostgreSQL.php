@@ -52,13 +52,9 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'POSTGRES_PASSWORD' => $form->postgres_password,
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
@@ -180,6 +176,8 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'POSTGRES_USER'     => $form->postgres_user,
             'POSTGRES_PASSWORD' => $form->postgres_password,
         ]);
+
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);

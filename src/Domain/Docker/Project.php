@@ -36,16 +36,9 @@ class Project
             ->setExternal('traefik_webgateway')
             ->setProject($project);
 
-        $privateNetwork = new Entity\Docker\Network();
-        $privateNetwork->setName("{$hostname}-private")
-            ->setIsRemovable(false)
-            ->setIsPrimaryPrivate(true)
-            ->setProject($project);
+        $project->addNetwork($publicNetwork);
 
-        $project->addNetwork($publicNetwork)
-            ->addNetwork($privateNetwork);
-
-        $this->repo->save($publicNetwork, $privateNetwork, $project);
+        $this->repo->save($publicNetwork, $project);
 
         return $project;
     }

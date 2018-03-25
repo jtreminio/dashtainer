@@ -56,23 +56,20 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
-
         $publicNetwork = $this->networkRepo->getPrimaryPublicNetwork(
             $service->getProject()
         );
 
-        $service->addNetwork($privateNetwork)
-            ->addNetwork($publicNetwork);
+        $service->addNetwork($publicNetwork);
 
-        $this->serviceRepo->save($service, $privateNetwork, $publicNetwork);
+        $this->serviceRepo->save($service, $publicNetwork);
+
+        $this->addToPrivateNetworks($service, $form);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
 
-        $service->addLabel('traefik.backend', $privateNetwork->getName())
+        $service->addLabel('traefik.backend', $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
@@ -239,6 +236,8 @@ class Nginx extends WorkerAbstract implements WorkerInterface
             ]);
 
         $service->setBuild($build);
+
+        $this->addToPrivateNetworks($service, $form);
 
         $this->serviceRepo->save($service);
 

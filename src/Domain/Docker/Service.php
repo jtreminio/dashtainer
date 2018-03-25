@@ -71,7 +71,7 @@ class Service
         return $handler->getViewParams($service);
     }
 
-    public function generateServiceName(
+    public function generateName(
         Entity\Docker\Project $project,
         Entity\Docker\ServiceType $serviceType,
         string $version = null

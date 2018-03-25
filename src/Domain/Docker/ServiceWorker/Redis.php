@@ -45,13 +45,9 @@ class Redis extends WorkerAbstract implements WorkerInterface
 
         $service->setImage("redis:{$version}");
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
@@ -135,6 +131,8 @@ class Redis extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
+        $this->addToPrivateNetworks($service, $form);
+
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);
 

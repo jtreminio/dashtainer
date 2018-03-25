@@ -10,6 +10,9 @@ use Dashtainer\Validator\Constraints;
 
 abstract class WorkerAbstract implements WorkerInterface
 {
+    /** @var Repository\Docker\Network */
+    protected $networkRepo;
+
     /** @var Repository\Docker\Service */
     protected $serviceRepo;
 
@@ -233,5 +236,81 @@ abstract class WorkerAbstract implements WorkerInterface
             'type'  => $projectFilesMeta->getData()['type'],
             'local' => $projectFilesLocal,
         ];
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function addToPrivateNetworks(Entity\Docker\Service $service, $form)
+    {
+        // New project networks
+        $projectNetworks = [];
+        $createdNetworks = [];
+
+        // New service networks
+        $serviceNetworks = [];
+        $joinedNetworks  = [];
+
+        $removedNetworks = [];
+
+        foreach ($this->networkRepo->findByProject($form->project) as $network) {
+            if ($network->getIsPrimaryPublic()) {
+                continue;
+            }
+
+            $projectNetworks[$network->getName()] = $network;
+        }
+
+        foreach ($this->networkRepo->findByService($service) as $network) {
+            $serviceNetworks[$network->getName()] = $network;
+        }
+
+        $newProjectNetworks = array_diff($form->networks, array_keys($projectNetworks));
+        $newServiceNetworks = array_diff($form->networks, array_keys($serviceNetworks));
+
+        foreach ($newProjectNetworks as $networkName) {
+            $network = new Entity\Docker\Network();
+            $network->setName($networkName)
+                ->setProject($service->getProject())
+                ->setIsRemovable(true)
+                ->addService($service);
+
+            $service->addNetwork($network);
+
+            $createdNetworks []= $network;
+        }
+
+        foreach ($newServiceNetworks as $networkName) {
+            // Network already created
+            if (in_array($networkName, $newProjectNetworks)) {
+                continue;
+            }
+
+            /** @var Entity\Docker\Network $network */
+            $network = $projectNetworks[$networkName];
+            $network->addService($service);
+
+            $service->addNetwork($network);
+
+            $joinedNetworks []= $network;
+        }
+
+        // Networks this service does not belong to
+        /** @var Entity\Docker\Network $network */
+        foreach ($projectNetworks as $networkName => $network) {
+            if (in_array($networkName, $form->networks)) {
+                continue;
+            }
+
+            $service->removeNetwork($network);
+            $network->removeService($service);
+
+            $removedNetworks []= $network;
+        }
+
+        $this->serviceRepo->save($service, ...$createdNetworks);
+        $this->serviceRepo->save($service, ...$joinedNetworks);
+        $this->serviceRepo->save($service, ...array_values($removedNetworks));
     }
 }

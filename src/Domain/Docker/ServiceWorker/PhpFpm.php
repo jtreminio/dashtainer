@@ -73,13 +73,9 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -269,6 +265,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
+        $this->addToPrivateNetworks($service, $form);
+
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
@@ -282,8 +280,21 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesUpdate($service, $form);
 
+        $xdebugIni = $service->getVolume('xdebug.ini');
         if ($form->xdebug['install'] ?? false) {
-            $xdebugIni = $service->getVolume('xdebug.ini');
+            if (!$xdebugIni) {
+                $xdebugIni = new Entity\Docker\ServiceVolume();
+                $xdebugIni->setName('xdebug.ini')
+                    ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
+                    ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
+                    ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+                    ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+                    ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+                    ->setService($service);
+
+                $service->addVolume($xdebugIni);
+            }
+
             $xdebugIni->setData($form->xdebug['ini']);
 
             $this->serviceRepo->save($xdebugIni);
@@ -312,13 +323,14 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $blackfireForm = $this->blackfireWorker->getCreateForm();
 
         $blackfireForm->fromArray($form->blackfire);
+        $blackfireForm->project  = $form->project;
+        $blackfireForm->networks = $form->networks;
 
         if (!$blackfireService = $this->getBlackfireChild($parent)) {
             $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
 
-            $blackfireForm->name    = "{$blackfireSlug}-{$form->name}";
-            $blackfireForm->project = $form->project;
-            $blackfireForm->type    = $this->serviceTypeRepo->findBySlug(
+            $blackfireForm->name = "{$blackfireSlug}-{$form->name}";
+            $blackfireForm->type = $this->serviceTypeRepo->findBySlug(
                 $blackfireSlug
             );
 

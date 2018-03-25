@@ -53,13 +53,9 @@ class MySQL extends WorkerAbstract implements WorkerInterface
             'MYSQL_PASSWORD'      => $form->mysql_password,
         ]);
 
-        $privateNetwork = $this->networkRepo->getPrimaryPrivateNetwork(
-            $service->getProject()
-        );
+        $this->serviceRepo->save($service);
 
-        $service->addNetwork($privateNetwork);
-
-        $this->serviceRepo->save($service, $privateNetwork);
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = new Entity\Docker\ServiceMeta();
         $dataStoreMeta->setName('datastore')
@@ -184,6 +180,8 @@ class MySQL extends WorkerAbstract implements WorkerInterface
             'MYSQL_USER'          => $form->mysql_user,
             'MYSQL_PASSWORD'      => $form->mysql_password,
         ]);
+
+        $this->addToPrivateNetworks($service, $form);
 
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);

@@ -37,6 +37,10 @@
                 <span id="service-name-tag">{{ service.name }}</span>:9000</span>
         </div>
 
+        {% include '@Dashtainer/project/service/snippets/_networks_update.html.twig' %}
+
+        <hr class="my-6" />
+
         {% include '@Dashtainer/project/service/snippets/_project_files_update.html.twig' %}
 
         <hr class="my-6" />
@@ -371,6 +375,9 @@
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
     </div>
 </div>
 {% endblock %}

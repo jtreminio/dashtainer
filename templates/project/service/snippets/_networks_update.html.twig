@@ -1,0 +1,94 @@
+<h4 class="mb-3">Networks</h4>
+
+<div class="row">
+    <div class="col">
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link"
+                   data-toggle="add-block-inline"
+                   data-inline-controls="#new-networks"
+                   aria-controls="#nav-networks-content"
+                   href="{{ path('project.network.block-create.get', {
+                       'projectId': project.id,
+                   }) }}"><i class="fe fe-plus"></i> Create Network</a>
+            </li>
+        </ul>
+
+        <div id="nav-networks-content" class="tab-content">
+            <div id="networks-tab" role="tabpanel"
+                 class="tab-pane fade show active">
+                <div class="row" id="new-networks">
+                </div>
+
+                <div class="row">
+                    {% for network in service.networks if not network.isPrimaryPublic %}
+                        <div class="col-6 card-container">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{{ network.name }}</h3>
+                                    <div class="card-options">
+                                        <label class="custom-switch m-0">
+                                            <input type="checkbox" class="custom-switch-input"
+                                                   id="networks-{{ network.name }}"
+                                                   name="networks[]"
+                                                   value="{{ network.name }}" checked />
+                                            <span class="custom-switch-indicator"></span>
+                                            <span class="custom-switch-description">Join</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-category title">Services:</div>
+                                    <div class="tags">
+                                        {% for networkService in network.services if networkService.parent is empty %}
+                                            <a href="{{ path('project.service.view.get', {
+                                                'projectId': project.id,
+                                                'serviceId': networkService.id,
+                                            }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% for network in nonJoinedNetworks %}
+                        <div class="col-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{{ network.name }}</h3>
+                                    <div class="card-options">
+                                        <label class="custom-switch m-0">
+                                            <input type="checkbox" class="custom-switch-input"
+                                                   id="networks-{{ network.name }}"
+                                                   name="networks[]"
+                                                   value="{{ network.name }}" />
+                                            <span class="custom-switch-indicator"></span>
+                                            <span class="custom-switch-description">Join</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="tags">
+                                        <label class="form-label d-inline-block mr-2">Services:</label>
+                                        {% for networkService in network.services if networkService.parent is empty %}
+                                            <a href="{{ path('project.service.view.get', {
+                                                'projectId': project.id,
+                                                'serviceId': networkService.id,
+                                            }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="networks" data-error-container="networks-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="networks-error"></div>
+    </div>
+</div>
