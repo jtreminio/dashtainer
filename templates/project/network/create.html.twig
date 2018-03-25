@@ -1,0 +1,102 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        Create Network
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Network
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Network</a>
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Network</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.network.create.post', {
+    'projectId': project.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Network Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ networkName }}" required data-mask-type="dns"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <h4 class="mb-3">Services</h4>
+
+        <table class="table table-vcenter text-nowrap">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th class="w-1">Add</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% set servicesEmpty = true %}
+            {% for service in project.services if service.parent is empty %}
+                {% set servicesEmpty = false %}
+                <tr>
+                    <td><a href="{{ path('project.service.view.get', {
+                            'projectId': project.id,
+                            'serviceId': service.id,
+                        }) }}" class="text-inherit" target="_blank">{{ service.name }}</a></td>
+                    <td>{{ service.type.name }}</td>
+                    <td>
+                        <div class="form-group">
+                            <div class="custom-controls-stacked">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input"
+                                           id="services-{{ service.name }}"
+                                           name="services[]"
+                                           value="{{ service.name }}" />
+                                    <label class="custom-control-label"
+                                           for="services-{{ service.name }}">Add</label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            {% if servicesEmpty %}
+                <tr>
+                    <td colspan="3">No services to add</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <input type="hidden" id="services" data-error-container="services-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="services-error"></div>
+
+        <hr class="my-6" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Network</button>
+    </div>
+</form>
+
+    </div>
+</div>
+{% endblock %}

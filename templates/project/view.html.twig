@@ -109,14 +109,19 @@
                             <h3 class="mb-0">Networks</h3>
                         </div>
                         <div class="col-auto">
-                            <button class="btn btn-primary btn-sm" type="button">
+                            <a href="{{ path('project.network.create.get', {
+                                    'projectId': project.id,
+                                }) }}" class="btn btn-primary btn-sm">
                                 <i class="fe fe-plus mr-2"></i> Create a network
-                            </button>
+                            </a>
                         </div>
                     </div>
 
                     {% for network in project.networks %}
-                        <p>{{ network.name }}</p>
+                        <p><a href="{{ path('project.network.view.get', {
+                                'projectId': project.id,
+                                'networkId': network.id
+                            }) }}">{{ network.name }}</a></p>
                     {% endfor %}
 
                     {% if project.networks is empty %}

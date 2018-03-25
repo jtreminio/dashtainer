@@ -1,0 +1,42 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        {{ network.name }}
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Network
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap p-lg-6">
+                    <h3>{{ network.name }}</h3>
+
+                    <p>ID: {{ network.id }}</p>
+                    <p>Name: {{ network.name }}</p>
+                    <p><a href="{{ path('project.network.update.get', {
+                            'projectId': project.id,
+                            'networkId': network.id,
+                        }) }}">Edit network</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

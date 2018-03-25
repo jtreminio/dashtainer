@@ -1,0 +1,161 @@
+{% extends '@Dashtainer/template.html.twig' %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">
+        Update Network
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="alert alert-primary text-center">
+            Manage Network
+        </div>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Network</a>
+            <a href="#"
+               class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Network</a>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.network.update.post', {
+    'projectId': project.id,
+    'networkId': network.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Network Name</label>
+                <input type="text" class="form-control" maxlength="64"
+                       id="name" name="name" placeholder=""
+                       value="{{ network.name }}" required data-mask-type="dns"
+                       data-error-container="name" />
+                <div class="invalid-feedback" data-error-container-name="name"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <h4 class="mb-3">Services</h4>
+
+                <div class="alert alert-icon alert-warning mb-6" role="alert">
+                    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+                    Removing services may leave some services without any networks.
+                </div>
+
+        <table class="table table-vcenter text-nowrap">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th class="w-1">Add</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% set servicesEmpty = true %}
+            {% for service in network.services if service.parent is empty %}
+                {% set servicesEmpty = false %}
+                <tr>
+                    <td><a href="{{ path('project.service.view.get', {
+                            'projectId': project.id,
+                            'serviceId': service.id,
+                        }) }}" class="text-inherit" target="_blank">{{ service.name }}</a></td>
+                    <td>{{ service.type.name }}</td>
+                    <td>
+                        <div class="form-group">
+                            <div class="custom-controls-stacked">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input"
+                                           id="services-{{ service.name }}"
+                                           name="services[]" checked
+                                           value="{{ service.name }}" />
+                                    <label class="custom-control-label"
+                                           for="services-{{ service.name }}">Added</label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            {% for service in notServices if service.parent is empty %}
+                {% set servicesEmpty = false %}
+                <tr>
+                    <td><a href="{{ path('project.service.view.get', {
+                            'projectId': project.id,
+                            'serviceId': service.id,
+                        }) }}" class="text-inherit" target="_blank">{{ service.name }}</a></td>
+                    <td>{{ service.type.name }}</td>
+                    <td>
+                        <div class="form-group">
+                            <div class="custom-controls-stacked">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input"
+                                           id="services-{{ service.name }}"
+                                           name="services[]"
+                                           value="{{ service.name }}" />
+                                    <label class="custom-control-label"
+                                           for="services-{{ service.name }}">Add</label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+
+            {% if servicesEmpty %}
+                <tr>
+                    <td colspan="3">No services to add</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+
+        <input type="hidden" id="services" data-error-container="services-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="services-error"></div>
+
+        <hr class="my-6" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Network</button>
+
+        <p class="my-3"><a href="#" data-toggle="modal"
+              data-target="#network-delete-modal">Delete network</a></p>
+    </div>
+</form>
+
+    </div>
+</div>
+
+<div class="modal fade" id="network-delete-modal" tabindex="-1" role="dialog"
+     aria-labelledby="network-delete-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="network-delete-modal-title">Delete this network?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ path('project.network.delete.post', {
+                    'projectId': project.id,
+                    'networkId': network.id,
+                }) }}"
+                  method="post" data-ajax>
+                <div class="modal-body">
+                    <p>This may leave some services without any networks.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Yes, delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

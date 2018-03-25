@@ -91,9 +91,19 @@ class Network implements Repository\ObjectPersistInterface
      * @param Entity\Docker\Project $project
      * @return Entity\Docker\Network[]
      */
-    public function findByProject(Entity\Docker\Project $project) : array
+    public function findAllByProject(Entity\Docker\Project $project) : array
     {
         return $this->repo->findBy(['project' => $project]);
+    }
+
+    public function findByProject(
+        Entity\Docker\Project $project,
+        string $id
+    ) : ?Entity\Docker\Network {
+        return $this->findOneBy([
+            'id'      => $id,
+            'project' => $project,
+        ]);
     }
 
     /**
@@ -161,7 +171,7 @@ class Network implements Repository\ObjectPersistInterface
     ) : array {
         $publicNetwork = $this->getPrimaryPublicNetwork($project);
 
-        $allNetworks = $this->findByProject($project);
+        $allNetworks = $this->findAllByProject($project);
 
         foreach ($allNetworks as $key => $network) {
             if ($network->getId() === $publicNetwork->getId()) {

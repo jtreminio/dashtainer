@@ -11,23 +11,86 @@ class Network
     /** @var Repository\Docker\Network */
     protected $repo;
 
+    /** @var Repository\Docker\Service */
+    protected $serviceRepo;
+
     protected $wordsListFile;
 
-    public function __construct(Repository\Docker\Network $repo, string $wordListFile)
-    {
+    public function __construct(
+        Repository\Docker\Network $repo,
+        Repository\Docker\Service $serviceRepo,
+        string $wordListFile
+    ) {
         $this->repo = $repo;
+
+        $this->serviceRepo   = $serviceRepo;
         $this->wordsListFile = $wordListFile;
     }
 
-    public function createNetworkFromForm(
+    public function createFromForm(
         Form\Docker\NetworkCreateUpdate $form
     ) : Entity\Docker\Network {
-        $network = new Entity\Docker\Network();
-        $network->fromArray($form->toArray());
+        $services = $this->serviceRepo->findBy([
+            'project' => $form->project,
+            'name'    => $form->services,
+        ]);
 
-        $this->repo->save($network);
+        $network = new Entity\Docker\Network();
+        $network->setName($form->name)
+            ->setIsRemovable(true)
+            ->setProject($form->project);
+
+        foreach ($services as $service) {
+            $network->addService($service);
+            $service->addNetwork($network);
+        }
+
+        $this->repo->save($network, ...$services);
 
         return $network;
+    }
+
+    public function updateFromForm(
+        Form\Docker\NetworkCreateUpdate $form
+    ) : Entity\Docker\Network {
+        $network = $this->repo->findOneBy(['name' => $form->name]);
+
+        $nonSelectedServices = [];
+        $selectedServices    = [];
+
+        foreach ($this->serviceRepo->findAllByProject($form->project) as $service) {
+            if (!in_array($service->getName(), $form->services)) {
+                $network->removeService($service);
+                $service->removeNetwork($network);
+
+                $nonSelectedServices []= $service;
+
+                continue;
+            }
+
+            $network->addService($service);
+            $service->addNetwork($network);
+
+            $selectedServices []= $service;
+        }
+
+        $this->repo->save($network, ...$nonSelectedServices, ...$selectedServices);
+
+        return $network;
+    }
+
+    public function delete(Entity\Docker\Network $network)
+    {
+        $services = [];
+        foreach ($network->getServices() as $service) {
+            $network->removeService($service);
+            $service->removeNetwork($network);
+
+            $services []= $service;
+        }
+
+        $this->repo->save($network, ...$services);
+        $this->repo->delete($network);
     }
 
     public function generateName(Entity\Docker\Project $project) : string
