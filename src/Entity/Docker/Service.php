@@ -933,7 +933,24 @@ class Service implements
     public function getUlimits() : Service\Ulimits
     {
         $ulimits = new Service\Ulimits();
-        $ulimits->fromArray($this->ulimits);
+
+        if (!empty($this->ulimits['memlock'])) {
+            $ulimits->setMemlock(
+                $this->ulimits['memlock']['soft'],
+                $this->ulimits['memlock']['hard']
+            );
+        }
+
+        if (!empty($this->ulimits['nofile'])) {
+            $ulimits->setNofile(
+                $this->ulimits['nofile']['soft'],
+                $this->ulimits['nofile']['hard']
+            );
+        }
+
+        if (array_key_exists('nproc', $this->ulimits)) {
+            $ulimits->setNproc($this->ulimits['nproc']);
+        }
 
         return $ulimits;
     }

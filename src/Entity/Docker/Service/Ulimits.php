@@ -63,7 +63,7 @@ class Ulimits implements Util\HydratorInterface
      * @param int $nproc
      * @return $this
      */
-    public function setNproc(int $nproc)
+    public function setNproc(int $nproc = null)
     {
         $this->nproc = $nproc;
 
