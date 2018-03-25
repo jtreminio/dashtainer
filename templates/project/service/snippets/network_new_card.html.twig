@@ -1,11 +1,12 @@
 <div class="col-6 card-container">
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">
+            <div class="card-title">
                 <input type="text" class="form-control" maxlength="64"
                        id="networks-{{ networkName }}"
-                       name="networks[]" placeholder=""
-                       value="{{ networkName }}" data-mask-type="dns" /></h3>
+                       name="networks[]" placeholder="" required
+                       value="{{ networkName }}" data-mask-type="dns" />
+            </div>
             <div class="card-options">
                 <label class="custom-switch m-0">
                     <input type="checkbox" class="custom-switch-input"

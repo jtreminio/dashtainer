@@ -8,7 +8,7 @@
                    data-toggle="add-block-inline"
                    data-inline-controls="#new-networks"
                    aria-controls="#nav-networks-content"
-                   href="{{ path('project.network.block-create.get', {
+                   href="{{ path('project.service.network-block-create.get', {
                        'projectId': project.id,
                    }) }}"><i class="fe fe-plus"></i> Create Network</a>
             </li>
@@ -21,66 +21,23 @@
                     {% if networks is empty %}
                         <div class="alert alert-icon alert-warning mb-6" role="alert">
                             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-                            This is the first service in this project. You must create a new network
-                            which you can add other services to allow communicating with each other.
+                            This is the first service in this project.
+                            You must create an initial network. You may add more services to this network
+                            later. Services must share a network to speak to each other.
                         </div>
 
-                        <div class="col-6 card-container">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">
-                                        <input type="text" class="form-control" maxlength="64"
-                                               id="networks-{{ networkName }}"
-                                               name="networks[]" placeholder=""
-                                               value="{{ networkName }}" data-mask-type="dns" /></h3>
-                                    <div class="card-options">
-                                        <label class="custom-switch m-0">
-                                            <input type="checkbox" class="custom-switch-input"
-                                                   id="networks-{{ networkName }}-switch"
-                                                   checked disabled />
-                                            <span class="custom-switch-indicator"></span>
-                                            <span class="custom-switch-description">Joined</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    New network. You can add other services later.
-                                </div>
-                            </div>
-                        </div>
+                        {% include '@Dashtainer/project/service/snippets/network_new_card.html.twig' with {
+                            'networkName': networkName
+                        } %}
                     {% endif %}
                 </div>
 
                 <div class="row">
                     {% for network in networks %}
-                        <div class="col-6 card-container">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h3 class="card-title">{{ network.name }}</h3>
-                                    <div class="card-options">
-                                        <label class="custom-switch m-0">
-                                            <input type="checkbox" class="custom-switch-input"
-                                                   id="networks-{{ network.name }}"
-                                                   name="networks[]"
-                                                   value="{{ network.name }}" />
-                                            <span class="custom-switch-indicator"></span>
-                                            <span class="custom-switch-description">Join</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="card-category title">Services:</div>
-                                    <div class="tags">
-                                        {% for networkService in network.services if networkService.parent is empty %}
-                                            <a href="{{ path('project.service.view.get', {
-                                                'projectId': project.id,
-                                                'serviceId': networkService.id,
-                                            }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {% include '@Dashtainer/project/service/snippets/network_card.html.twig' with {
+                            'network': network,
+                            'joined': false
+                        } %}
                     {% endfor %}
                 </div>
             </div>

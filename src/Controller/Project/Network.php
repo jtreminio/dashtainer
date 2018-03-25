@@ -41,46 +41,4 @@ class Network extends Controller
 
         $this->validator = $validator;
     }
-
-    /**
-     * @Route(name="project.network.block-create.get",
-     *     path="/project/{projectId}/network/block-create",
-     *     methods={"GET"}
-     * )
-     * @param Entity\User $user
-     * @param string      $projectId
-     * @return            AjaxResponse
-     */
-    public function getBlockCreate(
-        Entity\User $user,
-        string $projectId
-    ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
-            return new AjaxResponse([
-                'type' => AjaxResponse::AJAX_REDIRECT,
-                'data' => '',
-            ], AjaxResponse::HTTP_BAD_REQUEST);
-        }
-
-        $uniqid = uniqid();
-
-        $id          = "network_new-{$uniqid}";
-        $name        = "network_new[{$uniqid}]";
-        $networkName = $this->dNetworkDomain->generateName($project);
-
-        $blockTemplate = '@Dashtainer/project/network/_block_content_new_network.html.twig';
-        $blockContent  = $this->render($blockTemplate, [
-            'id'             => $id,
-            'name'           => $name,
-            'errorContainer' => 'network_new',
-            'networkName'    => $networkName,
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => [
-                'content' => $blockContent->getContent(),
-            ],
-        ], AjaxResponse::HTTP_OK);
-    }
 }

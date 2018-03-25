@@ -1,0 +1,28 @@
+<div class="col-6 card-container">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ network.name }}</h3>
+            <div class="card-options">
+                <label class="custom-switch m-0">
+                    <input type="checkbox" class="custom-switch-input"
+                           id="networks-{{ network.name }}"
+                           name="networks[]" {{ joined ? 'checked' }}
+                           value="{{ network.name }}" />
+                    <span class="custom-switch-indicator"></span>
+                    <span class="custom-switch-description">{{ joined ? 'Joined' : 'Join' }}</span>
+                </label>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-category title">Services:</div>
+            <div class="tags">
+                {% for networkService in network.services if networkService.parent is empty %}
+                    <a href="{{ path('project.service.view.get', {
+                        'projectId': project.id,
+                        'serviceId': networkService.id,
+                    }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

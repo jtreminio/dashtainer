@@ -102,14 +102,14 @@ class Service extends Controller
         $id   = "custom_file-{$uniqid}";
         $name = "custom_file[{$uniqid}]";
 
-        $tabTemplate = '@Dashtainer/project/service/_block_tab_file.html.twig';
+        $tabTemplate = '@Dashtainer/project/service/snippets/service_custom_file_content.html.twig';
         $blockTab    = $this->render($tabTemplate, [
             'id'             => $id,
             'name'           => $name,
             'errorContainer' => 'custom_file',
         ]);
 
-        $blockTemplate = '@Dashtainer/project/service/_block_content_file.html.twig';
+        $blockTemplate = '@Dashtainer/project/service/snippets/service_custom_file_tab.html.twig';
         $blockContent  = $this->render($blockTemplate, [
             'id'             => $id,
             'name'           => $name,
@@ -121,6 +121,48 @@ class Service extends Controller
             'type' => AjaxResponse::AJAX_SUCCESS,
             'data' => [
                 'tab'     => $blockTab->getContent(),
+                'content' => $blockContent->getContent(),
+            ],
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.network-block-create.get",
+     *     path="/project/{projectId}/service/network-block-create",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return            AjaxResponse
+     */
+    public function getNetworkBlockCreate(
+        Entity\User $user,
+        string $projectId
+    ) : AjaxResponse {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return new AjaxResponse([
+                'type' => AjaxResponse::AJAX_REDIRECT,
+                'data' => '',
+            ], AjaxResponse::HTTP_BAD_REQUEST);
+        }
+
+        $uniqid = uniqid();
+
+        $id          = "network_new-{$uniqid}";
+        $name        = "network_new[{$uniqid}]";
+        $networkName = $this->dNetworkDomain->generateName($project);
+
+        $blockTemplate = '@Dashtainer/project/service/snippets/network_new_card.html.twig';
+        $blockContent  = $this->render($blockTemplate, [
+            'id'             => $id,
+            'name'           => $name,
+            'errorContainer' => 'network_new',
+            'networkName'    => $networkName,
+        ]);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_SUCCESS,
+            'data' => [
                 'content' => $blockContent->getContent(),
             ],
         ], AjaxResponse::HTTP_OK);
