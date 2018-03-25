@@ -69,7 +69,7 @@
 
         <div class="row">
             <div class="form-group col">
-                <label for="system-packages">System Packages</label>
+                <label class="form-label" for="system-packages">System Packages</label>
                 <select class="form-control" id="system-packages" name="system_packages[]"
                         multiple data-error-container="system-packages" data-selectize-tags>
                 </select>
@@ -85,7 +85,7 @@
         {% set modules = serviceType.meta('modules') %}
         <div class="row">
             <div class="form-group col">
-                <label for="enabled-modules">Enabled Modules</label>
+                <label class="form-label" for="enabled-modules">Enabled Modules</label>
                 <select class="form-control" id="enabled-modules" name="enabled_modules[]"
                         multiple data-error-container="enabled-modules" data-selectize-tags>
                     {% for module in modules.data.default %}
@@ -101,7 +101,7 @@
 
         <div class="row">
             <div class="form-group col">
-                <label for="disabled-modules">Disabled Modules</label>
+                <label class="form-label" for="disabled-modules">Disabled Modules</label>
                 <select class="form-control" id="disabled-modules" name="disabled_modules[]"
                         multiple data-error-container="disabled-modules" data-selectize-tags>
                     {% for module in modules.data.disable %}
@@ -124,7 +124,7 @@
 
         <div class="row">
             <div class="col-12 col-xl form-group">
-                <label for="server_name">Server Name</label>
+                <label class="form-label" for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
                        value="awesome.localhost"
@@ -136,7 +136,7 @@
             </div>
 
             <div class="col-12 col-xl form-group">
-                <label for="server_alias">Server Aliases</label>
+                <label class="form-label" for="server_alias">Server Aliases</label>
                 <select class="form-control" id="server_alias"
                         name="server_alias[]"
                         multiple data-selectize-tags>
@@ -151,7 +151,7 @@
 
         <div class="row">
             <div class="col-12 col-xl form-group">
-                <label for="document_root">Document Root</label>
+                <label class="form-label" for="document_root">Document Root</label>
                 <input type="text" class="form-control"
                        id="document_root" name="document_root" placeholder=""
                        value="/var/www" />
@@ -164,7 +164,7 @@
 
             {% set has_fcgi_handlers = false %}
             <div class="col-12 col-xl form-group">
-                <label for="fcgi_handler">FCGI Handler</label>
+                <label class="form-label" for="fcgi_handler">FCGI Handler</label>
                 <select class="form-control" id="fcgi_handler"
                         name="fcgi_handler"
                         data-selectize-tags>

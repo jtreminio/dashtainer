@@ -30,6 +30,7 @@
 
                     <p>ID: {{ service.id }}</p>
                     <p>Name: {{ service.name }}</p>
+                    <p>Networks: {% for network in service.networks %}{{ network.name }}, {% endfor %}</p>
                     <p><a href="{{ path('project.service.update.get', {
                             'projectId': project.id,
                             'serviceId': service.id,

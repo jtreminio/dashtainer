@@ -65,7 +65,7 @@
         {% set phpGeneralPackages = serviceType.meta('packages-general') %}
         <div class="row">
             <div class="form-group col">
-                <label for="php-packages">PHP Packages</label>
+                <label class="form-label" for="php-packages">PHP Packages</label>
                 <select class="form-control" id="php-packages" name="php_packages[]"
                         multiple data-error-container="php-packages" data-selectize-tags>
                     {% if phpVersionedPackages %}
@@ -95,7 +95,7 @@
 
         <div class="row">
             <div class="form-group col">
-                <label for="pear-packages">PEAR Packages</label>
+                <label class="form-label" for="pear-packages">PEAR Packages</label>
                 <select class="form-control" id="pear-packages" name="pear_packages[]"
                         multiple data-error-container="pear-packages" data-selectize-tags>
                 </select>
@@ -111,7 +111,7 @@
 
         <div class="row">
             <div class="form-group col">
-                <label for="pecl-packages">PECL Packages</label>
+                <label class="form-label" for="pecl-packages">PECL Packages</label>
                 <select class="form-control" id="pecl-packages" name="pecl_packages[]"
                         multiple data-error-container="pecl-packages" data-selectize-tags>
                 </select>
@@ -127,7 +127,7 @@
 
         <div class="row">
             <div class="form-group col">
-                <label for="system-packages">System Packages</label>
+                <label class="form-label" for="system-packages">System Packages</label>
                 <select class="form-control" id="system-packages" name="system_packages[]"
                         multiple data-error-container="system-packages" data-selectize-tags>
                 </select>
@@ -322,7 +322,8 @@
 
                         <div class="row">
                             <div class="col-12 col-xl form-group">
-                                <label for="blackfire-server_id">Blackfire Server ID</label>
+                                <label class="form-label"
+                                       for="blackfire-server_id">Blackfire Server ID</label>
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_id" name="blackfire[server_id]"
                                        placeholder="" value=""
@@ -330,7 +331,8 @@
                             </div>
 
                             <div class="col-12 col-xl form-group">
-                                <label for="blackfire-server_token">Blackfire Server Token</label>
+                                <label class="form-label"
+                                       for="blackfire-server_token">Blackfire Server Token</label>
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_token" name="blackfire[server_token]"
                                        placeholder="" value=""

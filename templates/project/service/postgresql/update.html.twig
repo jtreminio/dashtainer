@@ -107,7 +107,7 @@
 
         <div class="row">
             <div class="col form-group">
-                <label for="postgres_db">Database</label>
+                <label class="form-label" for="postgres_db">Database</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="postgres_db" name="postgres_db" placeholder=""
                        value="{{ postgres_db }}" required
@@ -121,7 +121,7 @@
 
         <div class="row">
             <div class="col-12 col-xl form-group">
-                <label for="postgres_user">User</label>
+                <label class="form-label" for="postgres_user">User</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="postgres_user" name="postgres_user" placeholder=""
                        value="{{ postgres_user }}" required
@@ -134,7 +134,7 @@
             </div>
 
             <div class="col-12 col-xl form-group">
-                <label for="postgres_password">User Password</label>
+                <label class="form-label" for="postgres_password">User Password</label>
                 <input type="text" class="form-control" maxlength="64"
                        id="postgres_password" name="postgres_password" placeholder=""
                        value="{{ postgres_password }}" required
@@ -212,7 +212,8 @@
                              role="tabpanel">
                             <div class="row">
                                 <div class="form-group col">
-                                    <label for="custom_file-{{ file.id }}-filename">Filename</label>
+                                    <label class="form-label"
+                                           for="custom_file-{{ file.id }}-filename">Filename</label>
                                     <input type="text" class="form-control" maxlength="255"
                                            id="custom_file-{{ file.id }}-filename"
                                            name="custom_file[{{ file.id }}][filename]"
@@ -225,7 +226,8 @@
                                 </div>
 
                                 <div class="form-group col">
-                                    <label for="custom_file-{{ file.id }}-target">Target Path</label>
+                                    <label class="form-label"
+                                           for="custom_file-{{ file.id }}-target">Target Path</label>
                                     <input type="text" class="form-control" maxlength="255"
                                            id="custom_file-{{ file.id }}-target"
                                            name="custom_file[{{ file.id }}][target]"
