@@ -341,6 +341,26 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
             $this->serviceRepo->save($blackfireService, $parent);
 
+            $networkName = "{$parent->getName()}-blackfire";
+            $network = new Entity\Docker\Network();
+            $network->setName($networkName)
+                ->setProject($parent->getProject())
+                ->setIsEditable(false)
+                ->addService($parent)
+                ->addService($blackfireService);
+
+            $parent->addNetwork($network);
+            $blackfireService->addNetwork($network);
+
+            $blackfireNetwork = new Entity\Docker\ServiceMeta();
+            $blackfireNetwork->setName('blackfire-network')
+                ->setData([$networkName])
+                ->setService($parent);
+
+            $parent->addMeta($blackfireNetwork);
+
+            $this->serviceRepo->save($network, $blackfireService, $blackfireNetwork, $parent);
+
             return $blackfireService;
         }
 
@@ -377,7 +397,24 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $blackfireService->setParent(null);
         $parent->removeChild($blackfireService);
 
+        $blackfireNetworkMeta = $parent->getMeta('blackfire-network');
+        $blackfireNetwork = $this->networkRepo->findOneBy([
+            'project' => $parent->getProject(),
+            'name'    => $blackfireNetworkMeta->getData()[0],
+        ]);
+
+        $parent->removeMeta($blackfireNetworkMeta);
+        $blackfireNetwork->removeService($parent);
+        $parent->removeNetwork($blackfireNetwork);
+
+        $blackfireNetwork->removeService($blackfireService);
+        $blackfireService->removeNetwork($blackfireNetwork);
+
         $this->serviceRepo->save($parent);
-        $this->serviceRepo->delete($blackfireService);
+        $this->serviceRepo->delete(
+            $blackfireService,
+            $blackfireNetworkMeta,
+            $blackfireNetwork
+        );
     }
 }
