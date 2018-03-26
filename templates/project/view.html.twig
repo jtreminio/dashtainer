@@ -102,7 +102,7 @@
                                 }) }}" class="text-inherit">{{ network.name }}</a></td>
                                 <td>
                                     <div class="tags">
-                                        {% for service in network.services %}
+                                        {% for service in network.services if service.parent is empty %}
                                             <a href="{{ path('project.service.view.get', {
                                                 'projectId': project.id,
                                                 'serviceId': service.id,
