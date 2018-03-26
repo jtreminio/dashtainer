@@ -152,7 +152,7 @@ class Service implements
 
     /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceMeta",
-     *     mappedBy="service", fetch="EAGER"
+     *     mappedBy="service"
      * )
      */
     protected $meta;

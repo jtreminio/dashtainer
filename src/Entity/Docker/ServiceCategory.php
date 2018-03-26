@@ -28,7 +28,7 @@ class ServiceCategory implements Util\HydratorInterface, Entity\EntityBaseInterf
     protected $order;
 
     /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceType", mappedBy="category")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceType", mappedBy="category", fetch="EAGER")
      * @ORM\OrderBy({"order" = "ASC"})
      */
     protected $types;
