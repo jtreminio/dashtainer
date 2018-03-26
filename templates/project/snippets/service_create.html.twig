@@ -2,7 +2,7 @@
     <h5>{{ category.name }}</h5>
     <div class="row row-cards">
         {% for type in category.types if type.isPublic %}
-            <div class="col-6 col-md-4">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="card">
                     {% if type.versions is not empty %}
                         <a href="#" class="p-3"
