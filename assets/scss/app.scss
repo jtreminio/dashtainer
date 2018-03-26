@@ -20,6 +20,13 @@
     }
 }
 
+.header-nav {
+    .breadcrumb {
+        background: transparent;
+        margin-top: 1rem;
+    }
+}
+
 // https://github.com/tabler/tabler/issues/8
 .nav {
     .dropdown-menu-right {

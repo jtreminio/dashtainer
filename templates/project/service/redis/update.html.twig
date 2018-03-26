@@ -1,12 +1,21 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block content %}
-<div class="page-header">
-    <h1 class="page-title">
-        Update MongoDB Service "{{ service.name }}"
-    </h1>
-</div>
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+        'projectId': project.id,
+    }) }}">{{ project.name }}</a></li>
+<li class="breadcrumb-item" aria-current="page"><a href="{{ path('project.service.index.get', {
+        'projectId': project.id,
+    }) }}">Services</a></li>
+<li class="breadcrumb-item" aria-current="page"><a href="{{ path('project.service.view.get', {
+        'projectId': project.id,
+        'serviceId': service.id
+    }) }}">{{ service.name }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Update</li>
+{% endblock %}
 
+{% block content %}
 <div class="row">
     <div class="col-lg-3 order-lg-1 mb-4">
         <div class="alert alert-primary text-center">

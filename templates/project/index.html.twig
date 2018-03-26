@@ -1,12 +1,10 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block content %}
-<div class="page-header">
-    <h1 class="page-title">
-        Projects
-    </h1>
-</div>
+{% block breadcrumb %}
+<li class="breadcrumb-item">Projects</li>
+{% endblock %}
 
+{% block content %}
 <div class="row">
     <div class="col-lg-3 order-lg-1 mb-4">
         <a href="#" data-toggle="modal"

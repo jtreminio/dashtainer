@@ -1,12 +1,11 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block content %}
-<div class="page-header">
-    <h1 class="page-title">
-        {{ project.name }}
-    </h1>
-</div>
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+<li class="breadcrumb-item active">{{ project.name }}</li>
+{% endblock %}
 
+{% block content %}
 <div class="row">
     <div class="col-lg-3 order-lg-1 mb-4">
         <div class="alert alert-primary text-center">

@@ -53,6 +53,21 @@ class Network extends Controller
     }
 
     /**
+     * @Route(name="project.network.index.get",
+     *     path="/project/{projectId}/network",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getIndex(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+    }
+
+    /**
      * @Route(name="project.network.create.get",
      *     path="/project/{projectId}/network/create",
      *     methods={"GET"}

@@ -9,72 +9,68 @@
     <div class="page-main">
         <div class="header">
             <div class="container">
-                <div class="navbar p-0">
-                    <a class="navbar-brand" href="{{ path('index.get') }}">
-                        <img src="{{ asset('build/assets/images/logo.svg') }}"
-                             class="navbar-brand-img" alt="dashtainer.com"></a>
-                    <div class="nav order-lg-2">
-                        <div class="dropdown ml-3">
-                            <a href="#" class="nav-link" data-toggle="dropdown">
-                                <img src="{{ asset('build/assets/images/avatar.png') }}"
-                                     class="avatar" />
-                                <span class="ml-2 d-none d-lg-block"></span>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item" href="#">
-                                    <span>Settings</span>
+                <nav class="navbar navbar-expand-lg navbar-light">
+                    <a class="navbar-brand" href="{{ path('index.get') }}"><img
+                            src="{{ asset('build/assets/images/logo.svg') }}"
+                            class="navbar-brand-img" alt="dashtainer.com"></a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse"
+                            data-target="#navbarSupportedContent"
+                            aria-controls="navbarSupportedContent" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ path('index.get') }}">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
+                                   target="_blank">Fork Me</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://jtreminio.com" target="_blank">Blog</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="https://jtreminio.com/hire-me/"
+                                   target="_blank">Hire Me!</a>
+                            </li>
+                        </ul>
+                        <div class="nav order-lg-2">
+                            <div class="dropdown ml-3">
+                                <a href="#" class="nav-link" data-toggle="dropdown">
+                                    <img src="{{ asset('build/assets/images/avatar.png') }}"
+                                         class="avatar"/>
+                                    <span class="ml-2 d-none d-lg-block"></span>
                                 </a>
-                                <div class="dropdown-divider"></div>
-                                <a class="dropdown-item"
-                                   href="{{ path('fos_user_security_logout') }}">Sign out</a>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a class="dropdown-item" href="#">
+                                        <span>Settings</span>
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item"
+                                       href="{{ path('fos_user_security_logout') }}">Sign out</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </nav>
             </div>
         </div>
 
         <div class="header-nav d-none d-lg-flex">
             <div class="container">
-                <div class="row align-items-center">
+                <div class="row">
                     <div class="col">
-                        <ul class="nav nav-tabs">
-                            <li class="nav-item">
-                                <a href="{{ path('index.get') }}"
-                                   class="nav-link active"><i class="fe fe-home"></i> Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link"><i class="fe fe-box"></i> Projects</a>
-                                <div class="nav-submenu nav">
-                                    <a href="#" class="nav-item ">Create a Project</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a href="#" class="nav-item ">Charts</a>
-                                </div>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link"><i class="fe fe-calendar"></i> Services</a>
-                                <div class="nav-submenu nav">
-                                    <a href="#" class="nav-item">Create a Service</a>
-                                    <div class="dropdown-divider"></div>
-                                    <a href="#" class="nav-item ">Store</a>
-                                </div>
-                            </li>
-                            <li class="nav-item">
-                                <a href="javascript:void(0)" class="nav-link"><i class="fe fe-file"></i> Pages</a>
-                                <div class="nav-submenu nav">
-                                    <a href="#" class="nav-item ">Profile</a>
-                                </div>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link"><i class="fe fe-check-square"></i> Forms</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link"><i class="fe fe-image"></i> Gallery</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" class="nav-link"><i class="fe fe-file-text"></i> Documentation</a>
-                            </li>
-                        </ul>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                {% block breadcrumb %}{% endblock %}
+                            </ol>
+                        </nav>
                     </div>
                 </div>
             </div>
