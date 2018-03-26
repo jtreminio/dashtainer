@@ -438,7 +438,7 @@
             ;fi
 
             ARG INSTALL_BLACKFIRE=false
-            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+            RUN if [ $INSTALL_BLACKFIRE=1 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -514,7 +514,7 @@
             ;fi
 
             ARG INSTALL_BLACKFIRE=false
-            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+            RUN if [ $INSTALL_BLACKFIRE=1 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -590,7 +590,7 @@
             ;fi
 
             ARG INSTALL_BLACKFIRE=false
-            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+            RUN if [ $INSTALL_BLACKFIRE=1 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -666,7 +666,7 @@
             ;fi
 
             ARG INSTALL_BLACKFIRE=false
-            RUN if [ $INSTALL_COMPOSER=1 ]; then \
+            RUN if [ $INSTALL_BLACKFIRE=1 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
