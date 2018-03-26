@@ -22,8 +22,17 @@ class Project extends Controller
     /** @var Domain\Docker\Project */
     protected $dProjectDomain;
 
+    /** @var Domain\Docker\Service */
+    protected $dServiceDomain;
+
+    /** @var Repository\Docker\Network */
+    protected $dNetworkRepo;
+
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
+
+    /** @var Repository\Docker\Service */
+    protected $dServiceRepo;
 
     /** @var Repository\Docker\ServiceCategory */
     protected $dServiceCatRepo;
@@ -34,14 +43,20 @@ class Project extends Controller
     public function __construct(
         Domain\Docker\Export $dExportDomain,
         Domain\Docker\Project $dProjectDomain,
+        Domain\Docker\Service $dServiceDomain,
+        Repository\Docker\Network $dNetworkRepo,
         Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
     ) {
-        $this->dProjectDomain = $dProjectDomain;
         $this->dExportDomain  = $dExportDomain;
+        $this->dProjectDomain = $dProjectDomain;
+        $this->dServiceDomain = $dServiceDomain;
 
+        $this->dNetworkRepo    = $dNetworkRepo;
         $this->dProjectRepo    = $dProjectRepo;
+        $this->dServiceRepo    = $dServiceRepo;
         $this->dServiceCatRepo = $dServiceCatRepo;
 
         $this->validator = $validator;
@@ -115,6 +130,7 @@ class Project extends Controller
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project'           => $project,
             'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'networks'          => $this->dNetworkRepo->getPrivateNetworks($project),
         ]);
     }
 

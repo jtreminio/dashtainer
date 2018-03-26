@@ -32,75 +32,43 @@
                         </div>
                         <div class="col-auto">
                             <button class="btn btn-primary btn-sm" type="button"
-                                    data-toggle="collapse" aria-expanded="false"
-                                    data-target="#services-list" aria-controls="services-list">
+                                    data-toggle="modal" data-target="#service-create-modal">
                                 <i class="fe fe-plus mr-2"></i> Create a service
                             </button>
                         </div>
                     </div>
 
-                    <div class="row mt-3">
-                        <div class="col">
-                            <div class="collapse" id="services-list">
-                                {% include '@Dashtainer/project/snippets/service_create.html.twig' %}
-                            </div>
-                        </div>
-                    </div>
-
-                    {% if project.services is not empty %}
-                        <table class="table table-vcenter text-nowrap">
-                            <thead>
+                    <table class="table table-vcenter text-nowrap">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th class="w-1"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for service in project.services if service.parent is empty %}
                             <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Children</th>
-                                <th>
-                                    <span class="sr-only">Actions</span>
-                                </th>
-                                <th>
-                                    <span class="sr-only">Download</span>
-                                </th>
+                                <td><a href="{{ path('project.service.view.get', {
+                                        'projectId': project.id,
+                                        'serviceId': service.id,
+                                    }) }}" class="text-inherit">{{ service.name }}</a></td>
+                                <td>{{ service.type.name }}</td>
+                                <td>
+                                    <a class="icon" href="{{ path('project.service.update.get', {
+                                        'projectId': project.id,
+                                        'serviceId': service.id,
+                                    }) }}"><i class="fe fe-edit"></i></a>
+                                </td>
                             </tr>
-                            </thead>
-                            <tbody>
-                            {% for service in project.services if service.parent is empty %}
-                                <tr>
-                                    <td><a href="{{ path('project.service.view.get', {
-                                            'projectId': project.id,
-                                            'serviceId': service.id,
-                                        }) }}" class="text-inherit">{{ service.name }}</a></td>
-                                    <td>{{ service.type.name }}</td>
-                                    <td>
-                                        {% if service.children is not empty %}
-                                            <ul>
-                                            {% for child in service.children %}
-                                                <li>{{ child.name }}</li>
-                                            {% endfor %}
-                                            </ul>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-right">
-                                        <a href="javascript:void(0)" class="btn btn-secondary btn-sm">Manage</a>
-                                        <div class="dropdown">
-                                            <button class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown">
-                                                Actions
-                                            </button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <a class="icon" href="javascript:void(0)">
-                                            <i class="fe fe-edit"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    {% endif %}
-
-                    {% if project.services is empty %}
-                        <p>You have no services.</p>
-                    {% endif %}
+                        {% endfor %}
+                        {% if project.services is empty %}
+                            <tr>
+                                <td colspan="3">You have no services.</td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
 
                     <hr />
 
@@ -117,62 +85,66 @@
                         </div>
                     </div>
 
-                    {% set hasPrivateNetworks = false %}
-                    {% for network in project.networks if not network.isPublic %}
-                        {% set hasPrivateNetworks = true %}
-                        <p><a href="{{ path('project.network.view.get', {
-                                'projectId': project.id,
-                                'networkId': network.id
-                            }) }}">{{ network.name }}</a></p>
-                    {% endfor %}
-
-                    {% if not hasPrivateNetworks %}
-                        <p>You have no networks.</p>
-                    {% endif %}
-
-                    <hr />
-
-                    <div class="row align-items-end mb-2">
-                        <div class="col-auto mr-auto">
-                            <h3 class="mb-0">Secrets</h3>
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn btn-primary btn-sm" type="button">
-                                <i class="fe fe-plus mr-2"></i> Create a secret
-                            </button>
-                        </div>
-                    </div>
-
-                    {% for secret in project.secrets %}
-                        <p>{{ secret.name }}</p>
-                    {% endfor %}
-
-                    {% if project.secrets is empty %}
-                        <p>You have no secrets.</p>
-                    {% endif %}
-
-                    <hr />
-
-                    <div class="row align-items-end mb-2">
-                        <div class="col-auto mr-auto">
-                            <h3 class="mb-0">Volumes</h3>
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn btn-primary btn-sm" type="button">
-                                <i class="fe fe-plus mr-2"></i> Create a volume
-                            </button>
-                        </div>
-                    </div>
-
-                    {% for volume in project.volumes %}
-                        <p>{{ volume.name }}</p>
-                    {% endfor %}
-
-                    {% if project.volumes is empty %}
-                        <p>You have no volumes.</p>
-                    {% endif %}
+                    <table class="table table-vcenter">
+                        <thead>
+                        <tr>
+                            <th class="w-25">Name</th>
+                            <th>Services</th>
+                            <th class="w-1"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for network in networks %}
+                            <tr>
+                                <td><a href="{{ path('project.network.view.get', {
+                                    'projectId': project.id,
+                                    'networkId': network.id
+                                }) }}" class="text-inherit">{{ network.name }}</a></td>
+                                <td>
+                                    <div class="tags">
+                                        {% for service in network.services %}
+                                            <a href="{{ path('project.service.view.get', {
+                                                'projectId': project.id,
+                                                'serviceId': service.id,
+                                            }) }}" class="tag">{{ service.name }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <a class="icon" href="{{ path('project.network.update.get', {
+                                        'projectId': project.id,
+                                        'networkId': network.id,
+                                    }) }}"><i class="fe fe-edit"></i></a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        {% if networks is empty %}
+                            <tr>
+                                <td colspan="3">You have no networks.</td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-create-modal-title">Create a Service</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {% include '@Dashtainer/project/snippets/service_create.html.twig' %}
+            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
         </div>
     </div>
 </div>
