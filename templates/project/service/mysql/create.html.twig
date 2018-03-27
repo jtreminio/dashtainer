@@ -1,15 +1,4 @@
-{% extends '@Dashtainer/template.html.twig' %}
-
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-        'projectId': project.id,
-    }) }}">{{ project.name }}</a></li>
-<li class="breadcrumb-item" aria-current="page"><a href="{{ path('project.service.index.get', {
-        'projectId': project.id,
-    }) }}">Services</a></li>
-<li class="breadcrumb-item active" aria-current="page">Create MySQL</li>
-{% endblock %}
+{% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block content %}
 <div class="row">
