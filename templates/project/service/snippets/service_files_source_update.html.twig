@@ -17,8 +17,9 @@
                        id="project_files-type-github" name="project_files[type]"
                        value="github" {{ projectFiles.type == 'github' ? 'checked' }} role="tab"
                        data-toggle="radio-tab" data-target="#project_files-github"
-                       data-error-container="project_files" />
-                <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                       data-error-container="project_files" disabled />
+                <span class="selectgroup-button selectgroup-button-icon px-7 py-3"
+                      data-toggle="tooltip" data-placement="top" title="Disabled for now!">
                     <i class="fe fe-github"></i> Github</span>
             </label>
         </div>

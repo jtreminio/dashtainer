@@ -76,4 +76,6 @@ $(document).ready(function() {
         $target.siblings().hide();
         $target.show();
     });
+
+    $('[data-toggle="tooltip"]').tooltip();
 });
