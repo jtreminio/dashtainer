@@ -198,7 +198,7 @@ class Service implements
      * @ORM\Column(name="restart", type="string", length=14, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#restart
      */
-    protected $restart = 'no';
+    protected $restart;
 
     /**
      * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="services")
@@ -211,13 +211,13 @@ class Service implements
      * @ORM\Column(name="stop_grace_period", type="string", length=12, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#stop_grace_period
      */
-    protected $stop_grace_period = '10s';
+    protected $stop_grace_period;
 
     /**
      * @ORM\Column(name="stop_signal", type="string", length=12, nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#stop_signal
      */
-    protected $stop_signal = 'SIGTERM';
+    protected $stop_signal;
 
     /**
      * @ORM\Column(name="sysctls", type="json_array", nullable=true)
@@ -329,8 +329,12 @@ class Service implements
         return $this;
     }
 
-    public function getDeploy() : Service\Deploy
+    public function getDeploy() : ?Service\Deploy
     {
+        if (empty($this->deploy)) {
+            return null;
+        }
+
         $deploy = new Service\Deploy();
         $deploy->fromArray($this->deploy);
 
@@ -614,8 +618,12 @@ class Service implements
         unset($this->labels[$key]);
     }
 
-    public function getLogging() : Service\Logging
+    public function getLogging() : ?Service\Logging
     {
+        if (empty($this->logging)) {
+            return null;
+        }
+
         $logging = new Service\Logging();
         $logging->fromArray($this->logging);
 
@@ -800,7 +808,7 @@ class Service implements
         return $this;
     }
 
-    public function getRestart() : string
+    public function getRestart() : ?string
     {
         return $this->restart;
     }
@@ -849,7 +857,7 @@ class Service implements
         return Transliterator::urlize($this->getName());
     }
 
-    public function getStopGracePeriod() : string
+    public function getStopGracePeriod() : ?string
     {
         return $this->stop_grace_period;
     }
@@ -865,7 +873,7 @@ class Service implements
         return $this;
     }
 
-    public function getStopSignal() : string
+    public function getStopSignal() : ?string
     {
         return $this->stop_signal;
     }
