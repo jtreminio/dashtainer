@@ -38,6 +38,19 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function setEmail($email)
+    {
+        $email = is_null($email) ? '' : $email;
+        parent::setEmail($email);
+        $this->setUsername($email);
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
      * @param Docker\Project $project
      * @return $this
      */

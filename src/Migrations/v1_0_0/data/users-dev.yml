@@ -1,5 +1,4 @@
 -
-    username: testuser
     email: test@dashtainer.com
     plain_password: test123
     enabled: true

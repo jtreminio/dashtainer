@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+</head>
+<body>
+
+<div class="page">
+    <div class="page-single">
+        <div class="container">
+            <div class="row">
+                <div class="col col-login mx-auto">
+                    <div class="text-center mb-6">
+                        <img src="{{ asset('build/assets/images/logo.svg') }}" class="h-6" />
+                    </div>
+
+                    {% block fos_user_content %}
+                    {% endblock fos_user_content %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ajax-spinner" class="hidden invisible modal-backdrop in">
+    <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+</div>
+
+<div class="modal" id="dynamic-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content"></div>
+    </div>
+</div>
+
+<script src="{{ asset('build/app.js') }}"></script>
+{% block footerJs %}{% endblock %}
+</body>
+</html>

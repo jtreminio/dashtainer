@@ -1,0 +1,62 @@
+{% trans_default_domain 'FOSUserBundle' %}
+
+<form class="card fos_user_registration_register"
+      id="{{ form.vars.id }}" name="{{ form.vars.name }}"
+      action="{{ path('fos_user_registration_register') }}" method="post">
+
+    <div class="card-body px-6 pt-6 pb-0">
+        <div class="card-title">Create new account</div>
+        {{ form_widget(form._token) }}
+
+        <div class="form-group">
+            {{ form_label(form.email, 'Email address', {
+                'label_attr': {'class': 'form-label'}
+            }) }}
+
+            {{ form_widget(form.email, {'attr': {
+                'class': 'form-control',
+                'placeholder': 'Enter email',
+            }}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.plainPassword.first, 'Password', {
+                'label_attr': {'class': 'form-label'}
+            }) }}
+
+            {{ form_widget(form.plainPassword.first, {'attr': {
+                'class': 'form-control',
+                'placeholder': 'Enter password',
+            }}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.plainPassword.second, 'Confirm Password', {
+                'label_attr': {'class': 'form-label'}
+            }) }}
+
+            {{ form_widget(form.plainPassword.second, {'attr': {
+                'class': 'form-control',
+                'placeholder': 'Confirm password',
+            }}) }}
+        </div>
+    </div>
+
+    {% if not form.vars.valid %}
+        <div class="card-alert alert alert-danger mt-6 mb-0">
+            {% for error in form.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card-body pt-0 border-top-0">
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-block">Create new account</button>
+        </div>
+    </div>
+</form>
+
+<div class="text-center text-muted">
+    Already have account? <a href="{{ path('fos_user_security_login') }}">Sign in</a>
+</div>
