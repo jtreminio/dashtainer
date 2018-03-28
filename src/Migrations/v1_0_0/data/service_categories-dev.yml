@@ -1,8 +1,8 @@
 -
-    name: Web Server
+    name: Application Engine
     order: 1
 -
-    name: Application Engine
+    name: Web Server
     order: 2
 -
     name: Database Engine
