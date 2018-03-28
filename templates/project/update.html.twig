@@ -1,39 +1,55 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+        'projectId': project.id,
+    }) }}">{{ project.name }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Update</li>
+{% endblock %}
+
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
-        </ol>
-    </nav>
-</div>
-
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <form action="{{ path('project.update.post', {
-                'projectId': project.id,
-            }) }}" method="post" data-ajax>
-                <div class="form-group">
-                    <label class="form-label" for="name">Project Name</label>
-                    <input type="text" class="form-control"
-                           id="name" name="name" placeholder=""
-                           value="{{ project.name }}" required data-error-container="name"/>
-                    <div class="invalid-feedback"
-                         data-error-container-name="name"></div>
-                </div>
-
-                <hr class="mb-4" />
-
-                <button class="btn btn-primary btn-lg btn-block" type="submit">Update Project</button>
-
-                <p class="my-3"><a href="#" data-toggle="modal"
-                      data-target="#project-delete-modal">Delete project</a></p>
-            </form>
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <a href="#" data-toggle="modal"
+           data-target="#project-create-modal"
+           class="btn btn-block btn-primary mb-6">
+            <i class="fe fe-plus mr-2"></i>Create a new Project
+        </a>
+        <div class="list-group list-group-transparent mb-0">
+            <a href="#" class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Alerts</a>
+            <a href="#" class="list-group-item list-group-item-action"><span
+                    class="icon mr-3"><i class="fe fe-user"></i></span>Avatars</a>
         </div>
+    </div>
+
+    <div class="col-lg-9">
+
+<form class="card" action="{{ path('project.update.post', {
+    'projectId': project.id,
+}) }}" method="post" data-ajax>
+    <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Project Name</label>
+                <input type="text" class="form-control"
+                       id="name" name="name" placeholder=""
+                       value="{{ project.name }}" required data-error-container="name"/>
+                <div class="invalid-feedback"
+                     data-error-container-name="name"></div>
+            </div>
+        </div>
+
+        <hr class="my-6" />
+
+        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Project</button>
+
+        <p class="my-3"><a href="#" data-toggle="modal"
+              data-target="#project-delete-modal">Delete project</a></p>
+    </div>
+</form>
+
     </div>
 </div>
 
