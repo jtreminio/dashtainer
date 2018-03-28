@@ -293,11 +293,12 @@ class Export
                 $current['labels'] []= "{$k}={$v}";
             }
 
-            $logging = $service->getLogging();
-            $current['logging']['driver'] = $logging->getDriver();
+            if ($logging = $service->getLogging()) {
+                $current['logging']['driver'] = $logging->getDriver();
 
-            foreach ($logging->getOptions() as $k => $v) {
-                $current['logging'][$k] = $v;
+                foreach ($logging->getOptions() as $k => $v) {
+                    $current['logging'][$k] = $v;
+                }
             }
 
             if (!empty($service->getNetworkMode())) {
@@ -316,15 +317,21 @@ class Export
                 $current['ports'] = $service->getPorts();
             }
 
-            $current['restart'] = $service->getRestart();
+            if (!empty($service->getRestart())) {
+                $current['restart'] = $service->getRestart();
+            }
 
             foreach ($service->getSecrets() as $secret) {
                 $current['secrets'] []= $secret->getSlug();
             }
 
-            $current['stop_grace_period'] = $service->getStopGracePeriod();
+            if (!empty($service->getStopGracePeriod())) {
+                $current['stop_grace_period'] = $service->getStopGracePeriod();
+            }
 
-            $current['stop_signal'] = $service->getStopSignal();
+            if (!empty($service->getStopSignal())) {
+                $current['stop_signal'] = $service->getStopSignal();
+            }
 
             foreach ($service->getSysctls() as $k => $v) {
                 $current['sysctls'] []= "{$k}={$v}";
