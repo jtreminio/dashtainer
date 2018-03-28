@@ -78,7 +78,7 @@ class Project
             ->setTarget('/var/run/docker.sock')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_OTHER)
             ->setService($traefik);
 
         $traefikTomlVolume = new Entity\Docker\ServiceVolume();
@@ -87,7 +87,7 @@ class Project
             ->setTarget('/traefik.toml')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_OTHER)
             ->setService($traefik);
 
         $project->addService($traefik);

@@ -51,13 +51,13 @@ class Export
         foreach ($services as $service) {
             $serviceBaseDir = static::BASE_DIR . '/' . $service->getSlug();
 
-            if (!is_dir($serviceBaseDir)) {
-                mkdir($serviceBaseDir);
-            }
-
             foreach ($service->getVolumes() as $volume) {
                 if ($volume->getFiletype() !== Entity\Docker\ServiceVolume::FILETYPE_FILE) {
                     continue;
+                }
+
+                if (!is_dir($serviceBaseDir)) {
+                    mkdir($serviceBaseDir);
                 }
 
                 $filename = $serviceBaseDir . '/' . $volume->getName();

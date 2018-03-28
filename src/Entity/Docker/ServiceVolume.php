@@ -39,12 +39,14 @@ class ServiceVolume implements
         self::OWNER_SYSTEM,
     ];
 
-    public const FILETYPE_DIR  = 'directory';
-    public const FILETYPE_FILE = 'file';
+    public const FILETYPE_DIR   = 'directory';
+    public const FILETYPE_FILE  = 'file';
+    public const FILETYPE_OTHER = 'other';
 
     protected const ALLOWED_FILETYPES = [
         self::FILETYPE_DIR,
         self::FILETYPE_FILE,
+        self::FILETYPE_OTHER,
     ];
 
     public const TYPE_BIND   = 'bind';
