@@ -63,7 +63,11 @@
                         {% endfor %}
                         {% if project.services is empty %}
                             <tr>
-                                <td colspan="3">You have no services.</td>
+                                <td colspan="3">
+                                    <p>You have no services.</p>
+                                    <p><a href="#" data-toggle="modal" data-target="#service-create-modal">
+                                        Click here to create your first service.</a></p>
+                                </td>
                             </tr>
                         {% endif %}
                         </tbody>

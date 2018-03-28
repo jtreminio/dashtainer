@@ -33,6 +33,9 @@
 
                     {% if user.getProjects is empty %}
                         <p>You have no projects.</p>
+
+                        <p><a href="#" data-toggle="modal"
+                              data-target="#project-create-modal">Click here to create your first project</a></p>
                     {% endif %}
                 </div>
             </div>
@@ -57,7 +60,8 @@
                             <label class="form-label" for="name">Project Name</label>
                             <input type="text" class="form-control"
                                    id="name" name="name" placeholder=""
-                                   value="" required data-error-container="name" />
+                                   value="Awesome" required
+                                   data-error-container="name" />
                             <div class="invalid-feedback"
                                  data-error-container-name="name"></div>
                         </div>
