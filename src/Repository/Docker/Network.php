@@ -165,8 +165,9 @@ class Network implements Repository\ObjectPersistInterface
         Entity\Docker\Project $project
     ) : array {
         return $this->findBy([
-            'project'   => $project,
-            'is_public' => false,
+            'project'     => $project,
+            'is_public'   => false,
+            'is_editable' => true,
         ]);
     }
 }

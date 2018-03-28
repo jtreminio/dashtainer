@@ -6,6 +6,7 @@ use Dashtainer\Entity;
 use Dashtainer\Repository;
 
 use Doctrine\ORM;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\Common\Persistence;
 
 class Service implements Repository\ObjectPersistInterface
@@ -107,6 +108,27 @@ class Service implements Repository\ObjectPersistInterface
         return $this->findBy([
             'project' => $project,
         ]);
+    }
+
+    /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\Service[]
+     */
+    public function findAllPublicByProject(
+        Entity\Docker\Project $project
+    ) : array {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->join('Dashtainer:Docker\ServiceType', 'st', Expr\Join::WITH, 's.type = st')
+            ->where('st.is_public != 0')
+            ->andWhere('s.project = :project')
+            ->andWhere('1 = 1')
+            ->setParameters([
+                'project' => $project,
+            ]);
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

@@ -131,6 +131,7 @@ class Project extends Controller
             'project'           => $project,
             'serviceCategories' => $this->dServiceCatRepo->findAll(),
             'networks'          => $this->dNetworkRepo->getPrivateNetworks($project),
+            'services'          => $this->dServiceRepo->findAllPublicByProject($project),
         ]);
     }
 

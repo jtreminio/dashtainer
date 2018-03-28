@@ -107,3 +107,10 @@
     slug: blackfire
     versions: []
     order: 4
+-
+    name: Traefik
+    category: Other
+    is_public: false
+    slug: traefik
+    versions: []
+    order: 5
