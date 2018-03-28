@@ -431,14 +431,14 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=false
-            RUN if [ $COMPOSER_INSTALL=1 ]; then \
+            ARG COMPOSER_INSTALL=0
+            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=false
-            RUN if [ $BLACKFIRE_INSTALL=1 ]; then \
+            ARG BLACKFIRE_INSTALL=0
+            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -507,14 +507,14 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=false
-            RUN if [ $COMPOSER_INSTALL=1 ]; then \
+            ARG COMPOSER_INSTALL=0
+            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=false
-            RUN if [ $BLACKFIRE_INSTALL=1 ]; then \
+            ARG BLACKFIRE_INSTALL=0
+            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -583,14 +583,14 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=false
-            RUN if [ $COMPOSER_INSTALL=1 ]; then \
+            ARG COMPOSER_INSTALL=0
+            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=false
-            RUN if [ $BLACKFIRE_INSTALL=1 ]; then \
+            ARG BLACKFIRE_INSTALL=0
+            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
@@ -659,14 +659,14 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=false
-            RUN if [ $COMPOSER_INSTALL=1 ]; then \
+            ARG COMPOSER_INSTALL=0
+            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=false
-            RUN if [ $BLACKFIRE_INSTALL=1 ]; then \
+            ARG BLACKFIRE_INSTALL=0
+            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
