@@ -1,5 +1,17 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
+{% block footerJs %}
+<script>
+    $(document).on('change keyup', '#name', function(e) {
+        var name = $(this).val()
+            .replace(/[^a-z]/gi, '')
+            .toLowerCase();
+
+        $('#project-slug').text(name);
+    });
+</script>
+{% endblock %}
+
 {% block breadcrumb %}
 <li class="breadcrumb-item">Projects</li>
 {% endblock %}
@@ -64,6 +76,11 @@
                                    data-error-container="name" />
                             <div class="invalid-feedback"
                                  data-error-container-name="name"></div>
+                        </div>
+
+                        <div class="row form-group">
+                            <label class="form-label">Project Slug</label>
+                            <span id="project-slug">awesome</span>
                         </div>
                     </div>
                 </div>

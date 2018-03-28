@@ -28,6 +28,12 @@ class Project implements
     protected $name;
 
     /**
+     * Writes to .env file
+     * @ORM\Column(name="environment", type="json_array", nullable=true)
+     */
+    protected $environment = [];
+
+    /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\Network", mappedBy="project")
      * @ORM\OrderBy({"created_at" = "DESC"})
      */
@@ -79,6 +85,39 @@ class Project implements
         $this->name = $name;
 
         return $this;
+    }
+
+    /**
+     * @param string      $key
+     * @param string|null $value
+     * @return $this
+     */
+    public function addEnvironment(string $key, string $value = null)
+    {
+        $this->environment[$key] = $value;
+
+        return $this;
+    }
+
+    public function getEnvironments() : array
+    {
+        return $this->environment;
+    }
+
+    /**
+     * @param array $arr
+     * @return $this
+     */
+    public function setEnvironments(array $arr)
+    {
+        $this->environment = $arr;
+
+        return $this;
+    }
+
+    public function removeEnvironment(string $key)
+    {
+        unset($this->environment[$key]);
     }
 
     /**
@@ -155,7 +194,7 @@ class Project implements
 
     public function getSlug() : string
     {
-        return Transliterator::urlize($this->getName());
+        return strtolower(preg_replace("/[^A-Za-z]/", '', $this->getName()));
     }
 
     public function getUser() : ?Entity\User

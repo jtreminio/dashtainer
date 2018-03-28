@@ -14,9 +14,7 @@ class Export
 
     public function export(Entity\Docker\Project $project)
     {
-        $config = [
-            'version' => '3.2',
-        ];
+        $config = $this->getProject($project);
 
         $networks = $this->getNetworks($project->getNetworks());
         $config['networks'] = empty($networks) ? Util\YamlTag::emptyHash() : $networks;
@@ -64,6 +62,35 @@ class Export
                 file_put_contents($filename, $volume->getData());
             }
         }
+    }
+
+    protected function getProject(Entity\Docker\Project $project)
+    {
+        if (!is_dir(static::BASE_DIR)) {
+            mkdir(static::BASE_DIR);
+        }
+
+        $config = [
+            'version' => '3.2',
+        ];
+
+        $environments = [];
+        foreach ($project->getEnvironments() as $k => $v) {
+            if (empty($v)) {
+                $environments []= $k;
+
+                continue;
+            }
+
+            $environments []= "{$k}={$v}";
+        }
+
+        if (!empty($environments)) {
+            $filename = static::BASE_DIR . '/.env';
+            file_put_contents($filename, implode("\n", $environments));
+        }
+
+        return $config;
     }
 
     /**
