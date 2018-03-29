@@ -9,6 +9,9 @@ use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 use Dashtainer\Validator;
 
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use ZipStream\ZipStream;
+
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -245,28 +248,36 @@ class Project extends Controller
     }
 
     /**
-     * @Route(name="project.export.type.get",
-     *     path="/project/{projectId}/export/{exportType}",
+     * @Route(name="project.export.download.get",
+     *     path="/project/{projectId}/export/download/{traefik}",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
-     * @param string      $exportType
-     * @return Response
+     * @param string      $traefik
+     * @return StreamedResponse
      */
-    public function getExportType(
+    public function getExportDownload(
         Entity\User $user,
         string $projectId,
-        string $exportType
+        string $traefik
     ) : Response {
         if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $yaml = $this->dExportDomain->export($project);
+        $response = new StreamedResponse(function() use ($project, $traefik) {
+            $opt = [
+                'content_type' => 'application/octet-stream'
+            ];
 
-        $response = new Response();
-        $response->setContent("<pre>$yaml");
+            $zip = new ZipStream('dashtainer.zip', $opt);
+
+            $this->dExportDomain->setArchiver($zip);
+            $this->dExportDomain->generateArchive($project, $traefik === 'traefik');
+
+            $zip->finish();
+        });
 
         return $response;
     }

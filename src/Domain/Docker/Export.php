@@ -7,13 +7,41 @@ use Dashtainer\Form;
 use Dashtainer\Util;
 
 use Symfony\Component\Yaml\Yaml;
+use ZipStream\ZipStream;
 
 class Export
 {
-    const BASE_DIR = '/var/www/dashtainer/dumped';
+    /** @var ZipStream */
+    protected $archive;
 
-    public function export(Entity\Docker\Project $project)
+    protected $baseDir = 'dashtainer/';
+
+    public function setArchiver(ZipStream $archive)
     {
+        $this->archive = $archive;
+    }
+
+    public function generateArchive(Entity\Docker\Project $project, bool $traefik)
+    {
+        if ($traefik) {
+            $this->archive->addFileFromPath(
+                "{$this->baseDir}docker-compose.yml",
+                __DIR__ . '/../../../assets/files/traefik.yml'
+            );
+
+            $this->archive->addFileFromPath(
+                "{$this->baseDir}README.md",
+                __DIR__ . '/../../../assets/files/README-traefik.md'
+            );
+
+            $this->baseDir .= 'project/';
+        } else {
+            $this->archive->addFileFromPath(
+                "{$this->baseDir}README.md",
+                __DIR__ . '/../../../assets/files/README-no-traefik.md'
+            );
+        }
+
         $config = $this->getProject($project);
 
         $networks = $this->getNetworks($project->getNetworks());
@@ -32,13 +60,11 @@ class Export
 
         $this->writeYamlFile($yaml);
         $this->writeServiceFiles($project->getServices());
-
-        return $yaml;
     }
 
     protected function writeYamlFile(string $yaml)
     {
-        file_put_contents(static::BASE_DIR . '/docker-compose.yml', $yaml);
+        $this->archive->addFile("{$this->baseDir}docker-compose.yml", $yaml);
     }
 
     /**
@@ -47,29 +73,19 @@ class Export
     protected function writeServiceFiles(iterable $services)
     {
         foreach ($services as $service) {
-            $serviceBaseDir = static::BASE_DIR . '/' . $service->getSlug();
-
             foreach ($service->getVolumes() as $volume) {
                 if ($volume->getFiletype() !== Entity\Docker\ServiceVolume::FILETYPE_FILE) {
                     continue;
                 }
 
-                if (!is_dir($serviceBaseDir)) {
-                    mkdir($serviceBaseDir);
-                }
-
-                $filename = $serviceBaseDir . '/' . $volume->getName();
-                file_put_contents($filename, $volume->getData());
+                $filename = $service->getSlug() . '/' . $volume->getName();
+                $this->archive->addFile("{$this->baseDir}{$filename}", $volume->getData());
             }
         }
     }
 
     protected function getProject(Entity\Docker\Project $project)
     {
-        if (!is_dir(static::BASE_DIR)) {
-            mkdir(static::BASE_DIR);
-        }
-
         $config = [
             'version' => '3.2',
         ];
@@ -86,8 +102,7 @@ class Export
         }
 
         if (!empty($environments)) {
-            $filename = static::BASE_DIR . '/.env';
-            file_put_contents($filename, implode("\n", $environments));
+            $this->archive->addFile("{$this->baseDir}.env", implode("\n", $environments));
         }
 
         return $config;

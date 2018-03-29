@@ -1,39 +1,105 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+        'projectId': project.id,
+    }) }}">{{ project.name }}</a></li>
+<li class="breadcrumb-item active">Export</li>
+{% endblock %}
+
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
-        </ol>
-    </nav>
-</div>
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap p-lg-6">
+                    <h2 class="mt-0 mb-4">Export Project</h2>
 
-<div class="container">
-    <p>Export project</p>
+                    <div class="row">
+                        <div class="col">
+                            <p>Dashtainer uses <a href="https://traefik.io/" target="_blank">Traefik</a>
+                                for service discovery and automatic DNS management. With Traefik you
+                                do not need to add entries to your <code>/etc/hosts</code> file -
+                                Traefik will automatically make your webserver hostnames
+                                available (ex, http://awesome.localhost).
+                            </p>
 
-    <p>ID: {{ project.id }}</p>
-    <p>Name: {{ project.name }}</p>
-    <hr />
+                            <p>Only one instance of Traefik should be running on your host machine.
+                                If this is the first time you are exporting a Dashtainer project,
+                                choose the option on the left, "With Traefik". Likewise, if you have
+                                previously exported and created a Traefik container, but have since
+                                deleted it and it is no longer running, also choose this option.
+                            </p>
 
-    {% if project.services is empty %}
-        <p>You have no services defined within this project.</p>
-    {% endif %}
+                            <p>
+                                If you have previously exported and spun up a Traefik container,
+                                <strong>and it is still running</strong> or you will run it manually,
+                                choose the option on the right, "Without Traefik".
+                            </p>
+                        </div>
+                    </div>
 
-    <div class="row">
-        <div class="col">
-            <a href="{{ path('project.export.type.get', {
-                'projectId': project.id,
-                'exportType': 'dev',
-            }) }}" class="btn btn-primary btn-lg btn-block">
-                Export service for local development</a>
-        </div>
+                    {% if project.services is empty %}
+                        <p>You have no services defined within this project.</p>
+                    {% endif %}
 
-        <div class="col">
-            <a href="#" class="btn btn-primary btn-lg btn-block">
-                Export service for local development</a>
+                    <div class="row">
+                        <div class="col mt-5">
+                            <div class="card">
+                                <div class="card-status bg-blue"></div>
+                                <div class="card-header">
+                                    <h3 class="card-title">With Traefik</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>Instructions:</p>
+                                    <ul>
+                                        <li>Extract the downloaded zip file</li>
+                                        <li>Run <code>$ docker-compose up -d --build</code> in the
+                                            root directory of the extracted archive</li>
+                                        <li>Once Traefik is running and ready, go into your project's
+                                            directory in the extracted archive and run
+                                            <code>$ docker-compose up -d --build</code></li>
+                                        <li>You can see Traefik running at
+                                            <a href="http://docker.localhost:8080"
+                                               target="_blank">http://docker.localhost:8080</a></li>
+                                    </ul>
+
+                                    <a href="{{ path('project.export.download.get', {
+                                        'projectId': project.id,
+                                        'traefik': 'traefik'
+                                    }) }}" class="btn btn-primary btn-lg btn-block">
+                                        Download archive with Traefik</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col mt-5">
+                            <div class="card">
+                                <div class="card-status bg-orange"></div>
+                                <div class="card-header">
+                                    <h3 class="card-title">Without Traefik</h3>
+                                </div>
+                                <div class="card-body">
+                                    <p>Instructions:</p>
+                                    <ul>
+                                        <li>Extract the downloaded zip file</li>
+                                        <li>Go into your project's directory in the
+                                            extracted archive and run
+                                            <code>$ docker-compose up -d --build</code></li>
+                                    </ul>
+
+                                    <a href="{{ path('project.export.download.get', {
+                                        'projectId': project.id,
+                                        'traefik': 'no-traefik'
+                                    }) }}" class="btn btn-primary btn-lg btn-block">
+                                        Download archive without Traefik</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
