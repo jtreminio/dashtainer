@@ -14,10 +14,13 @@
         <div class="list-group list-group-transparent mb-0">
             <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
                class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
-            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-               class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+                    class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Project</a>
+
+            {% if services is not empty %}
+                <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                   class="list-group-item list-group-item-action text-green"><span
+                        class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
+            {% endif %}
         </div>
     </div>
 
@@ -25,6 +28,14 @@
         <div class="card">
             <div class="card-body">
                 <div class="text-wrap p-lg-6">
+                    {% if services is not empty %}
+                        <div class="alert alert-icon alert-primary mb-6" role="alert">
+                            <i class="fe fe-download mr-2" aria-hidden="true"></i>
+                            When ready, click "Download Project" to download your project and
+                            create your containers!
+                        </div>
+                    {% endif %}
+
                     <div class="row align-items-end mb-2">
                         <div class="col-auto mr-auto">
                             <h3 class="mb-0">Services</h3>

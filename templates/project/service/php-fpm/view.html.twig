@@ -7,12 +7,18 @@
             Manage Service
         </div>
         <div class="list-group list-group-transparent mb-0">
-            <a href="#"
+            <a href="{{ path('project.service.update.get', {
+                'projectId': project.id,
+                'serviceId': service.id,
+            }) }}"
                class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Edit Project</a>
-            <a href="#"
+                    class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Service</a>
+            <a href="{{ path('project.view.get', {'projectId': project.id, }) }}"
                class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-user"></i></span>Export Project</a>
+                    class="icon mr-3"><i class="fe fe-grid"></i></span>All Services</a>
+            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+               class="list-group-item list-group-item-action text-green"><span
+                    class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
         </div>
     </div>
 
@@ -25,10 +31,6 @@
                     <p>ID: {{ service.id }}</p>
                     <p>Name: {{ service.name }}</p>
                     <p>Networks: {% for network in service.networks %}{{ network.name }}, {% endfor %}</p>
-                    <p><a href="{{ path('project.service.update.get', {
-                            'projectId': project.id,
-                            'serviceId': service.id,
-                        }) }}">Edit service</a></p>
                 </div>
             </div>
         </div>
