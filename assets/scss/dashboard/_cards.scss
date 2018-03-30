@@ -225,6 +225,7 @@
 	margin-top: -1rem;
 	position: relative;
 	z-index: 1;
+	overflow: hidden;
 }
 
 .card-options {
@@ -299,7 +300,7 @@ Card maps
 }
 
 .card-map-placeholder {
-	background: url(../images/staticmap.png) no-repeat center;
+	background: no-repeat center;
 }
 
 /**
@@ -402,4 +403,13 @@ Card alert
 .card-alert {
 	border-radius: 0;
 	margin: -1px -1px 0;
+}
+
+.card-category {
+	font-size: px2rem(14px);
+	text-transform: uppercase;
+	text-align: center;
+	font-weight: 600;
+	letter-spacing: .05em;
+	margin: 0 0 .5rem;
 }
