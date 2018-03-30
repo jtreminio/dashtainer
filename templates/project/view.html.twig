@@ -1,165 +1,147 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-<li class="breadcrumb-item active">{{ project.name }}</li>
-{% endblock %}
-
 {% block content %}
 <div class="row">
-    <div class="col-lg-3 order-lg-1 mb-4">
-        <div class="alert alert-primary text-center">
-            Manage Project
-        </div>
-        <div class="list-group list-group-transparent mb-0">
-            <a href="{{ path('project.update.get', {'projectId': project.id}) }}"
-               class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Project</a>
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap">
+                    <div class="row">
+                        <div class="col">
+                            <ul class="nav nav-tabs mb-3" data-steps-list>
+                                <li class="col nav-item complete">
+                                    <a class="nav-link" href="{{ path('project.update.get', {
+                                        'projectId': project.id
+                                    }) }}">Step 1<br />
+                                        <span class="small">Update Project</span></a>
+                                </li>
+                                <li class="col nav-item active">
+                                    <a class="nav-link" href="{{ path('project.view.get', {
+                                        'projectId': project.id
+                                    }) }}">Step 2<br />
+                                        <span class="small">Add {{ project.services is not empty ? 'More' }}
+                                            Services</span></a>
+                                </li>
+                                <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                                    <a class="nav-link"
+                                        {% if project.services is not empty %}
+                                            href="{{ path('project.export.get', {'projectId': project.id}) }}
+                                        {% endif %}">Step 3<br />
+                                        <span class="small">Download Project</span></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
 
-            {% if services is not empty %}
-                <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-                   class="list-group-item list-group-item-action text-green"><span
-                        class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
-            {% endif %}
+                    <div class="row">
+                        <div class="col pt-3 px-3 pb-0">
+                            <p>Add one or more services to your project. Each service will live
+                            in its own container and you can group services together to allow
+                                communication between each other.</p>
+
+                            {% if services is not empty %}
+                                <p>You may continue adding more services, or you can
+                                    download your Docker-ready project.
+                                </p>
+
+                                <p class="text-right mb-0">
+                                    <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                                       class="btn btn-success btn-lg">
+                                        <span class="mr-3"><i class="fe fe-download"></i></span>
+                                        Download Project</a>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="list-group-transparent mb-0">
+            <div class="d-flex flex-row flex-lg-column">
+                {% if services is not empty %}
+                    <div>
+                        <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                           class="list-group-item text-green"><span
+                                class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
+                    </div>
+                {% endif %}
+
+                <div>
+                    <a href="{{ path('project.update.get', {
+                        'projectId': project.id
+                    }) }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Project</a>
+                </div>
+                <div>
+                    <a href="{{ path('project.index.get') }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Project</a>
+                </div>
+                <div class="mt-lg-5 ml-auto ml-lg-0">
+                    <a href="#" class="list-group-item text-danger" data-toggle="modal"
+                       data-target="#project-delete-modal"><span
+                            class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Project</a>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="col-lg-9">
         <div class="card">
             <div class="card-body">
-                <div class="text-wrap p-lg-6">
-                    {% if services is not empty %}
-                        <div class="alert alert-icon alert-primary mb-6" role="alert">
-                            <i class="fe fe-download mr-2" aria-hidden="true"></i>
-                            When ready, click "Download Project" to download your project and
-                            create your containers!
-                        </div>
+                <div class="row align-items-end mb-2">
+                    <div class="col-auto mr-auto">
+                        <h3 class="mb-0">Services</h3>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary btn-sm" type="button"
+                                data-toggle="modal" data-target="#service-create-modal">
+                            <i class="fe fe-plus mr-2"></i> Create a service
+                        </button>
+                    </div>
+                </div>
+
+                <table class="table table-vcenter text-nowrap">
+                    {% for category in serviceCategories %}
+                    <thead>
+                    <tr>
+                        <th colspan="3">{{ category.name }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% if servicesCategorized[category.id] is defined %}
+                        {% for service in servicesCategorized[category.id] %}
+                        <tr>
+                            <td><a href="{{ path('project.service.view.get', {
+                                    'projectId': project.id,
+                                    'serviceId': service.id,
+                                }) }}" class="text-inherit">{{ service.name }}</a></td>
+                            <td>{{ service.type.name }}</td>
+                            <td class="w-2">
+                                <a class="icon" href="{{ path('project.service.update.get', {
+                                    'projectId': project.id,
+                                    'serviceId': service.id,
+                                }) }}"><i class="fe fe-edit"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="text-muted"><small>No {{ category.name }} services defined.</small></td>
+                        </tr>
                     {% endif %}
-
-                    <div class="row align-items-end mb-2">
-                        <div class="col-auto mr-auto">
-                            <h3 class="mb-0">Services</h3>
-                        </div>
-                        <div class="col-auto">
-                            <button class="btn btn-primary btn-sm" type="button"
-                                    data-toggle="modal" data-target="#service-create-modal">
-                                <i class="fe fe-plus mr-2"></i> Create a service
-                            </button>
-                        </div>
-                    </div>
-
-                    <table class="table table-vcenter text-nowrap">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th class="w-1"></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for service in services if service.parent is empty %}
-                            <tr>
-                                <td><a href="{{ path('project.service.view.get', {
-                                        'projectId': project.id,
-                                        'serviceId': service.id,
-                                    }) }}" class="text-inherit">{{ service.name }}</a></td>
-                                <td>{{ service.type.name }}</td>
-                                <td>
-                                    <a class="icon" href="{{ path('project.service.update.get', {
-                                        'projectId': project.id,
-                                        'serviceId': service.id,
-                                    }) }}"><i class="fe fe-edit"></i></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        {% if services is empty %}
-                            <tr>
-                                <td colspan="3">
-                                    <p>You have no services.</p>
-                                    <p><a href="#" data-toggle="modal" data-target="#service-create-modal">
-                                        Click here to create your first service.</a></p>
-                                </td>
-                            </tr>
-                        {% endif %}
-                        </tbody>
-                    </table>
-
-                    <hr />
-
-                    <div class="row align-items-end mb-2">
-                        <div class="col-auto mr-auto">
-                            <h3 class="mb-0">Networks</h3>
-                        </div>
-                        <div class="col-auto">
-                            <a href="{{ path('project.network.create.get', {
-                                    'projectId': project.id,
-                                }) }}" class="btn btn-primary btn-sm">
-                                <i class="fe fe-plus mr-2"></i> Create a network
-                            </a>
-                        </div>
-                    </div>
-
-                    <table class="table table-vcenter">
-                        <thead>
-                        <tr>
-                            <th class="w-25">Name</th>
-                            <th>Services</th>
-                            <th class="w-1"></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {% for network in networks %}
-                            <tr>
-                                <td><a href="{{ path('project.network.view.get', {
-                                    'projectId': project.id,
-                                    'networkId': network.id
-                                }) }}" class="text-inherit">{{ network.name }}</a></td>
-                                <td>
-                                    <div class="tags">
-                                        {% for service in network.services if service.parent is empty %}
-                                            <a href="{{ path('project.service.view.get', {
-                                                'projectId': project.id,
-                                                'serviceId': service.id,
-                                            }) }}" class="tag">{{ service.name }}</a>
-                                        {% endfor %}
-                                    </div>
-                                </td>
-                                <td>
-                                    <a class="icon" href="{{ path('project.network.update.get', {
-                                        'projectId': project.id,
-                                        'networkId': network.id,
-                                    }) }}"><i class="fe fe-edit"></i></a>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                        {% if networks is empty %}
-                            <tr>
-                                <td colspan="3">You have no networks.</td>
-                            </tr>
-                        {% endif %}
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                    {% endfor %}
+                </table>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
-     aria-labelledby="service-create-modal-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="service-create-modal-title">Create a Service</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                {% include '@Dashtainer/project/snippets/service_create.html.twig' %}
-            </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                </div>
-        </div>
-    </div>
-</div>
+{% include '@Dashtainer/project/snippets/service_create.html.twig' %}
+{% include '@Dashtainer/project/snippets/delete.html.twig' %}
 {% endblock %}

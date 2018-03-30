@@ -116,7 +116,38 @@ code {
     }
 }
 
-ul[role="tablist"] {
+ul.nav.nav-tabs {
+    &[data-steps-list] {
+        li:hover {
+            background-color: transparent;
+            border-color: #eee #eee #ddd;
+        }
+
+        .nav-item + .nav-item {
+            margin-left: .1rem;
+        }
+
+        .nav-item {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .nav-link {
+            width: 100%;
+            height: 100%;
+            padding: 1rem 0 0;
+        }
+
+        .nav-link:hover:not(.disabled) {
+            color: $black;
+        }
+
+        li.complete {
+            -webkit-box-shadow: inset 0 -2px 0 $success;
+            box-shadow: inset 0 -2px 0 $success;
+        }
+    }
+
     li {
         padding: 0 5px 5px;
         cursor: pointer;
@@ -202,5 +233,17 @@ ul[role="tablist"] {
         margin-top: -20px;
         margin-left: -15px;
         margin-bottom: 10px;
+    }
+}
+
+.mw-unset {
+    max-width: unset;
+}
+
+.icon {
+    @each $color, $value in $colors {
+        &.text-#{$color} {
+            color: $value !important;
+        }
     }
 }

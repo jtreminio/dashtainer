@@ -1,15 +1,6 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
-{% block content %}
-<div class="row">
-    <div class="col-lg-3 order-lg-1 mb-4">
-        <div class="alert alert-primary text-center">
-            Updating Service
-        </div>
-    </div>
-
-    <div class="col-lg-9">
-
+{% block serviceContent %}
 <form class="card" action="{{ path('project.service.update.post', {
     'projectId': project.id,
     'serviceId': service.id,
@@ -309,39 +300,11 @@
 
         <hr class="my-6" />
 
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-
-        <p class="my-3"><a href="#" data-toggle="modal"
-              data-target="#service-delete-modal">Delete service</a></p>
-    </div>
-</form>
-
-    </div>
-</div>
-
-<div class="modal fade" id="service-delete-modal" tabindex="-1" role="dialog"
-     aria-labelledby="service-delete-modal-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="service-delete-modal-title">Delete this service?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{{ path('project.service.delete.post', {
-                    'projectId': project.id,
-                    'serviceId': service.id,
-                }) }}"
-                  method="post" data-ajax>
-                <div class="modal-body">
-                    <p>This will also delete all files attached to this service.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Yes, delete</button>
-                </div>
-            </form>
+        <div class="d-flex justify-content-between">
+            <a href="{{ path('project.view.get', {
+                'projectId': project.id
+            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
+            <button class="btn btn-primary btn-lg" type="submit">Update Service</button>
         </div>
     </div>
-</div>
-{% endblock %}
+</form>

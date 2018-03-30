@@ -1,26 +1,75 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-        'projectId': project.id,
-    }) }}">{{ project.name }}</a></li>
-<li class="breadcrumb-item active" aria-current="page">Update</li>
-{% endblock %}
-
 {% block content %}
 <div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap">
+                    <div class="row">
+                        <div class="col">
+                            <ul class="nav nav-tabs mb-3" data-steps-list>
+                                <li class="col nav-item active">
+                                    <a class="nav-link" href="">Step 1<br />
+                                        <span class="small">Updating Project</span></a>
+                                </li>
+                                <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                                    <a class="nav-link" href="{{ path('project.view.get', {
+                                        'projectId': project.id
+                                    }) }}">Step 2<br />
+                                        <span class="small">Add {{ project.services is not empty ? 'More' }}
+                                            Services</span></a>
+                                </li>
+                                <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                                    <a class="nav-link"
+                                        {% if project.services is not empty %}
+                                            href="{{ path('project.export.get', {'projectId': project.id}) }}
+                                        {% endif %}">Step 3<br />
+                                        <span class="small">Download Project</span></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col pt-3 px-3 pb-0">
+                            Update existing project.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <div class="col-lg-3 order-lg-1 mb-4">
-        <a href="#" data-toggle="modal"
-           data-target="#project-create-modal"
-           class="btn btn-block btn-primary mb-6">
-            <i class="fe fe-plus mr-2"></i>Create a new Project
-        </a>
-        <div class="list-group list-group-transparent mb-0">
-            <a href="#" class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-alert-triangle"></i></span>Alerts</a>
-            <a href="#" class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-user"></i></span>Avatars</a>
+        <div class="list-group-transparent mb-0">
+            <div class="d-flex flex-row flex-lg-column">
+                {% if project.services is not empty %}
+                    <div>
+                        <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                           class="list-group-item text-green"><span
+                                class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
+                    </div>
+                {% endif %}
+
+                <div>
+                    <a href="{{ path('project.view.get', {
+                        'projectId': project.id
+                    }) }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-list"></i></span>View Services</a>
+                </div>
+                <div>
+                    <a href="{{ path('project.index.get') }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Project</a>
+                </div>
+                <div class="mt-lg-5 ml-auto ml-lg-0">
+                    <a href="#" class="list-group-item text-danger" data-toggle="modal"
+                       data-target="#project-delete-modal"><span
+                            class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Project</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -41,39 +90,17 @@
             </div>
         </div>
 
-        <hr class="my-6" />
-
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Update Project</button>
-
-        <p class="my-3"><a href="#" data-toggle="modal"
-              data-target="#project-delete-modal">Delete project</a></p>
+        <div class="d-flex justify-content-between">
+            <a href="{{ path('project.view.get', {
+                'projectId': project.id
+            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
+            <button class="btn btn-primary btn-lg" type="submit">Update Project</button>
+        </div>
     </div>
 </form>
 
     </div>
 </div>
 
-<div class="modal fade" id="project-delete-modal" tabindex="-1" role="dialog"
-     aria-labelledby="project-delete-modal-title" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="project-delete-modal-title">Delete this project?</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                </button>
-            </div>
-            <form action="{{ path('project.delete.post', {'projectId': project.id}) }}"
-                  method="post" data-ajax>
-                <div class="modal-body">
-                    <p>This will also delete all services, networks, secrets and volumes attached
-                        to this project.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Yes, delete</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+{% include '@Dashtainer/project/snippets/delete.html.twig' %}
 {% endblock %}

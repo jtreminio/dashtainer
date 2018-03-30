@@ -94,6 +94,11 @@ class Project extends Controller
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($request->request->all());
 
+        $form->project_name_used = $this->dProjectRepo->findOneBy([
+            'user' => $user,
+            'name' => $form->name,
+        ]);
+
         $this->validator->setSource($form);
 
         if (!$this->validator->isValid()) {
@@ -130,11 +135,19 @@ class Project extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
+        $services = $this->dServiceRepo->findAllPublicByProject($project);
+
+        $servicesCategorized = [];
+        foreach ($services as $service) {
+            $servicesCategorized[$service->getType()->getCategory()->getId()] []= $service;
+        }
+
         return $this->render('@Dashtainer/project/view.html.twig', [
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
-            'networks'          => $this->dNetworkRepo->getPrivateNetworks($project),
-            'services'          => $this->dServiceRepo->findAllPublicByProject($project),
+            'project'             => $project,
+            'serviceCategories'   => $this->dServiceCatRepo->findAll(),
+            'servicesCategorized' => $servicesCategorized,
+            'networks'            => $this->dNetworkRepo->getPrivateNetworks($project),
+            'services'            => $services,
         ]);
     }
 
@@ -180,6 +193,15 @@ class Project extends Controller
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($project->toArray());
         $form->fromArray($request->request->all());
+
+        $existingProject = $this->dProjectRepo->findOneBy([
+            'user' => $user,
+            'name' => $form->name,
+        ]);
+
+        if ($existingProject && $existingProject->getId() !== $project->getId()) {
+            $form->project_name_used = true;
+        }
 
         $this->validator->setSource($form);
 

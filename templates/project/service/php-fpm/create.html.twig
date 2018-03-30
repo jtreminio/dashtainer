@@ -1,15 +1,6 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
-{% block content %}
-<div class="row">
-    <div class="col-lg-3 order-lg-1 mb-4">
-        <div class="alert alert-primary text-center">
-            Creating Service
-        </div>
-    </div>
-
-    <div class="col-lg-9">
-
+{% block serviceContent %}
 <form class="card" action="{{ path('project.service.create.post', {
     'projectId': project.id,
     'serviceTypeSlug': serviceType.slug,
@@ -243,7 +234,7 @@
                                         Install Composer</label>
                                 </div>
                                 <small class="text-muted">
-                                    Composer will be available as a system service as
+                                    Composer will be available as a system service at
                                     <code>$ composer</code>
                                 </small>
                             </div>
@@ -340,7 +331,4 @@
         <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
 </form>
-
-    </div>
-</div>
 {% endblock %}

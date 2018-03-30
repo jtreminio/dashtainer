@@ -211,13 +211,14 @@ class Service extends Controller
         $params = $this->dServiceDomain->getCreateParams($project, $serviceType);
 
         return $this->render($template, array_merge([
-            'user'        => $user,
-            'project'     => $project,
-            'serviceName' => $serviceName,
-            'serviceType' => $serviceType,
-            'version'     => $version,
-            'networks'    => $networks,
-            'networkName' => $networkName,
+            'user'              => $user,
+            'project'           => $project,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'serviceName'       => $serviceName,
+            'serviceType'       => $serviceType,
+            'version'           => $version,
+            'networks'          => $networks,
+            'networkName'       => $networkName,
         ], $params));
     }
 
@@ -268,13 +269,12 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dServiceDomain->createService($form);
+        $this->dServiceDomain->createService($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
-            'data' => $this->generateUrl('project.service.view.get', [
-                'projectId' => $form->project->getId(),
-                'serviceId' => $service->getId(),
+            'data' => $this->generateUrl('project.view.get', [
+                'projectId' => $project->getId(),
             ]),
         ], AjaxResponse::HTTP_OK);
     }
@@ -312,8 +312,9 @@ class Service extends Controller
         $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
-            'service' => $service,
-            'project' => $project,
+            'service'           => $service,
+            'project'           => $project,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ], $params));
     }
 
@@ -355,6 +356,7 @@ class Service extends Controller
             'service'           => $service,
             'project'           => $project,
             'nonJoinedNetworks' => $nonJoinedNetworks,
+            'serviceCategories' => $this->dServiceCatRepo->findAll(),
         ], $params));
     }
 

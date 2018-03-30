@@ -1,20 +1,26 @@
+<div class="modal fade" id="service-create-modal" tabindex="-1" role="dialog"
+     aria-labelledby="service-create-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="service-create-modal-title">Create a Service</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
 {% for category in serviceCategories if category is not empty %}
     <h5>{{ category.name }}</h5>
     <div class="row row-cards">
         {% for type in category.types if type.isPublic %}
-            <div class="col-12 col-md-6 col-lg-4">
+            <div class="col-6 col-md-6 col-lg-3">
                 <div class="card">
                     {% if type.versions is not empty %}
-                        <a href="#" class="p-3"
+                        <a href="#" class="p-1"
                            id="{{ type.slug }}-dropdown"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <div class="d-flex align-items-center">
-                                <span class="stamp stamp-md bg-blue mr-3">
-                                    {{ type.name|first }}</span>
-                                <div>
-                                    <h4 class="m-0 dropdown-toggle">
-                                        {{ type.name }}
-                                    </h4>
+                                <span class="stamp bg-blue mr-3">{{ type.name|first }}</span><div>
+                                    <h6 class="m-0 dropdown-toggle">{{ type.name }}</h6>
                                 </div>
                             </div>
                         </a>
@@ -34,14 +40,11 @@
                         <a href="{{ path('project.service.create.get', {
                                 'projectId': project.id,
                                 'serviceTypeSlug': type.slug,
-                            }) }}" class="p-3">
+                            }) }}" class="p-1">
                             <div class="d-flex align-items-center">
-                                <span class="stamp stamp-md bg-blue mr-3">
-                                    {{ type.name|first }}</span>
+                                <span class="stamp bg-blue mr-3">{{ type.name|first }}</span>
                                 <div>
-                                    <h4 class="m-0">
-                                        {{ type.name }}
-                                    </h4>
+                                    <h6 class="m-0">{{ type.name }}</h6>
                                 </div>
                             </div>
                         </a>
@@ -51,3 +54,11 @@
         {% endfor %}
     </div>
 {% endfor %}
+
+            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+        </div>
+    </div>
+</div>

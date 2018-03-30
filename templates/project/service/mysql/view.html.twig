@@ -1,39 +1,13 @@
 {% extends '@Dashtainer/project/service/view.html.twig' %}
 
-{% block content %}
-<div class="row">
-    <div class="col-lg-3 order-lg-1 mb-4">
-        <div class="alert alert-primary text-center">
-            Manage Service
-        </div>
-        <div class="list-group list-group-transparent mb-0">
-            <a href="{{ path('project.service.update.get', {
-                'projectId': project.id,
-                'serviceId': service.id,
-            }) }}"
-               class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Service</a>
-            <a href="{{ path('project.view.get', {'projectId': project.id, }) }}"
-               class="list-group-item list-group-item-action"><span
-                    class="icon mr-3"><i class="fe fe-grid"></i></span>All Services</a>
-            <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-               class="list-group-item list-group-item-action text-green"><span
-                    class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
-        </div>
-    </div>
+{% block serviceContent %}
+<div class="card-body">
+    <div class="text-wrap p-lg-6">
+        <h3>{{ service.name }}</h3>
 
-    <div class="col-lg-9">
-        <div class="card">
-            <div class="card-body">
-                <div class="text-wrap p-lg-6">
-                    <h3>{{ service.name }}</h3>
-
-                    <p>ID: {{ service.id }}</p>
-                    <p>Name: {{ service.name }}</p>
-                    <p>Networks: {% for network in service.networks %}{{ network.name }}, {% endfor %}</p>
-                </div>
-            </div>
-        </div>
+        <p>ID: {{ service.id }}</p>
+        <p>Name: {{ service.name }}</p>
+        <p>Networks: {% for network in service.networks %}{{ network.name }}, {% endfor %}</p>
     </div>
 </div>
 {% endblock %}

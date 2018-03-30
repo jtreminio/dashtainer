@@ -1,12 +1,83 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
-{% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-<li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-        'projectId': project.id,
-    }) }}">{{ project.name }}</a></li>
-<li class="breadcrumb-item" aria-current="page"><a href="{{ path('project.view.get', {
-        'projectId': project.id,
-    }) }}">Services</a></li>
-<li class="breadcrumb-item active" aria-current="page">{{ service.name }}</li>
+{% block content %}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-wrap">
+                    <div class="row">
+                        <div class="col">
+                            <ul class="nav nav-tabs mb-3" data-steps-list>
+                                <li class="col nav-item complete">
+                                    <a class="nav-link" href="{{ path('project.view.get', {
+                                        'projectId': project.id
+                                    }) }}">Step 1<br />
+                                        <span class="small">View Project</span></a>
+                                </li>
+                                <li class="col nav-item active">
+                                    <a class="nav-link" href="#">Step 2<br />
+                                        <span class="small">Viewing Service</span></a>
+                                </li>
+                                <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                                    <a class="nav-link"
+                                        {% if project.services is not empty %}
+                                            href="{{ path('project.export.get', {'projectId': project.id}) }}
+                                        {% endif %}">Step 3<br />
+                                        <span class="small">Download Project</span></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col pt-3 px-3 pb-0">
+                            Viewing this amazing service
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 order-lg-1 mb-4">
+        <div class="list-group-transparent mb-0">
+            <div class="d-flex flex-row flex-lg-column">
+                <div>
+                    <a href="{{ path('project.service.update.get', {
+                        'projectId': project.id,
+                        'serviceId': service.id,
+                    }) }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Service</a>
+                </div>
+                <div>
+                    <a href="{{ path('project.view.get', {
+                        'projectId': project.id
+                    }) }}" class="list-group-item"><span
+                            class="icon mr-3"><i class="fe fe-list"></i></span>View Services</a>
+                </div>
+                <div>
+                    <a href="#" class="list-group-item"
+                       data-toggle="modal" data-target="#service-create-modal"><span
+                            class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Service</a>
+                </div>
+
+                <div class="mt-lg-5 ml-auto ml-lg-0">
+                    <a href="#" class="list-group-item text-danger" data-toggle="modal"
+                       data-target="#service-delete-modal"><span
+                            class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Service</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        {% block serviceContent %}{% endblock %}
+    </div>
+</div>
+
+{% include '@Dashtainer/project/snippets/service_create.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/delete.html.twig' %}
 {% endblock %}
