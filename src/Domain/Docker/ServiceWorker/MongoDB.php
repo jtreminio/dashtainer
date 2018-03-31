@@ -70,7 +70,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
         $serviceDatastoreVol->setName('datastore')
             ->setSource("\$PWD/{$service->getSlug()}/datadir")
             ->setTarget('/data/db')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
             ->setService($service);

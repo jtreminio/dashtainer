@@ -77,7 +77,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             ->setSource("\$PWD/{$service->getSlug()}/postgresql.conf")
             ->setTarget('/etc/postgresql/postgresql.conf')
             ->setData($form->file['postgresql.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
             ->setService($service);
@@ -90,7 +90,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $serviceDatastoreVol->setName('datastore')
             ->setSource("\$PWD/{$service->getSlug()}/datadir")
             ->setTarget('/var/lib/postgresql/data')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
             ->setService($service);
