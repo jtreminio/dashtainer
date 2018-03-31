@@ -4,7 +4,10 @@
 <div class="card">
     <div class="card-body">
         <div class="text-wrap p-lg-6">
-            <h3>{{ service.name }}</h3>
+            <h3><a class="text-blue" href="{{ path('project.service.update.get', {
+                    'projectId': project.id,
+                    'serviceId': service.id,
+                }) }}">{{ service.name }}</a></h3>
 
             <p>ID: {{ service.id }}</p>
             <p>Name: {{ service.name }}</p>
