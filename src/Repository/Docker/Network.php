@@ -116,13 +116,17 @@ class Network implements Repository\ObjectPersistInterface
         $qb = $this->em->createQueryBuilder()
             ->select('n')
             ->from('Dashtainer:Docker\Network', 'n')
-            ->where(':service MEMBER OF n.services');
+            ->where(':service MEMBER OF n.services')
+            ->andWhere('n.project = :project');
 
         if (!$public) {
             $qb->andWhere('n.is_public = 0');
         }
 
-        $qb->setParameters(['service' => $service]);
+        $qb->setParameters([
+            'service' => $service,
+            'project' => $service->getProject(),
+        ]);
 
         return $qb->getQuery()->getResult();
     }
@@ -137,13 +141,17 @@ class Network implements Repository\ObjectPersistInterface
         $qb = $this->em->createQueryBuilder()
             ->select('n')
             ->from('Dashtainer:Docker\Network', 'n')
-            ->where(':service NOT MEMBER OF n.services');
+            ->where(':service NOT MEMBER OF n.services')
+            ->andWhere('n.project = :project');
 
         if (!$public) {
             $qb->andWhere('n.is_public = 0');
         }
 
-        $qb->setParameters(['service' => $service]);
+        $qb->setParameters([
+            'service' => $service,
+            'project' => $service->getProject(),
+        ]);
 
         return $qb->getQuery()->getResult();
     }
