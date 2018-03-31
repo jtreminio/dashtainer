@@ -11,9 +11,6 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
     /** @var Blackfire */
     protected $blackfireWorker;
 
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
-
     /** @var Repository\Docker\ServiceType */
     protected $serviceTypeRepo;
 
@@ -23,11 +20,9 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         Repository\Docker\ServiceType $serviceTypeRepo,
         Blackfire $blackfireWorker
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        parent::__construct($serviceRepo, $networkRepo);
 
         $this->serviceTypeRepo = $serviceTypeRepo;
-
         $this->blackfireWorker = $blackfireWorker;
     }
 

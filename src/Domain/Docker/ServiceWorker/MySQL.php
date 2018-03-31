@@ -8,17 +8,6 @@ use Dashtainer\Repository;
 
 class MySQL extends WorkerAbstract implements WorkerInterface
 {
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
-
-    public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo
-    ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
-    }
-
     public function getServiceTypeSlug() : string
     {
         return 'mysql';

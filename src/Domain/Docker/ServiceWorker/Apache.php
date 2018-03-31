@@ -8,9 +8,6 @@ use Dashtainer\Repository;
 
 class Apache extends WorkerAbstract implements WorkerInterface
 {
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
-
     /** @var Repository\Docker\ServiceType */
     protected $serviceTypeRepo;
 
@@ -19,8 +16,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         Repository\Docker\Network $networkRepo,
         Repository\Docker\ServiceType $serviceTypeRepo
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        parent::__construct($serviceRepo, $networkRepo);
 
         $this->serviceTypeRepo = $serviceTypeRepo;
     }

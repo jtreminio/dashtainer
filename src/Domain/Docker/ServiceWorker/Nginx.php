@@ -8,19 +8,15 @@ use Dashtainer\Repository;
 
 class Nginx extends WorkerAbstract implements WorkerInterface
 {
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
-
     /** @var Repository\Docker\ServiceType */
     protected $serviceTypeRepo;
 
     public function __construct(
         Repository\Docker\Service $serviceRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Network $networkRepo,
+        Repository\Docker\ServiceType $serviceTypeRepo
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        parent::__construct($serviceRepo, $networkRepo);
 
         $this->serviceTypeRepo = $serviceTypeRepo;
     }
