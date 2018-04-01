@@ -16,7 +16,7 @@
             <label class="form-label" for="{{ id }}-target">Target Path</label>
             <input type="text" class="form-control" maxlength="255"
                    id="{{ id }}-target" name="{{ name }}[target]" placeholder=""
-                   value=""
+                   value="{{ targetPath }}"
                    data-error-container="{{ errorContainer }}" />
             <small class="text-muted">
                 Make file available inside container at this location.

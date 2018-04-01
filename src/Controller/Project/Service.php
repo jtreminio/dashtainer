@@ -88,14 +88,16 @@ class Service extends Controller
 
     /**
      * @Route(name="project.service.block-add-file.get",
-     *     path="/project/{projectId}/service/block-add-file/{language}",
+     *     path="/project/{projectId}/service/block-add-file/{language}/{targetPath}",
      *     methods={"GET"}
      * )
      * @param string $language
+     * @param string $targetPath
      * @return AjaxResponse
      */
     public function getBlockAddFile(
-        string $language
+        string $language,
+        string $targetPath = null
     ) : AjaxResponse {
         $uniqid = uniqid();
 
@@ -114,6 +116,7 @@ class Service extends Controller
             'id'             => $id,
             'name'           => $name,
             'language'       => $language,
+            'targetPath'     => $targetPath ? urldecode($targetPath) : '',
             'errorContainer' => 'custom_file',
         ]);
 

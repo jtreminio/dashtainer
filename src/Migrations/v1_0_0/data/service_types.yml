@@ -101,16 +101,23 @@
     versions: []
     order: 3
 -
+    name: Adminer
+    category: Other
+    is_public: true
+    slug: adminer
+    versions: []
+    order: 4
+-
     name: Blackfire
     category: Other
     is_public: false
     slug: blackfire
     versions: []
-    order: 4
+    order: 98
 -
     name: Traefik
     category: Other
     is_public: false
     slug: traefik
     versions: []
-    order: 5
+    order: 99

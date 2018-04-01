@@ -4449,3 +4449,73 @@
 
             CMD ["beanstalkd", "-l", "0.0.0.0", "-p", "13000", "-b", "/var/lib/beanstalkd/binlog"]
 
+-
+    type: Adminer
+    name: designs
+    data:
+        available:
+            - brade
+            - bueltge
+            - cvicebni-ubor
+            - esterka
+            - flat
+            - galkaev
+            - haeckel
+            - hever
+            - jukin
+            - kahi
+            - konya
+            - lucas-sandery
+            - mancave
+            - nette
+            - ng9
+            - nicu
+            - pappu687
+            - paranoiq
+            - pilot
+            - pokorny
+            - price
+            - rmsoft
+        default:
+            - pepa-linha
+-
+    type: Adminer
+    name: plugins
+    data:
+        available:
+            - database-hide
+            - designs
+            - dump-alter
+            - dump-bz2
+            - dump-date
+            - dump-json
+            - dump-php
+            - dump-xml
+            - dump-zip
+            - edit-calendar
+            - edit-foreign
+            - edit-textarea
+            - email-table
+            - enum-option
+            - enum-types
+            - file-upload
+            - foreign-system
+            - frames
+            - json-column
+            - login-otp
+            - login-servers
+            - login-sqlite
+            - login-ssl
+            - login-table
+            - master-slave
+            - plugin
+            - slugify
+            - sql-log
+            - struct-comments
+            - table-indexes-structure
+            - tables-filter
+            - table-structure
+            - tinymce
+            - translation
+            - version-noverify
+            - wymeditor

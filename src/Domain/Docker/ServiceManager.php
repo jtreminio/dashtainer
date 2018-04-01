@@ -11,29 +11,31 @@ class ServiceManager
     protected $workers = [];
 
     public function __construct(
+        ServiceWorker\Adminer $adminer,
         ServiceWorker\Apache $apache,
-        ServiceWorker\Nginx $nginx,
-        ServiceWorker\PhpFpm $phpfpm,
-        ServiceWorker\MariaDB $mariaDB,
-        ServiceWorker\MySQL $mySQL,
-        ServiceWorker\PostgreSQL $postgreSQL,
-        ServiceWorker\MongoDB $mongoDB,
-        ServiceWorker\Redis $redis,
+        ServiceWorker\Beanstalkd $beanstalkd,
         ServiceWorker\Elasticsearch $elasticsearch,
         ServiceWorker\MailHog $mailHog,
-        ServiceWorker\Beanstalkd $beanstalkd
+        ServiceWorker\MariaDB $mariaDB,
+        ServiceWorker\MongoDB $mongoDB,
+        ServiceWorker\MySQL $mySQL,
+        ServiceWorker\Nginx $nginx,
+        ServiceWorker\PhpFpm $phpfpm,
+        ServiceWorker\PostgreSQL $postgreSQL,
+        ServiceWorker\Redis $redis
     ) {
+        $this->workers []= $adminer;
         $this->workers []= $apache;
-        $this->workers []= $nginx;
-        $this->workers []= $phpfpm;
-        $this->workers []= $mariaDB;
-        $this->workers []= $mySQL;
-        $this->workers []= $postgreSQL;
-        $this->workers []= $mongoDB;
-        $this->workers []= $redis;
+        $this->workers []= $beanstalkd;
         $this->workers []= $elasticsearch;
         $this->workers []= $mailHog;
-        $this->workers []= $beanstalkd;
+        $this->workers []= $mariaDB;
+        $this->workers []= $mongoDB;
+        $this->workers []= $mySQL;
+        $this->workers []= $nginx;
+        $this->workers []= $phpfpm;
+        $this->workers []= $postgreSQL;
+        $this->workers []= $redis;
     }
 
     public function getWorkerFromForm(
