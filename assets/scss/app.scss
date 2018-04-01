@@ -211,6 +211,10 @@ ul.nav.nav-tabs {
         a[data-toggle="dropdown"] {
             color: #000;
         }
+
+        button[data-toggle="delete-block"] {
+            background-color: transparent !important;
+        }
     }
 }
 
@@ -233,6 +237,7 @@ ul.nav.nav-tabs {
         margin-top: -20px;
         margin-left: -15px;
         margin-bottom: 10px;
+        text-align: left;
     }
 }
 
