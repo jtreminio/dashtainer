@@ -19,3 +19,4 @@
 /vendor/
 /node_modules/
 /public/build/
+yarn-error.log
