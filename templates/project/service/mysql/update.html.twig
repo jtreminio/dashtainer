@@ -18,6 +18,45 @@
 
         {% include '@Dashtainer/project/service/snippets/networks_update.html.twig' %}
 
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label" for="port">Bind Port</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="port_confirm" name="port_confirm"
+                                       {{ portConfirm ? 'checked' }} />
+                                <label class="custom-control-label" for="port_confirm">Enable</label>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="number" id="port" name="port" class="form-control"
+                           min="3306" max="65535" value="{{ bindPort }}" data-update-text="port-tag"
+                           data-error-container="port" />
+                </div>
+
+                <div class="invalid-feedback" data-error-container-name="port"></div>
+            </div>
+
+            <div class="col-12">
+                <small class="text-muted">
+                    Bind port on your localhost to this service's <code>3306</code> port.
+                    <br />
+                    Useful for connecting a GUI like Sequel Pro or MySQL Workbench via
+                    <span class="badge badge-primary text-lg">
+                        localhost:<span id="port-tag">{{ bindPort }}</span></span>.
+                    <br />
+                    This is disabled by default and should only be enabled in local dev environments.
+                    <br />
+                    To enable you must check the checkbox and enter a port.
+                    <br />
+                    The preferred method of accessing your database is to create an Adminer service.
+                </small>
+            </div>
+        </div>
+
         <hr class="my-6" />
 
         <h4 class="mb-3">Data Storage</h4>

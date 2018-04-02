@@ -24,6 +24,12 @@ class MySQLCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $datastore;
 
+    public $port_confirm;
+
+    public $port;
+
+    public $port_used = false;
+
     /**
      * @DashAssert\NonBlankString(message = "Please enter a root password")
      * @DashAssert\Hostname
@@ -63,9 +69,37 @@ class MySQLCreate extends CreateAbstract implements Util\HydratorInterface
 
         $this->validateFile($context);
         $this->validateCustomFile($context);
+        $this->validatePort($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)
     {
+    }
+
+    protected function validatePort(ExecutionContextInterface $context)
+    {
+        if (!$this->port_confirm) {
+            return;
+        }
+
+        if (empty($this->port) || !is_numeric($this->port)) {
+            $context->buildViolation('You must enter a port')
+                ->atPath('port')
+                ->addViolation();
+
+            return;
+        }
+
+        if ($this->port < 3306 || $this->port > 65535) {
+            $context->buildViolation('Port must be between 3306 and 65535')
+                ->atPath('port')
+                ->addViolation();
+        }
+
+        if ($this->port_used) {
+            $context->buildViolation('Port already used in a different service')
+                ->atPath('port')
+                ->addViolation();
+        }
     }
 }

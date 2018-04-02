@@ -60,7 +60,18 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $service->addMeta($versionMeta);
 
-        $this->serviceRepo->save($dataStoreMeta, $versionMeta, $service);
+        $portMetaData = $form->port_confirm ? [$form->port] : [];
+        $servicePort  = $form->port_confirm ? ["{$form->port}:3306"] : [];
+
+        $portMeta = new Entity\Docker\ServiceMeta();
+        $portMeta->setName('bind-port')
+            ->setData($portMetaData)
+            ->setService($service);
+
+        $service->addMeta($portMeta)
+            ->setPorts($servicePort);
+
+        $this->serviceRepo->save($dataStoreMeta, $versionMeta, $portMeta, $service);
 
         $myCnf = new Entity\Docker\ServiceVolume();
         $myCnf->setName('my.cnf')
@@ -129,7 +140,9 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [];
+        return [
+            'bindPort' => $this->getOpenBindPort($project),
+        ];
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -137,6 +150,11 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $version   = $service->getMeta('version')->getData()[0];
         $version   = (string) number_format($version, 1);
         $datastore = $service->getMeta('datastore')->getData()[0];
+
+        $bindPortMeta = $service->getMeta('bind-port');
+        $bindPort     = $bindPortMeta->getData()[0]
+            ?? $this->getOpenBindPort($service->getProject());
+        $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
         $env = $service->getEnvironments();
 
@@ -155,6 +173,8 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         return [
             'version'             => $version,
             'datastore'           => $datastore,
+            'bindPort'            => $bindPort,
+            'portConfirm'         => $portConfirm,
             'mysql_root_password' => $mysql_root_password,
             'mysql_database'      => $mysql_database,
             'mysql_user'          => $mysql_user,
@@ -188,7 +208,15 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $dataStoreMeta = $service->getMeta('datastore');
         $dataStoreMeta->setData([$form->datastore]);
 
-        $this->serviceRepo->save($dataStoreMeta);
+        $portMetaData = $form->port_confirm ? [$form->port] : [];
+        $servicePort  = $form->port_confirm ? ["{$form->port}:3306"] : [];
+
+        $portMeta = $service->getMeta('bind-port');
+        $portMeta->setData($portMetaData);
+
+        $this->serviceRepo->save($dataStoreMeta, $portMeta);
+
+        $service->setPorts($servicePort);
 
         $myCnf = $service->getVolume('my.cnf');
         $myCnf->setData($form->file['my.cnf'] ?? '');
@@ -235,5 +263,27 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $this->customFilesUpdate($service, $form);
 
         return $service;
+    }
+
+    protected function getOpenBindPort(Entity\Docker\Project $project) : int
+    {
+        $bindPortMetas = $this->serviceRepo->getProjectBindPorts($project);
+
+        $ports = [];
+        foreach ($bindPortMetas as $meta) {
+            if (!$data = $meta->getData()) {
+                continue;
+            }
+
+            $ports []= $data[0];
+        }
+
+        for ($i = 3307; $i < 65535; $i++) {
+            if (!in_array($i, $ports)) {
+                return $i;
+            }
+        }
+
+        return 3306;
     }
 }

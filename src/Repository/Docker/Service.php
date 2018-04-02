@@ -170,4 +170,24 @@ class Service implements Repository\ObjectPersistInterface
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\ServiceMeta[]
+     */
+    public function getProjectBindPorts(Entity\Docker\Project $project) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('sm')
+            ->from('Dashtainer:Docker\ServiceMeta', 'sm')
+            ->join('Dashtainer:Docker\Service', 's', Expr\Join::WITH, 'sm.service = s')
+            ->where('sm.name = :sm_name')
+            ->andWhere('s.project = :project')
+            ->setParameters([
+                'sm_name' => 'bind-port',
+                'project' => $project,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
 }
