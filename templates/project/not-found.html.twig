@@ -1,17 +1,14 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
 {% block content %}
-<div class="container py-2">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('index.get') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">Projects</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Project Not Found</li>
-        </ol>
-    </nav>
-</div>
-
-<div class="container">
-    <p>Project not found!</p>
+<div class="container text-center">
+    <div class="display-1 text-muted mb-5"><i class="fe fe-alert-triangle"></i> 404</div>
+    <h1 class="h2 mb-3">Oops... That's an error...</h1>
+    <p class="h4 text-muted font-weight-normal mb-7">
+        This is not the page you are looking for.
+    </p>
+    <a class="btn btn-primary" href="{{ path('index.get') }}">
+        <i class="fe fe-arrow-left mr-2"></i>Go back
+    </a>
 </div>
 {% endblock %}
