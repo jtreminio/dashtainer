@@ -4,54 +4,52 @@
 <div class="row">
     <div class="col">
         <div class="card">
-            <div class="card-body">
-                <div class="text-wrap">
-                    <div class="row">
-                        <div class="col">
-                            <ul class="nav nav-tabs mb-3" data-steps-list>
-                                <li class="col nav-item complete">
-                                    <a class="nav-link" href="{{ path('project.update.get', {
-                                        'projectId': project.id
-                                    }) }}">Step 1<br />
-                                        <span class="small">Update Project</span></a>
-                                </li>
-                                <li class="col nav-item active">
-                                    <a class="nav-link" href="{{ path('project.view.get', {
-                                        'projectId': project.id
-                                    }) }}">Step 2<br />
-                                        <span class="small">Add {{ project.services is not empty ? 'More' }}
-                                            Services</span></a>
-                                </li>
-                                <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
-                                    <a class="nav-link"
-                                        {% if project.services is not empty %}
-                                            href="{{ path('project.export.get', {'projectId': project.id}) }}
-                                        {% endif %}">Step 3<br />
-                                        <span class="small">Download Project</span></a>
-                                </li>
-                            </ul>
-                        </div>
+            <div class="card-body text-wrap">
+                <div class="row">
+                    <div class="col">
+                        <ul class="nav nav-tabs mb-3" data-steps-list>
+                            <li class="col nav-item complete">
+                                <a class="nav-link" href="{{ path('project.update.get', {
+                                    'projectId': project.id
+                                }) }}">Step 1<br />
+                                    <span class="small">Update Project</span></a>
+                            </li>
+                            <li class="col nav-item active">
+                                <a class="nav-link" href="{{ path('project.view.get', {
+                                    'projectId': project.id
+                                }) }}">Step 2<br />
+                                    <span class="small">Add {{ project.services is not empty ? 'More' }}
+                                        Services</span></a>
+                            </li>
+                            <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                                <a class="nav-link"
+                                    {% if project.services is not empty %}
+                                        href="{{ path('project.export.get', {'projectId': project.id}) }}
+                                    {% endif %}">Step 3<br />
+                                    <span class="small">Download Project</span></a>
+                            </li>
+                        </ul>
                     </div>
+                </div>
 
-                    <div class="row">
-                        <div class="col pt-3 px-3 pb-0">
-                            <p>Add one or more services to your project. Each service will live
-                            in its own container and you can group services together to allow
-                                communication between each other.</p>
+                <div class="row">
+                    <div class="col pt-3 px-3 pb-0">
+                        <p>Add one or more services to your project. Each service will live
+                        in its own container and you can group services together to allow
+                            communication between each other.</p>
 
-                            {% if services is not empty %}
-                                <p>You may continue adding more services, or you can
-                                    download your Docker-ready project.
-                                </p>
+                        {% if services is not empty %}
+                            <p>You may continue adding more services, or you can
+                                download your Docker-ready project.
+                            </p>
 
-                                <p class="text-right mb-0">
-                                    <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-                                       class="btn btn-success btn-lg">
-                                        <span class="mr-3"><i class="fe fe-download"></i></span>
-                                        Download Project</a>
-                                </p>
-                            {% endif %}
-                        </div>
+                            <p class="text-right mb-0">
+                                <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                                   class="btn btn-success btn-lg">
+                                    <span class="mr-3"><i class="fe fe-download"></i></span>
+                                    Download Project</a>
+                            </p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -60,45 +58,39 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-3 order-lg-1 mb-4">
-        <div class="list-group-transparent mb-0">
-            <div class="d-flex flex-row flex-lg-column">
+    <div class="col">
+        <div class="list-group-transparent mb-5">
+            <div class="d-flex flex-row hor-menu">
                 {% if services is not empty %}
-                    <div>
-                        <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-                           class="list-group-item text-green"><span
-                                class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
-                    </div>
+                    <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
+                       class="list-group-item text-green"><span
+                            class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
                 {% endif %}
 
-                <div>
-                    <a href="{{ path('project.update.get', {
-                        'projectId': project.id
-                    }) }}" class="list-group-item"><span
-                            class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Project</a>
-                </div>
-                <div>
-                    <a href="{{ path('project.index.get') }}" class="list-group-item"><span
-                            class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Project</a>
-                </div>
-                <div class="mt-lg-5 ml-auto ml-lg-0">
-                    <a href="#" class="list-group-item text-danger" data-toggle="modal"
-                       data-target="#project-delete-modal"><span
-                            class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Project</a>
-                </div>
+                <a href="{{ path('project.update.get', {
+                    'projectId': project.id
+                }) }}" class="list-group-item"><span
+                        class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Project</a>
+                <a href="{{ path('project.index.get') }}" class="list-group-item"><span
+                        class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Project</a>
+                <a href="#" class="list-group-item text-danger ml-auto" data-toggle="modal"
+                   data-target="#project-delete-modal"><span
+                        class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Project</a>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="col-lg-9">
+<div class="row">
+    <div class="col">
         <div class="card">
-            <div class="card-body">
+            <div class="card-body p-lg-6">
                 <div class="row align-items-end mb-2">
                     <div class="col-auto mr-auto">
                         <h3 class="mb-0">Services</h3>
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-primary btn-sm" type="button"
+                        <button class="btn btn-primary" type="button"
                                 data-toggle="modal" data-target="#service-create-modal">
                             <i class="fe fe-plus mr-2"></i> Create a service
                         </button>

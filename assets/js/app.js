@@ -25,6 +25,7 @@ require('prismjs/components/prism-yaml');
 require('jquery-circle-progress');
 require('jquery-mask-plugin');
 require('jquery-sparkline');
+require('jdenticon');
 
 //require('./tabler-core');
 

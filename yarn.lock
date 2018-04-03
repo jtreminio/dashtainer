@@ -1081,6 +1081,10 @@ caniuse-lite@^1.0.30000792:
   version "1.0.30000810"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000810.tgz#47585fffce0e9f3593a6feea4673b945424351d9"
 
+canvas-renderer@~2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/canvas-renderer/-/canvas-renderer-2.0.0.tgz#c0c4f5ee3275b9f26f3e3078241cb8d858ffa3e0"
+
 cardinal@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/cardinal/-/cardinal-1.0.0.tgz#50e21c1b0aa37729f9377def196b5a9cec932ee9"
@@ -3005,6 +3009,12 @@ isobject@^3.0.0, isobject@^3.0.1:
 isstream@~0.1.2:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
+
+jdenticon@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/jdenticon/-/jdenticon-2.0.0.tgz#ff6226ca6c4442bd6a9f0c902f5dc74a81141c4f"
+  dependencies:
+    canvas-renderer "~2.0.0"
 
 jquery-circle-progress@^1.2.2:
   version "1.2.2"

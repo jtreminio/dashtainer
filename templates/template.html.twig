@@ -9,7 +9,7 @@
     <div class="page-main">
         <div class="header">
             <div class="container">
-                <nav class="navbar navbar-expand-lg navbar-light">
+                <nav class="navbar navbar-expand-md navbar-light">
                     <a class="navbar-brand" href="{{ path('index.get') }}"><img
                             src="{{ asset('build/assets/images/logo.svg') }}"
                             class="navbar-brand-img" alt="dashtainer.com"></a>
@@ -43,8 +43,8 @@
                         <div class="nav order-lg-2">
                             <div class="dropdown ml-3">
                                 <a href="#" class="nav-link" data-toggle="dropdown">
-                                    <img src="{{ asset('build/assets/images/avatar.png') }}"
-                                         class="avatar"/>
+                                    <svg width="80" height="80" class="avatar"
+                                         data-jdenticon-value="{{ app.user.email }}"></svg>
                                     <span class="ml-2 d-none d-lg-block"></span>
                                 </a>
                                 <div class="dropdown-menu dropdown-menu-right">
