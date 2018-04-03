@@ -1,0 +1,53 @@
+{% trans_default_domain 'FOSUserBundle' %}
+
+{{ form_start(form, { 'action': path('fos_user_resetting_reset', {'token': token}), 'attr': {
+    'class': 'card fos_user_resetting_reset'
+} }) }}
+    {{ form_widget(form._token) }}
+
+    <div class="card-body px-6 pt-6 pb-0">
+        <div class="card-title">Reset Your Password</div>
+
+        <div class="form-group">
+            {{ form_label(form.plainPassword.first, 'New password', {
+                'label_attr': {'class': 'form-label'}
+            }) }}
+
+            {{ form_widget(form.plainPassword.first, {'attr': {
+                'class': 'form-control',
+                'placeholder': 'New password',
+            }}) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(form.plainPassword.second, 'Repeat new password', {
+                'label_attr': {'class': 'form-label'}
+            }) }}
+
+            {{ form_widget(form.plainPassword.second, {'attr': {
+                'class': 'form-control',
+                'placeholder': 'Repeat new password',
+            }}) }}
+        </div>
+    </div>
+
+    {% if not form.vars.valid %}
+        <div class="card-alert alert alert-danger mt-6 mb-0">
+            {% for error in form.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+            {% for error in form.plainPassword.first.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+            {% for error in form.plainPassword.second.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card-body pt-0 border-top-0">
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-block">{{ 'resetting.reset.submit'|trans }}</button>
+        </div>
+    </div>
+{{ form_end(form) }}

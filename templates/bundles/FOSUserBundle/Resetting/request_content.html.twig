@@ -1,0 +1,28 @@
+{% trans_default_domain 'FOSUserBundle' %}
+
+<form class="card fos_user_resetting_request" action="{{ path("fos_user_resetting_send_email") }}" method="post">
+    <div class="card-body px-6 pt-6 pb-0">
+        <div class="card-title">Forgot password</div>
+
+        <p class="text-muted">Enter your email address and your password will be reset and emailed to you.</p>
+
+        <div class="form-group">
+            <label for="username" class="form-label">Email address</label>
+            <input type="email" class="form-control"
+                   id="username" name="username"
+                   value="" required="required"
+                   autocomplete="username" placeholder="Enter email" autofocus />
+        </div>
+    </div>
+
+    <div class="card-body pt-0 border-top-0">
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-block">
+                {{ 'resetting.request.submit'|trans }}</button>
+        </div>
+    </div>
+</form>
+
+<div class="text-center text-muted">
+    Forget it, <a href="{{ path('fos_user_security_login') }}">send me back</a> to the sign in screen.
+</div>

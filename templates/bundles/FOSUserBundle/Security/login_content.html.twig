@@ -19,7 +19,8 @@
         <div class="form-group">
             <label for="password" class="form-label">
                 Password
-                <a href="#" class="pull-right small">I forgot password</a>
+                <a href="{{ path('fos_user_resetting_request') }}"
+                   class="pull-right small">I forgot password</a>
             </label>
             <input type="password" class="form-control"
                    id="password" name="_password"
