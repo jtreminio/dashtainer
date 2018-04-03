@@ -9,6 +9,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ path('index.get') }}">Home</a>
                 </li>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('project.index.get') }}">Your Projects</a>
+                    </li>
+                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
                        target="_blank">Fork Me</a>
