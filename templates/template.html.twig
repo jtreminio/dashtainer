@@ -8,57 +8,7 @@
 
 <div class="page">
     <div class="page-main">
-        <div class="header">
-            <div class="container">
-                <nav class="navbar navbar-expand-md navbar-light">
-                    <a class="navbar-brand" href="{{ path('index.get') }}"><img
-                            src="{{ asset('build/assets/images/logo.svg') }}"
-                            class="navbar-brand-img" alt="dashtainer.com"></a>
-                    <button class="navbar-toggler" type="button" data-toggle="collapse"
-                            data-target="#navbarSupportedContent"
-                            aria-controls="navbarSupportedContent" aria-expanded="false"
-                            aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav mr-auto">
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ path('index.get') }}">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
-                                   target="_blank">Fork Me</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="https://jtreminio.com" target="_blank">Blog</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="https://jtreminio.com/hire-me/"
-                                   target="_blank">Hire Me!</a>
-                            </li>
-                        </ul>
-                        <div class="nav order-lg-2">
-                            <div class="dropdown ml-3">
-                                <a href="#" class="nav-link" data-toggle="dropdown">
-                                    <svg width="80" height="80" class="avatar"
-                                         data-jdenticon-value="{{ app.user.email }}"></svg>
-                                    <span class="ml-2 d-none d-lg-block"></span>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right">
-                                    <a class="dropdown-item" href="{{ path('fos_user_profile_show') }}">
-                                        <span>View Profile</span>
-                                    </a>
-                                    <div class="dropdown-divider"></div>
-                                    <a class="dropdown-item"
-                                       href="{{ path('fos_user_security_logout') }}">Sign out</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-            </div>
-        </div>
+        {% include '@Dashtainer/header.html.twig' %}
 
         <div class="page-content">
             <div class="container">
