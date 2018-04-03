@@ -26,6 +26,7 @@ require('jquery-circle-progress');
 require('jquery-mask-plugin');
 require('jquery-sparkline');
 require('jdenticon');
+require('font-mfizz/dist/font-mfizz.css');
 
 //require('./tabler-core');
 

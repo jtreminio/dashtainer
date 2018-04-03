@@ -20,10 +20,8 @@ class Main extends Controller
      */
     public function indexGet(User $user = null) : Response
     {
-        if (!$user) {
-            return $this->redirectToRoute('fos_user_security_login');
-        }
-
-        return $this->redirectToRoute('project.index.get');
+        return $this->render('@Dashtainer/index.html.twig', [
+            'user' => $user,
+        ]);
     }
 }

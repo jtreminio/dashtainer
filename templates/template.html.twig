@@ -2,6 +2,7 @@
 <html>
 <head>
     <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+    <title>Dashtainer - Docker, Simplified</title>
 </head>
 <body>
 
@@ -24,9 +25,6 @@
                         <ul class="navbar-nav mr-auto">
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ path('index.get') }}">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">About</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
@@ -69,19 +67,7 @@
         </div>
     </div>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-auto mr-auto">
-                    Made with <i class="fe fe-heart"></i>
-                    by <a href="https://jtreminio.com">Juan Treminio</a>
-                </div>
-                <div class="col-auto">
-                    Theme by <a href="https://codecalm.net" target="_blank">codecalm.net</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {% include '@Dashtainer/footer.html.twig' %}
 </div>
 
 
