@@ -435,6 +435,7 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
+                && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
             ARG BLACKFIRE_INSTALL=0
@@ -511,6 +512,7 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
+                && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
             ARG BLACKFIRE_INSTALL=0
@@ -587,6 +589,7 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
+                && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
             ARG BLACKFIRE_INSTALL=0
@@ -663,6 +666,7 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
+                && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
             ARG BLACKFIRE_INSTALL=0
