@@ -226,7 +226,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
     ) : Entity\Docker\Service {
         $build = $service->getBuild();
         $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('DockerFile')
+            ->setDockerfile('Dockerfile')
             ->setArgs([
                 'SYSTEM_PACKAGES' => array_unique($form->system_packages),
             ]);
