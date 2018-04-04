@@ -8,7 +8,7 @@
 
 #### Instructions
 
-* Run `$ docker-compose up -d --build` in this directory
+* Run `$ docker-compose up -d --build` in the `traefik` directory
 * Once Traefik is running and ready, change into the `project` 
     directory and again run `$ docker-compose up -d --build`
 * You can see Traefik running at http://docker.localhost:8080

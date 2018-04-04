@@ -25,8 +25,13 @@ class Export
     {
         if ($traefik) {
             $this->archive->addFileFromPath(
-                "{$this->baseDir}docker-compose.yml",
+                "{$this->baseDir}traefik/docker-compose.yml",
                 __DIR__ . '/../../../assets/files/traefik.yml'
+            );
+
+            $this->archive->addFileFromPath(
+                "{$this->baseDir}/traefik/.env",
+                __DIR__ . '/../../../assets/files/traefik.env'
             );
 
             $this->archive->addFileFromPath(
