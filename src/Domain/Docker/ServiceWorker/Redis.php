@@ -69,7 +69,7 @@ class Redis extends WorkerAbstract implements WorkerInterface
         $serviceDatastoreVol->setName('datastore')
             ->setSource("\$PWD/{$service->getSlug()}/datadir")
             ->setTarget('/data')
-            ->setConsistency(null)
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
             ->setService($service);

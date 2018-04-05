@@ -75,7 +75,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
             ->setSource("\$PWD/{$service->getSlug()}/elasticsearch.yml")
             ->setTarget('/usr/share/elasticsearch/config/elasticsearch.yml')
             ->setData($form->file['elasticsearch.yml'] ?? '')
-            ->setConsistency(null)
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
             ->setService($service);
@@ -88,7 +88,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $serviceDatastoreVol->setName('datastore')
             ->setSource("\$PWD/{$service->getSlug()}/datadir")
             ->setTarget('/usr/share/elasticsearch/data')
-            ->setConsistency(null)
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
             ->setService($service);

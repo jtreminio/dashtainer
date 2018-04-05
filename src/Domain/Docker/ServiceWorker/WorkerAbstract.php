@@ -76,7 +76,7 @@ abstract class WorkerAbstract implements WorkerInterface
                 ->setSource("\$PWD/{$service->getSlug()}/{$name}")
                 ->setTarget($fileConfig['target'])
                 ->setData($fileConfig['data'])
-                ->setConsistency(null)
+                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER)
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
                 ->setService($service);
@@ -112,7 +112,7 @@ abstract class WorkerAbstract implements WorkerInterface
                 $file->setName($name)
                     ->setSource("\$PWD/{$service->getSlug()}/{$name}")
                     ->setTarget($fileConfig['target'])
-                    ->setConsistency(null)
+                    ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
                     ->setData($fileConfig['data'])
                     ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER)
                     ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -171,7 +171,7 @@ abstract class WorkerAbstract implements WorkerInterface
             $projectFilesSource->setName('project_files_source')
                 ->setSource($form->project_files['local']['source'])
                 ->setTarget('/var/www')
-                ->setConsistency(null)
+                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_CACHED)
                 ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
                 ->setService($service);
@@ -203,7 +203,7 @@ abstract class WorkerAbstract implements WorkerInterface
                 $projectFilesSource = new Entity\Docker\ServiceVolume();
                 $projectFilesSource->setName('project_files_source')
                     ->setTarget('/var/www')
-                    ->setConsistency(null)
+                    ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_CACHED)
                     ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
                     ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
                     ->setService($service);
