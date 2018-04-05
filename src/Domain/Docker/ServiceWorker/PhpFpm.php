@@ -288,8 +288,33 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
-        $phpIni    = $service->getVolume('php.ini');
-        $phpCliIni = $service->getVolume('php-cli.ini');
+        if (!$phpIni = $service->getVolume('php.ini')) {
+            $phpIni = new Entity\Docker\ServiceVolume();
+            $phpIni->setName('php.ini')
+                ->setSource("\$PWD/{$service->getSlug()}/php.ini")
+                ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
+                ->setConsistency(null)
+                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+                ->setHighlight('ini')
+                ->setService($service);
+
+            $service->addVolume($phpIni);
+        }
+
+        if (!$phpCliIni = $service->getVolume('php-cli.ini')) {
+            $phpCliIni = new Entity\Docker\ServiceVolume();
+            $phpCliIni->setName('php-cli.ini')
+                ->setSource("\$PWD/{$service->getSlug()}/php-cli.ini")
+                ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
+                ->setConsistency(null)
+                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+                ->setHighlight('ini')
+                ->setService($service);
+
+            $service->addVolume($phpCliIni);
+        }
 
         $phpIni->setData($form->file['php.ini'] ?? '');
         $phpCliIni->setData($form->file['php.ini'] ?? '');
@@ -301,11 +326,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesUpdate($service, $form);
 
-        $xdebugIni    = $service->getVolume('xdebug.ini');
-        $xdebugCliIni = $service->getVolume('xdebug-cli.ini');
-
         if ($form->xdebug['install'] ?? false) {
-            if (!$xdebugIni) {
+            if (!$xdebugIni = $service->getVolume('xdebug.ini')) {
                 $xdebugIni = new Entity\Docker\ServiceVolume();
                 $xdebugIni->setName('xdebug.ini')
                     ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
@@ -315,6 +337,10 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
                     ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
                     ->setService($service);
 
+                $service->addVolume($xdebugIni);
+            }
+
+            if (!$xdebugCliIni = $service->getVolume('xdebug-cli.ini')) {
                 $xdebugCliIni = new Entity\Docker\ServiceVolume();
                 $xdebugCliIni->setName('xdebug-cli.ini')
                     ->setSource("\$PWD/{$service->getSlug()}/xdebug-cli.ini")
@@ -324,8 +350,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
                     ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
                     ->setService($service);
 
-                $service->addVolume($xdebugIni)
-                    ->addVolume($xdebugCliIni);
+                $service->addVolume($xdebugCliIni);
             }
 
             $xdebugIni->setData($form->xdebug['ini']);
