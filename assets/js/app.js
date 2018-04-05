@@ -16,6 +16,7 @@ require('selectize/dist/css/selectize.bootstrap3.css');
 require('prismjs');
 require('prismjs/themes/prism.css');
 require('prismjs/components/prism-apacheconf');
+require('prismjs/components/prism-bash');
 require('prismjs/components/prism-docker');
 require('prismjs/components/prism-ini');
 require('prismjs/components/prism-javascript');

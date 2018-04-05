@@ -37,6 +37,30 @@
                             available (ex, http://awesome.localhost).
                         </p>
 
+                        <div class="alert alert-icon alert-info mb-6" role="alert">
+                            <i class="fa fa-apple" aria-hidden="true"></i> MacOS users
+                            <strong>MUST</strong> setup dnsmasq to catch
+                            <code>*.localhost</code> domains.
+                            <a data-toggle="collapse" href="#macos-dnsmasq"
+                               aria-expanded="false"
+                               aria-controls="macos-dnsmasq">Click here for instructions!</a>
+                        </div>
+
+                        <div class="collapse mb-4" id="macos-dnsmasq">
+                            <div class="card card-body">
+                            <p>Install <code>dnsmasq</code> on MacOS.
+                                <a href="https://gist.github.com/eloypnd/5efc3b590e7c738630fdcf0c10b68072"
+                                  target="_blank">Instructions from this gist!</a></p>
+
+                                <pre class="language-bash"><code>$ brew install dnsmasq
+$ sudo cp /usr/local/opt/dnsmasq/dnsmasq.conf.example /usr/local/etc/dnsmasq.conf
+$ sudo echo "address=/localhost/127.0.0.1" >> /usr/local/etc/dnsmasq.conf
+$ sudo brew services start dnsmasq
+$ sudo mkdir /etc/resolver
+$ sudo echo "nameserver 127.0.0.1" >> /etc/resolver/localhost</code></pre>
+                            </div>
+                        </div>
+
                         <p>Only one instance of Traefik should be running on your host machine.
                             If this is the first time you are exporting a Dashtainer project,
                             choose the option on the left, "With Traefik". Likewise, if you have
