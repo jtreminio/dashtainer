@@ -22,7 +22,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             SET dstm.data = :data
             WHERE dstm.name = :name
               AND dst.name = "Nginx"
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['nginx_dockerfile']]),
             ':name' => 'Dockerfile',
@@ -34,7 +33,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             SET dstm.data = :data
             WHERE dstm.name = :name
               AND dst.name = "Apache"
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['apache_dockerfile']]),
             ':name' => 'Dockerfile',
@@ -44,7 +42,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode($data['ini-5.6']),
             ':name' => 'ini-5.6',
@@ -54,7 +51,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode($data['ini-7.0']),
             ':name' => 'ini-7.0',
@@ -64,7 +60,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode($data['ini-7.1']),
             ':name' => 'ini-7.1',
@@ -74,7 +69,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode($data['ini-7.2']),
             ':name' => 'ini-7.2',
@@ -84,7 +78,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['php5.6_dockerfile']]),
             ':name' => 'Dockerfile-5.6',
@@ -94,7 +87,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['php7.0_dockerfile']]),
             ':name' => 'Dockerfile-7.0',
@@ -104,7 +96,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['php7.1_dockerfile']]),
             ':name' => 'Dockerfile-7.1',
@@ -114,7 +105,6 @@ class Version1_0_2 extends FixtureMigrationAbstract
             UPDATE docker_service_type_meta dstm
             SET dstm.data = :data
             WHERE dstm.name = :name
-            LIMIT 1
         ', [
             ':data' => json_encode([$data['php7.2_dockerfile']]),
             ':name' => 'Dockerfile-7.2',
