@@ -44,6 +44,7 @@
         "zendframework/zend-stdlib": "^3.1"
     },
     "require-dev": {
+        "codedungeon/phpunit-result-printer": "^0.11.4",
         "dama/doctrine-test-bundle": "^4.0",
         "phpunit/phpunit": "^6.0",
         "sensio/generator-bundle": "^3.0",
