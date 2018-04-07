@@ -9,53 +9,12 @@ class Version1_0_2 extends FixtureMigrationAbstract
     public function up(Schema $schema)
     {
         $serializer = $this->container->get('serializer');
+        $kernel     = $this->container->get('kernel');
 
-        $data = <<<'EOD'
-FROM ubuntu:16.04
+        $dataLoader = new DataLoader($serializer, $kernel->getEnvironment());
+        $dataLoader->setBaseDir(__DIR__ . '/v1_0_2/data');
 
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update && apt-get install -y apt-utils
-
-# Install common / shared packages
-RUN apt-get install -y \
-    curl \
-    locales \
-    software-properties-common \
-    python-software-properties
-
-# Set up locales
-RUN locale-gen en_US.UTF-8
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
-RUN /usr/sbin/update-locale
-
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
-        14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
-    && apt-get update
-
-# Per-image commands
-ENV NGINX_PREFIX /etc/nginx
-ARG SYSTEM_PACKAGES
-WORKDIR $NGINX_PREFIX
-
-RUN add-apt-repository ppa:ondrej/nginx \
-    && apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
-        nginx ${SYSTEM_PACKAGES} \
-    && apt-get -y --purge autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && ln -sf /dev/stdout /var/log/nginx/access.log \
-    && ln -sf /dev/stdout /var/log/nginx/_.access.log \
-    && ln -sf /dev/stderr /var/log/nginx/error.log \
-    && ln -sf /dev/stderr /var/log/nginx/_.error.log
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
-
-EOD;
+        $data = $dataLoader->getData('service_type_metas');
 
         $this->addSql('
             UPDATE docker_service_type_meta dstm
@@ -65,70 +24,9 @@ EOD;
               AND dst.name = "Nginx"
             LIMIT 1
         ', [
-            ':data' => json_encode([$data]),
+            ':data' => json_encode([$data['nginx_dockerfile']]),
             ':name' => 'Dockerfile',
         ]);
-
-        $data = <<<'EOD'
-FROM ubuntu:16.04
-
-ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update && apt-get install -y apt-utils
-
-# Install common / shared packages
-RUN apt-get install -y \
-    curl \
-    locales \
-    software-properties-common \
-    python-software-properties
-
-# Set up locales
-RUN locale-gen en_US.UTF-8
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
-RUN /usr/sbin/update-locale
-
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
-        14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
-    && apt-get update
-
-# Per-image commands
-ENV HTTPD_PREFIX /etc/apache2
-ARG SYSTEM_PACKAGES
-WORKDIR $HTTPD_PREFIX
-
-RUN add-apt-repository ppa:ondrej/apache2 \
-    && apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
-        apache2 ${SYSTEM_PACKAGES} \
-    && apt-get -y --purge autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-        conf-enabled/serve-cgi-bin.conf \
-        mods-enabled/autoindex.conf \
-        mods-enabled/autoindex.load \
-    && echo "ServerName localhost" >> apache2.conf \
-    && ln -sf /dev/stdout /var/log/apache2/access.log \
-    && ln -sf /dev/stdout /var/log/apache2/vhost-access.log \
-    && ln -sf /dev/stderr /var/log/apache2/error.log \
-    && ln -sf /dev/stderr /var/log/apache2/vhost-error.log
-
-EXPOSE 80
-
-ARG APACHE_MODULES_DISABLE
-RUN if [ ! -z "$APACHE_MODULES_DISABLE" ]; then \
-    a2dismod $APACHE_MODULES_DISABLE \
-;fi
-
-ARG APACHE_MODULES_ENABLE
-RUN if [ ! -z "$APACHE_MODULES_ENABLE" ]; then \
-    a2enmod $APACHE_MODULES_ENABLE \
-;fi
-
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
-
-EOD;
 
         $this->addSql('
             UPDATE docker_service_type_meta dstm
@@ -138,8 +36,104 @@ EOD;
               AND dst.name = "Apache"
             LIMIT 1
         ', [
-            ':data' => json_encode([$data]),
+            ':data' => json_encode([$data['apache_dockerfile']]),
             ':name' => 'Dockerfile',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode($data['ini-5.6']),
+            ':name' => 'ini-5.6',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode($data['ini-7.0']),
+            ':name' => 'ini-7.0',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode($data['ini-7.1']),
+            ':name' => 'ini-7.1',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode($data['ini-7.2']),
+            ':name' => 'ini-7.2',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode([$data['php5.6_dockerfile']]),
+            ':name' => 'Dockerfile-5.6',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode([$data['php7.0_dockerfile']]),
+            ':name' => 'Dockerfile-7.0',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode([$data['php7.1_dockerfile']]),
+            ':name' => 'Dockerfile-7.1',
+        ]);
+
+        $this->addSql('
+            UPDATE docker_service_type_meta dstm
+            SET dstm.data = :data
+            WHERE dstm.name = :name
+            LIMIT 1
+        ', [
+            ':data' => json_encode([$data['php7.2_dockerfile']]),
+            ':name' => 'Dockerfile-7.2',
+        ]);
+
+        $this->addSql('
+            INSERT INTO docker_service_type_meta (
+                service_type_id, name, data, created_at, updated_at
+            )
+            VALUES (
+                (SELECT dst.id FROM docker_service_type dst WHERE dst.name = "PHP-FPM" LIMIT 1),
+                :name,
+                :data,
+                NOW(),
+                NOW()
+            )
+        ', [
+            ':data' => json_encode([$data['php-fpm-startup']]),
+            ':name' => 'php-fpm-startup',
         ]);
     }
 

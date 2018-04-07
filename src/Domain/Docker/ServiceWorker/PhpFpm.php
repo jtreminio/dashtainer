@@ -124,12 +124,25 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             ->setHighlight('ini')
             ->setService($service);
 
+        $fpmStartupMeta = $service->getType()->getMeta('php-fpm-startup');
+
+        $fpmStartup = new Entity\Docker\ServiceVolume();
+        $fpmStartup->setName('php-fpm-startup')
+            ->setSource("\$PWD/{$service->getSlug()}/php-fpm-startup")
+            ->setData($fpmStartupMeta->getData()[0])
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setService($service);
+
         $service->addVolume($dockerfile)
             ->addVolume($phpIni)
             ->addVolume($phpCliIni)
-            ->addVolume($fpmConf);
+            ->addVolume($fpmConf)
+            ->addVolume($fpmStartup);
 
-        $this->serviceRepo->save($dockerfile, $phpIni, $phpCliIni, $fpmConf, $service);
+        $this->serviceRepo->save(
+            $dockerfile, $phpIni, $phpCliIni, $fpmConf, $fpmStartup, $service
+        );
 
         $this->projectFilesCreate($service, $form);
 

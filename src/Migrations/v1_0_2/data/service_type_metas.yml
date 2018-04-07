@@ -1,0 +1,579 @@
+nginx_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV NGINX_PREFIX /etc/nginx
+    ARG SYSTEM_PACKAGES
+    WORKDIR $NGINX_PREFIX
+
+    RUN add-apt-repository ppa:ondrej/nginx \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            nginx ${SYSTEM_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+        && ln -sf /dev/stdout /var/log/nginx/access.log \
+        && ln -sf /dev/stdout /var/log/nginx/_.access.log \
+        && ln -sf /dev/stderr /var/log/nginx/error.log \
+        && ln -sf /dev/stderr /var/log/nginx/_.error.log
+
+    EXPOSE 80
+
+    CMD ["nginx", "-g", "daemon off;"]
+
+apache_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV HTTPD_PREFIX /etc/apache2
+    ARG SYSTEM_PACKAGES
+    WORKDIR $HTTPD_PREFIX
+
+    RUN add-apt-repository ppa:ondrej/apache2 \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            apache2 ${SYSTEM_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+            conf-enabled/serve-cgi-bin.conf \
+            mods-enabled/autoindex.conf \
+            mods-enabled/autoindex.load \
+        && echo "ServerName localhost" >> apache2.conf \
+        && ln -sf /dev/stdout /var/log/apache2/access.log \
+        && ln -sf /dev/stdout /var/log/apache2/vhost-access.log \
+        && ln -sf /dev/stderr /var/log/apache2/error.log \
+        && ln -sf /dev/stderr /var/log/apache2/vhost-error.log
+
+    EXPOSE 80
+
+    ARG APACHE_MODULES_DISABLE
+    RUN if [ ! -z "$APACHE_MODULES_DISABLE" ]; then \
+        a2dismod $APACHE_MODULES_DISABLE \
+    ;fi
+
+    ARG APACHE_MODULES_ENABLE
+    RUN if [ ! -z "$APACHE_MODULES_ENABLE" ]; then \
+        a2enmod $APACHE_MODULES_ENABLE \
+    ;fi
+
+    CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
+ini-5.6:
+    php.ini: |
+        ; /etc/php/5.6/mods-available/zzzz_custom.ini
+        ; used in both PHP-FPM and PHP-CLI
+
+        [custom]
+        display_errors = "On"
+        error_reporting = -1
+        date.timezone = "UTC"
+        session.save_path = "/var/lib/php/sessions"
+        opcache.enable = 1
+        opcache.enable_cli = 1
+        opcache.fast_shutdown = 1
+        opcache.interned_strings_buffer = 16
+        opcache.max_accelerated_files = 40000
+        opcache.memory_consumption = 256
+        opcache.revalidate_freq = 0
+        opcache.validate_timestamps = 1
+    php-fpm.conf: |
+        ; /etc/php/5.6/fpm/php-fpm.conf
+
+        [global]
+        pid = /run/php-fpm.pid
+        ; Avoid logs being sent to syslog
+        error_log = /proc/self/fd/2
+
+        [www]
+        listen = "0.0.0.0:9000"
+        ; Redirect logs to stdout - FPM closes /dev/std* on startup
+        access.log = /proc/self/fd/2
+        catch_workers_output = yes
+        ; Required to allow config-by-environment
+        clear_env = no
+        pm = "dynamic"
+        pm.max_children = 5
+        pm.start_servers = 2
+        pm.min_spare_servers = 1
+        pm.max_spare_servers = 3
+        security.limit_extensions = ".php"
+
+ini-7.0:
+    php.ini: |
+        ; /etc/php/7.0/mods-available/zzzz_custom.ini
+        ; used in both PHP-FPM and PHP-CLI
+
+        [custom]
+        display_errors = "On"
+        error_reporting = -1
+        date.timezone = "UTC"
+        session.save_path = "/var/lib/php/sessions"
+        opcache.enable = 1
+        opcache.enable_cli = 1
+        opcache.fast_shutdown = 1
+        opcache.interned_strings_buffer = 16
+        opcache.max_accelerated_files = 40000
+        opcache.memory_consumption = 256
+        opcache.revalidate_freq = 0
+        opcache.validate_timestamps = 1
+    php-fpm.conf: |
+        ; /etc/php/7.0/fpm/php-fpm.conf
+
+        [global]
+        pid = /run/php-fpm.pid
+        ; Avoid logs being sent to syslog
+        error_log = /proc/self/fd/2
+
+        [www]
+        listen = "0.0.0.0:9000"
+        ; Redirect logs to stdout - FPM closes /dev/std* on startup
+        access.log = /proc/self/fd/2
+        catch_workers_output = yes
+        ; Required to allow config-by-environment
+        clear_env = no
+        pm = "dynamic"
+        pm.max_children = 5
+        pm.start_servers = 2
+        pm.min_spare_servers = 1
+        pm.max_spare_servers = 3
+        security.limit_extensions = ".php"
+
+ini-7.1:
+    php.ini: |
+        ; /etc/php/7.1/mods-available/zzzz_custom.ini
+        ; used in both PHP-FPM and PHP-CLI
+
+        [custom]
+        display_errors = "On"
+        error_reporting = -1
+        date.timezone = "UTC"
+        session.save_path = "/var/lib/php/sessions"
+        opcache.enable = 1
+        opcache.enable_cli = 1
+        opcache.fast_shutdown = 1
+        opcache.interned_strings_buffer = 16
+        opcache.max_accelerated_files = 40000
+        opcache.memory_consumption = 256
+        opcache.revalidate_freq = 0
+        opcache.validate_timestamps = 1
+    php-fpm.conf: |
+        ; /etc/php/7.1/fpm/php-fpm.conf
+
+        [global]
+        pid = /run/php-fpm.pid
+        ; Avoid logs being sent to syslog
+        error_log = /proc/self/fd/2
+
+        [www]
+        listen = "0.0.0.0:9000"
+        ; Redirect logs to stdout - FPM closes /dev/std* on startup
+        access.log = /proc/self/fd/2
+        catch_workers_output = yes
+        ; Required to allow config-by-environment
+        clear_env = no
+        pm = "dynamic"
+        pm.max_children = 5
+        pm.start_servers = 2
+        pm.min_spare_servers = 1
+        pm.max_spare_servers = 3
+        security.limit_extensions = ".php"
+
+ini-7.2:
+    php.ini: |
+        ; /etc/php/7.2/mods-available/zzzz_custom.ini
+        ; used in both PHP-FPM and PHP-CLI
+
+        [custom]
+        display_errors = "On"
+        error_reporting = -1
+        date.timezone = "UTC"
+        session.save_path = "/var/lib/php/sessions"
+        opcache.enable = 1
+        opcache.enable_cli = 1
+        opcache.fast_shutdown = 1
+        opcache.interned_strings_buffer = 16
+        opcache.max_accelerated_files = 40000
+        opcache.memory_consumption = 256
+        opcache.revalidate_freq = 0
+        opcache.validate_timestamps = 1
+    php-fpm.conf: |
+        ; /etc/php/7.2/fpm/php-fpm.conf
+
+        [global]
+        pid = /run/php-fpm.pid
+        ; Avoid logs being sent to syslog
+        error_log = /proc/self/fd/2
+
+        [www]
+        listen = "0.0.0.0:9000"
+        ; Redirect logs to stdout - FPM closes /dev/std* on startup
+        access.log = /proc/self/fd/2
+        catch_workers_output = yes
+        ; Required to allow config-by-environment
+        clear_env = no
+        pm = "dynamic"
+        pm.max_children = 5
+        pm.start_servers = 2
+        pm.min_spare_servers = 1
+        pm.max_spare_servers = 3
+        security.limit_extensions = ".php"
+
+php5.6_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV PHP_DIR /etc/php/5.6
+    ENV PHP_FPM php5.6-fpm
+    ARG SYSTEM_PACKAGES
+    ARG PHP_PACKAGES
+    WORKDIR $PHP_DIR
+
+    RUN add-apt-repository ppa:ondrej/php \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    ARG PEAR_PACKAGES
+    RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
+        printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
+    ;fi
+
+    ARG PECL_PACKAGES
+    RUN if [ ! -z "$PECL_PACKAGES" ]; then \
+        pecl channel-update pecl.php.net \
+        && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
+    ;fi
+
+    ARG COMPOSER_INSTALL=0
+    RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+            --filename=composer \
+        && mkdir /.composer && chmod 1777 /.composer \
+    ;fi
+
+    ARG BLACKFIRE_INSTALL=0
+    RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+        version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+        && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+            https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+        && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+        && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/cli/conf.d/blackfire.ini \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+    ;fi
+
+    EXPOSE 9000
+
+    COPY php-fpm-startup /usr/bin/php-fpm
+    RUN chmod +x /usr/bin/php-fpm \
+        && ln -sf /usr/sbin/php-fpm5.6 /usr/sbin/php-fpm
+
+    CMD /usr/bin/php-fpm
+
+php7.0_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV PHP_DIR /etc/php/7.0
+    ENV PHP_FPM php7.0-fpm
+    ARG SYSTEM_PACKAGES
+    ARG PHP_PACKAGES
+    WORKDIR $PHP_DIR
+
+    RUN add-apt-repository ppa:ondrej/php \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    ARG PEAR_PACKAGES
+    RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
+        printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
+    ;fi
+
+    ARG PECL_PACKAGES
+    RUN if [ ! -z "$PECL_PACKAGES" ]; then \
+        pecl channel-update pecl.php.net \
+        && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
+    ;fi
+
+    ARG COMPOSER_INSTALL=0
+    RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+            --filename=composer \
+        && mkdir /.composer && chmod 1777 /.composer \
+    ;fi
+
+    ARG BLACKFIRE_INSTALL=0
+    RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+        version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+        && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+            https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+        && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+        && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/cli/conf.d/blackfire.ini \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+    ;fi
+
+    EXPOSE 9000
+
+    COPY php-fpm-startup /usr/bin/php-fpm
+    RUN chmod +x /usr/bin/php-fpm \
+        && ln -sf /usr/sbin/php-fpm7.0 /usr/sbin/php-fpm
+
+    CMD /usr/bin/php-fpm
+
+php7.1_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV PHP_DIR /etc/php/7.1
+    ENV PHP_FPM php7.1-fpm
+    ARG SYSTEM_PACKAGES
+    ARG PHP_PACKAGES
+    WORKDIR $PHP_DIR
+
+    RUN add-apt-repository ppa:ondrej/php \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    ARG PEAR_PACKAGES
+    RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
+        printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
+    ;fi
+
+    ARG PECL_PACKAGES
+    RUN if [ ! -z "$PECL_PACKAGES" ]; then \
+        pecl channel-update pecl.php.net \
+        && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
+    ;fi
+
+    ARG COMPOSER_INSTALL=0
+    RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+            --filename=composer \
+        && mkdir /.composer && chmod 1777 /.composer \
+    ;fi
+
+    ARG BLACKFIRE_INSTALL=0
+    RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+        version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+        && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+            https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+        && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+        && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/cli/conf.d/blackfire.ini \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+    ;fi
+
+    EXPOSE 9000
+
+    COPY php-fpm-startup /usr/bin/php-fpm
+    RUN chmod +x /usr/bin/php-fpm \
+        && ln -sf /usr/sbin/php-fpm7.1 /usr/sbin/php-fpm
+
+    CMD /usr/bin/php-fpm
+
+php7.2_dockerfile: |
+    FROM ubuntu:16.04
+
+    ENV DEBIAN_FRONTEND noninteractive
+
+    RUN apt-get update && apt-get install -y apt-utils
+
+    # Install common / shared packages
+    RUN apt-get install -y \
+        curl \
+        locales \
+        software-properties-common \
+        python-software-properties
+
+    # Set up locales
+    RUN locale-gen en_US.UTF-8
+    ENV LANG C.UTF-8
+    ENV LANGUAGE C.UTF-8
+    ENV LC_ALL C.UTF-8
+    RUN /usr/sbin/update-locale
+
+    RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
+        && apt-get update
+
+    # Per-image commands
+    ENV PHP_DIR /etc/php/7.2
+    ENV PHP_FPM php7.2-fpm
+    ARG SYSTEM_PACKAGES
+    ARG PHP_PACKAGES
+    WORKDIR $PHP_DIR
+
+    RUN add-apt-repository ppa:ondrej/php \
+        && apt-get update \
+        && apt-get install --no-install-recommends --no-install-suggests -y \
+            ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
+        && apt-get -y --purge autoremove \
+        && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+    ARG PEAR_PACKAGES
+    RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
+        printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
+    ;fi
+
+    ARG PECL_PACKAGES
+    RUN if [ ! -z "$PECL_PACKAGES" ]; then \
+        pecl channel-update pecl.php.net \
+        && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
+    ;fi
+
+    ARG COMPOSER_INSTALL=0
+    RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+            --filename=composer \
+        && mkdir /.composer && chmod 1777 /.composer \
+    ;fi
+
+    ARG BLACKFIRE_INSTALL=0
+    RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+        version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
+        && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+            https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+        && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
+        && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/cli/conf.d/blackfire.ini \
+        && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+            ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+    ;fi
+
+    EXPOSE 9000
+
+    COPY php-fpm-startup /usr/bin/php-fpm
+    RUN chmod +x /usr/bin/php-fpm \
+        && ln -sf /usr/sbin/php-fpm7.2 /usr/sbin/php-fpm
+
+    CMD /usr/bin/php-fpm
+
+php-fpm-startup: |
+    #!/usr/bin/env bash
+    /usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \"\(.*\)$,\1,'| sed -u 's,"$,,' 1>&1

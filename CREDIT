@@ -1,0 +1,2 @@
+Parts of the php-fpm.conf code comes from https://github.com/phpdocker-io/base-images
+which is licensed under Apache 2.0.
