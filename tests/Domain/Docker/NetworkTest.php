@@ -67,11 +67,11 @@ class NetworkTest extends KernelTestCase
         $network = $this->network->createFromForm($form);
 
         foreach ($network->getServices() as $service) {
-            $this->assertTrue(in_array($service, $services));
+            $this->assertContains($service, $services);
         }
 
         foreach ($services as $service) {
-            $this->assertTrue(in_array($network, $service->getNetworks()->toArray()));
+            $this->assertContains($network, $service->getNetworks());
         }
     }
 
@@ -131,6 +131,20 @@ class NetworkTest extends KernelTestCase
             ->with($network, ...[$serviceB, $serviceD, $serviceE], ...[$serviceA, $serviceC]);
 
         $this->network->updateFromForm($form);
+
+        $this->assertContains($serviceA, $network->getServices());
+        $this->assertContains($serviceC, $network->getServices());
+
+        $this->assertContains($network, $serviceA->getNetworks());
+        $this->assertContains($network, $serviceC->getNetworks());
+
+        $this->assertNotContains($serviceB, $network->getServices());
+        $this->assertNotContains($serviceD, $network->getServices());
+        $this->assertNotContains($serviceE, $network->getServices());
+
+        $this->assertNotContains($network, $serviceB->getNetworks());
+        $this->assertNotContains($network, $serviceD->getNetworks());
+        $this->assertNotContains($network, $serviceE->getNetworks());
     }
 
     public function testDeleteRemovesFromServices()
@@ -172,12 +186,15 @@ class NetworkTest extends KernelTestCase
 
         $this->network->delete($networkA);
 
-        $this->assertNotTrue(in_array($networkA, $serviceA->getNetworks()->toArray()));
-        $this->assertNotTrue(in_array($networkA, $serviceB->getNetworks()->toArray()));
+        $this->assertNotContains($networkA, $serviceA->getNetworks());
+        $this->assertNotContains($networkA, $serviceB->getNetworks());
 
-        $this->assertTrue(in_array($networkB, $serviceA->getNetworks()->toArray()));
-        $this->assertTrue(in_array($networkB, $serviceB->getNetworks()->toArray()));
-        $this->assertTrue(in_array($networkB, $serviceC->getNetworks()->toArray()));
+        $this->assertNotContains($serviceA, $networkA->getServices());
+        $this->assertNotContains($serviceB, $networkA->getServices());
+
+        $this->assertContains($networkB, $serviceA->getNetworks());
+        $this->assertContains($networkB, $serviceB->getNetworks());
+        $this->assertContains($networkB, $serviceC->getNetworks());
     }
 
     public function testGenerateNameReturnsUnusedNames()
@@ -225,6 +242,6 @@ class NetworkTest extends KernelTestCase
             'unusedNetworkNameC',
         ];
 
-        $this->assertTrue(in_array($result, $availableNames));
+        $this->assertContains($result, $availableNames);
     }
 }
