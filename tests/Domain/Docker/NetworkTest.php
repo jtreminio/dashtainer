@@ -133,6 +133,53 @@ class NetworkTest extends KernelTestCase
         $this->network->updateFromForm($form);
     }
 
+    public function testDeleteRemovesFromServices()
+    {
+        $networkA = new Entity\Docker\Network();
+        $networkA->setName('networkA');
+
+        $networkB = new Entity\Docker\Network();
+        $networkB->setName('networkB');
+
+        $serviceA = new Entity\Docker\Service();
+        $serviceA->setName('serviceA')
+            ->addNetwork($networkA)
+            ->addNetwork($networkB);
+
+        $serviceB = new Entity\Docker\Service();
+        $serviceB->setName('serviceB')
+            ->addNetwork($networkA)
+            ->addNetwork($networkB);
+
+        $serviceC = new Entity\Docker\Service();
+        $serviceC->setName('serviceC')
+            ->addNetwork($networkB);
+
+        $networkA->addService($serviceA)
+            ->addService($serviceB);
+
+        $networkB->addService($serviceA)
+            ->addService($serviceB)
+            ->addService($serviceC);
+
+        $this->networkRepo->expects($this->once())
+            ->method('save')
+            ->with($networkA, $serviceA, $serviceB);
+
+        $this->networkRepo->expects($this->once())
+            ->method('delete')
+            ->with($networkA);
+
+        $this->network->delete($networkA);
+
+        $this->assertNotTrue(in_array($networkA, $serviceA->getNetworks()->toArray()));
+        $this->assertNotTrue(in_array($networkA, $serviceB->getNetworks()->toArray()));
+
+        $this->assertTrue(in_array($networkB, $serviceA->getNetworks()->toArray()));
+        $this->assertTrue(in_array($networkB, $serviceB->getNetworks()->toArray()));
+        $this->assertTrue(in_array($networkB, $serviceC->getNetworks()->toArray()));
+    }
+
     public function testGenerateNameReturnsUnusedNames()
     {
         $project = new Entity\Docker\Project();
