@@ -27,6 +27,14 @@ class Network
         $this->wordsListFile = $wordListFile;
     }
 
+    /**
+     * Creates a new Network.
+     *
+     * Associates network with Project and Services.
+     *
+     * @param Form\Docker\NetworkCreateUpdate $form
+     * @return Entity\Docker\Network
+     */
     public function createFromForm(
         Form\Docker\NetworkCreateUpdate $form
     ) : Entity\Docker\Network {
@@ -50,6 +58,18 @@ class Network
         return $network;
     }
 
+    /**
+     * Updates an existing Network.
+     *
+     * Cycles through all Services in Project and removes or adds
+     * Network associations.
+     *
+     * Cycling through all Services makes it easier to map
+     * the associations.
+     *
+     * @param Form\Docker\NetworkCreateUpdate $form
+     * @return Entity\Docker\Network
+     */
     public function updateFromForm(
         Form\Docker\NetworkCreateUpdate $form
     ) : Entity\Docker\Network {
@@ -79,6 +99,13 @@ class Network
         return $network;
     }
 
+    /**
+     * Deletes Network from Project.
+     *
+     * Removes association between Services and Network.
+     *
+     * @param Entity\Docker\Network $network
+     */
     public function delete(Entity\Docker\Network $network)
     {
         $services = [];
@@ -93,6 +120,14 @@ class Network
         $this->repo->delete($network);
     }
 
+    /**
+     * Picks random string from word list file for a Network name.
+     *
+     * Does a diff between existing Network names and possible results.
+     *
+     * @param Entity\Docker\Project $project
+     * @return string
+     */
     public function generateName(Entity\Docker\Project $project) : string
     {
         $existingNetworks = $this->repo->findBy([
@@ -109,33 +144,5 @@ class Network
         $diff = array_diff($file, $existingNames);
 
         return trim($diff[array_rand($diff)]);
-    }
-
-    public function isNameUsed(Entity\Docker\Project $project, array $names) : array
-    {
-        $existingNetworks = $this->repo->findBy([
-            'project' => $project
-        ]);
-
-        $existingNames = [];
-        foreach ($existingNetworks as $network) {
-            $existingNames []= $network->getName();
-        }
-
-        return array_intersect($names, $existingNames);
-    }
-
-    public function exist(Entity\Docker\Project $project, array $names) : array
-    {
-        $existingNetworks = $this->repo->findBy([
-            'project' => $project
-        ]);
-
-        $existingNames = [];
-        foreach ($existingNetworks as $network) {
-            $existingNames []= $network->getName();
-        }
-
-        return array_diff($names, $existingNames);
     }
 }
