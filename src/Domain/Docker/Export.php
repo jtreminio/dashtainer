@@ -3,7 +3,6 @@
 namespace Dashtainer\Domain\Docker;
 
 use Dashtainer\Entity;
-use Dashtainer\Form;
 use Dashtainer\Util;
 
 use Symfony\Component\Yaml\Yaml;
