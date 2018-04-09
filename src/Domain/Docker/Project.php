@@ -12,16 +12,10 @@ class Project
     /** @var Repository\Docker\Project */
     protected $repo;
 
-    /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
-
     public function __construct(
-        Repository\Docker\Project $repo,
-        Repository\Docker\ServiceType $serviceTypeRepo
+        Repository\Docker\Project $repo
     ) {
         $this->repo = $repo;
-
-        $this->serviceTypeRepo = $serviceTypeRepo;
     }
 
     public function createProjectFromForm(
@@ -53,27 +47,30 @@ class Project
     public function delete(Entity\Docker\Project $project)
     {
         $deleted = [];
-        $saved   = [];
 
-        foreach ($project->getServices() as $service) {
+        $deleteServices = function(Entity\Docker\Service $service)
+            use (&$deleteServices, $project)
+        {
+            $deleted = [];
+
             foreach ($service->getMetas() as $meta) {
                 $service->removeMeta($meta);
 
-                $deleted []= $meta;
+                $deleted[spl_object_hash($meta)]= $meta;
             }
 
             foreach ($service->getNetworks() as $network) {
                 $service->removeNetwork($network);
                 $network->removeService($service);
 
-                $saved []= $network;
+                $deleted[spl_object_hash($network)]= $network;
             }
 
             foreach ($service->getSecrets() as $secret) {
                 $service->removeSecret($secret);
                 $secret->removeService($service);
 
-                $saved []= $secret;
+                $deleted[spl_object_hash($secret)]= $secret;
             }
 
             foreach ($service->getVolumes() as $volume) {
@@ -84,38 +81,44 @@ class Project
                     $projectVolume->removeServiceVolume($volume);
                 }
 
-                $saved   []= $volume;
-                $deleted []= $volume;
+                $deleted[spl_object_hash($volume)]= $volume;
+            }
+
+            foreach ($service->getChildren() as $child) {
+                $deleted = array_merge($deleted, $deleteServices($child));
             }
 
             $project->removeService($service);
 
-            $saved   []= $service;
-            $deleted []= $service;
+            $deleted[spl_object_hash($service)]= $service;
+
+            return $deleted;
+        };
+
+        foreach ($project->getServices() as $service) {
+            $deleted = array_merge($deleted, $deleteServices($service));
         }
 
         foreach ($project->getNetworks() as $network) {
             $project->removeNetwork($network);
 
-            $saved   []= $network;
-            $deleted []= $network;
+            $deleted[spl_object_hash($network)]= $network;
         }
 
         foreach ($project->getSecrets() as $secret) {
             $project->removeSecret($secret);
 
-            $deleted []= $secret;
+            $deleted[spl_object_hash($secret)]= $secret;
         }
 
         foreach ($project->getVolumes() as $volume) {
             $project->removeVolume($volume);
 
-            $deleted []= $volume;
+            $deleted[spl_object_hash($volume)]= $volume;
         }
 
-        $deleted []= $project;
+        $deleted[spl_object_hash($project)]= $project;
 
-        $this->repo->save(...$saved);
-        $this->repo->delete(...$deleted);
+        $this->repo->delete(...array_values($deleted));
     }
 }
