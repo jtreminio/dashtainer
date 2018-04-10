@@ -90,10 +90,10 @@ class Service
 
         $usedNames = [];
         foreach ($services as $service) {
-            $usedNames []= $service->getName();
+            $usedNames []= $service->getSlug();
         }
 
-        for ($i = 1; $i <= count($usedNames); $i++) {
+        for ($i = 1; $i < count($usedNames) + 2; $i++) {
             $name = "{$hostname}-{$i}";
 
             if (!in_array($name, $usedNames)) {
