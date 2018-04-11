@@ -10,32 +10,14 @@ class ServiceManager
     /** @var ServiceWorker\WorkerInterface[] */
     protected $workers = [];
 
-    public function __construct(
-        ServiceWorker\Adminer $adminer,
-        ServiceWorker\Apache $apache,
-        ServiceWorker\Beanstalkd $beanstalkd,
-        ServiceWorker\Elasticsearch $elasticsearch,
-        ServiceWorker\MailHog $mailHog,
-        ServiceWorker\MariaDB $mariaDB,
-        ServiceWorker\MongoDB $mongoDB,
-        ServiceWorker\MySQL $mySQL,
-        ServiceWorker\Nginx $nginx,
-        ServiceWorker\PhpFpm $phpfpm,
-        ServiceWorker\PostgreSQL $postgreSQL,
-        ServiceWorker\Redis $redis
-    ) {
-        $this->workers []= $adminer;
-        $this->workers []= $apache;
-        $this->workers []= $beanstalkd;
-        $this->workers []= $elasticsearch;
-        $this->workers []= $mailHog;
-        $this->workers []= $mariaDB;
-        $this->workers []= $mongoDB;
-        $this->workers []= $mySQL;
-        $this->workers []= $nginx;
-        $this->workers []= $phpfpm;
-        $this->workers []= $postgreSQL;
-        $this->workers []= $redis;
+    /**
+     * @param ServiceWorker\WorkerInterface[]|iterable $workers
+     */
+    public function __construct(iterable $workers )
+    {
+        foreach ($workers as $worker) {
+            $this->workers []= $worker;
+        }
     }
 
     public function getWorkerFromForm(

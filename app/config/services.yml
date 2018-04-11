@@ -38,6 +38,10 @@ services:
         tags:
             - { name: controller.argument_value_resolver, priority: 50 }
 
+    Dashtainer\Domain\Docker\ServiceManager:
+        arguments:
+            - !tagged dashtainer.docker.service_worker
+
     Dashtainer\Controller\:
         resource: '../../src/Controller'
         public: true

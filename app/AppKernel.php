@@ -1,5 +1,7 @@
 <?php
 
+use Dashtainer\Domain\Docker\ServiceWorker;
+
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Kernel;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -43,6 +45,12 @@ class AppKernel extends Kernel
         }
 
         return $bundles;
+    }
+
+   protected function build(ContainerBuilder $container)
+    {
+        $container->registerForAutoconfiguration(ServiceWorker\WorkerInterface::class)
+            ->addTag('dashtainer.docker.service_worker');
     }
 
     public function getRootDir()
