@@ -259,7 +259,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta);
 
-        $dockerfile = $service->getVolume('Dockerfile');
+        $dockerfile  = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
         $apache2Conf = $service->getVolume('apache2.conf');

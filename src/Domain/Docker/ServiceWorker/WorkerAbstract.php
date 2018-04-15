@@ -176,6 +176,8 @@ abstract class WorkerAbstract implements WorkerInterface
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
                 ->setService($service);
 
+            $service->addVolume($projectFilesSource);
+
             $this->serviceRepo->save(
                 $projectFilesMeta, $projectFilesSource, $service
             );
