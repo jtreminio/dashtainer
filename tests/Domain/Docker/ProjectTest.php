@@ -43,7 +43,7 @@ class ProjectTest extends KernelTestCase
 
         $project = $this->project->createProjectFromForm($form, $user);
 
-        $this->assertEquals(1, $project->getNetworks()->count());
+        $this->assertCount(1, $project->getNetworks());
 
         /** @var Entity\Docker\Network $publicNetwork */
         $publicNetwork = $project->getNetworks()->first();
