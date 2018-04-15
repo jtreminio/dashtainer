@@ -659,8 +659,12 @@ class Service implements
         $this->meta->removeElement($service_meta);
     }
 
-    public function getMeta(string $name) : ?ServiceMeta
+    public function getMeta(string $name = null) : ?ServiceMeta
     {
+        if (!$name) {
+            return null;
+        }
+
         foreach ($this->getMetas() as $meta) {
             if ($meta->getName() === $name) {
                 return $meta;

@@ -262,10 +262,12 @@ abstract class WorkerAbstract implements WorkerInterface
 
         $removedNetworks = [];
 
+        // Project-level private networks
         foreach ($this->networkRepo->getPrivateNetworks($form->project) as $network) {
             $projectNetworks[$network->getName()] = $network;
         }
 
+        // Service-level private networks
         foreach ($this->networkRepo->findByService($service) as $network) {
             $serviceNetworks[$network->getName()] = $network;
         }
