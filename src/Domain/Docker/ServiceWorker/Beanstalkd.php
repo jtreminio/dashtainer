@@ -67,7 +67,7 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
     {
         $datastore = $service->getMeta('datastore')->getData()[0];
 
-        $dockerfile  = $service->getVolume('Dockerfile');
+        $dockerfile = $service->getVolume('Dockerfile');
 
         return [
             'datastore'   => $datastore,

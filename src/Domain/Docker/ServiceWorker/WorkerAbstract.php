@@ -254,7 +254,6 @@ abstract class WorkerAbstract implements WorkerInterface
 
         $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
         $serviceDatastoreVol->setName('datastore')
-            ->setSource("\$PWD/{$service->getSlug()}/datadir")
             ->setTarget($target)
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
@@ -267,23 +266,23 @@ abstract class WorkerAbstract implements WorkerInterface
 
             $service->addVolume($serviceDatastoreVol);
 
-            $this->serviceRepo->save($serviceDatastoreVol, $service);
+            $this->serviceRepo->save($dataStoreMeta, $serviceDatastoreVol, $service);
         }
 
         if ($form->datastore !== 'local') {
             $projectDatastoreVol = new Entity\Docker\Volume();
             $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
-                ->setProject($service->getProject());
+                ->setProject($service->getProject())
+                ->addServiceVolume($serviceDatastoreVol);
 
             $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
-                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
+                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME)
+                ->setProjectVolume($projectDatastoreVol);
 
-            $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
-            $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
             $service->addVolume($serviceDatastoreVol);
 
             $this->serviceRepo->save(
-                $dataStoreMeta, $projectDatastoreVol, $serviceDatastoreVol, $service
+                $projectDatastoreVol, $dataStoreMeta, $serviceDatastoreVol, $service
             );
         }
     }
