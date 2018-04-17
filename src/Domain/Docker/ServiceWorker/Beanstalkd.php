@@ -40,15 +40,6 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
         $this->addToPrivateNetworks($service, $form);
 
-        $dataStoreMeta = new Entity\Docker\ServiceMeta();
-        $dataStoreMeta->setName('datastore')
-            ->setData([$form->datastore])
-            ->setService($service);
-
-        $service->addMeta($dataStoreMeta);
-
-        $this->serviceRepo->save($dataStoreMeta, $service);
-
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
@@ -63,40 +54,7 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($dockerfile, $service);
 
-        $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
-        $serviceDatastoreVol->setName('datastore')
-            ->setSource("\$PWD/{$service->getSlug()}/datadir")
-            ->setTarget('/var/lib/beanstalkd/binlog')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
-            ->setService($service);
-
-        if ($form->datastore == 'local') {
-            $serviceDatastoreVol->setSource("\$PWD/{$service->getSlug()}/datadir")
-                ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
-
-            $service->addVolume($serviceDatastoreVol);
-
-            $this->serviceRepo->save($serviceDatastoreVol, $service);
-        }
-
-        if ($form->datastore !== 'local') {
-            $projectDatastoreVol = new Entity\Docker\Volume();
-            $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
-                ->setProject($service->getProject());
-
-            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
-                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
-
-            $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
-            $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
-            $service->addVolume($serviceDatastoreVol);
-
-            $this->serviceRepo->save(
-                $projectDatastoreVol, $serviceDatastoreVol, $service
-            );
-        }
+        $this->createDatastore($service, $form, '/var/lib/beanstalkd/binlog');
 
         return $service;
     }
@@ -131,49 +89,12 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
     ) : Entity\Docker\Service {
         $this->addToPrivateNetworks($service, $form);
 
-        $dataStoreMeta = $service->getMeta('datastore');
-        $dataStoreMeta->setData([$form->datastore]);
-
-        $this->serviceRepo->save($dataStoreMeta);
-
         $dockerfile = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
         $this->serviceRepo->save($dockerfile);
 
-        $serviceDatastoreVol = $service->getVolume('datastore');
-        $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();
-
-        if ($form->datastore == 'local' && $projectDatastoreVol) {
-            $projectDatastoreVol->removeServiceVolume($serviceDatastoreVol);
-            $serviceDatastoreVol->setProjectVolume(null);
-
-            $serviceDatastoreVol->setName('datastore')
-                ->setSource("\$PWD/{$service->getSlug()}/datadir")
-                ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
-
-            $this->serviceRepo->save($serviceDatastoreVol);
-
-            if ($projectDatastoreVol->getServiceVolumes()->isEmpty()) {
-                $this->serviceRepo->delete($projectDatastoreVol);
-            }
-        }
-
-        if ($form->datastore !== 'local') {
-            if (!$projectDatastoreVol) {
-                $projectDatastoreVol = new Entity\Docker\Volume();
-                $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
-                    ->setProject($service->getProject());
-
-                $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
-                $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
-            }
-
-            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
-                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
-
-            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol);
-        }
+        $this->updateDatastore($service, $form);
 
         return $service;
     }

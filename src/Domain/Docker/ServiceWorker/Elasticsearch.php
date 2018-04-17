@@ -47,13 +47,6 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $ulimits->setMemlock(-1, -1);
         $service->setUlimits($ulimits);
 
-        $dataStoreMeta = new Entity\Docker\ServiceMeta();
-        $dataStoreMeta->setName('datastore')
-            ->setData([$form->datastore])
-            ->setService($service);
-
-        $service->addMeta($dataStoreMeta);
-
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
             ->setData([$form->version])
@@ -68,7 +61,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $service->addMeta($heapsizeMeta);
 
-        $this->serviceRepo->save($dataStoreMeta, $versionMeta, $heapsizeMeta, $service);
+        $this->serviceRepo->save($versionMeta, $heapsizeMeta, $service);
 
         $configYml = new Entity\Docker\ServiceVolume();
         $configYml->setName('elasticsearch.yml')
@@ -84,40 +77,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($configYml, $service);
 
-        $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
-        $serviceDatastoreVol->setName('datastore')
-            ->setSource("\$PWD/{$service->getSlug()}/datadir")
-            ->setTarget('/usr/share/elasticsearch/data')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_DIR)
-            ->setService($service);
-
-        if ($form->datastore == 'local') {
-            $serviceDatastoreVol->setSource("\$PWD/{$service->getSlug()}/datadir")
-                ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
-
-            $service->addVolume($serviceDatastoreVol);
-
-            $this->serviceRepo->save($serviceDatastoreVol, $service);
-        }
-
-        if ($form->datastore !== 'local') {
-            $projectDatastoreVol = new Entity\Docker\Volume();
-            $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
-                ->setProject($service->getProject());
-
-            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
-                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
-
-            $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
-            $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
-            $service->addVolume($serviceDatastoreVol);
-
-            $this->serviceRepo->save(
-                $projectDatastoreVol, $serviceDatastoreVol, $service
-            );
-        }
+        $this->createDatastore($service, $form, '/usr/share/elasticsearch/data');
 
         return $service;
     }
@@ -160,52 +120,17 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->addToPrivateNetworks($service, $form);
 
-        $dataStoreMeta = $service->getMeta('datastore');
-        $dataStoreMeta->setData([$form->datastore]);
-
         $heapsizeMeta = $service->getMeta('heap_size');
         $heapsizeMeta->setData([$form->heap_size]);
 
-        $this->serviceRepo->save($dataStoreMeta, $heapsizeMeta);
+        $this->serviceRepo->save($heapsizeMeta);
 
         $configYml = $service->getVolume('elasticsearch.yml');
         $configYml->setData($form->file['elasticsearch.yml'] ?? '');
 
         $this->serviceRepo->save($configYml);
 
-        $serviceDatastoreVol = $service->getVolume('datastore');
-        $projectDatastoreVol = $serviceDatastoreVol->getProjectVolume();
-
-        if ($form->datastore == 'local' && $projectDatastoreVol) {
-            $projectDatastoreVol->removeServiceVolume($serviceDatastoreVol);
-            $serviceDatastoreVol->setProjectVolume(null);
-
-            $serviceDatastoreVol->setName('datastore')
-                ->setSource("\$PWD/{$service->getSlug()}/datadir")
-                ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
-
-            $this->serviceRepo->save($serviceDatastoreVol);
-
-            if ($projectDatastoreVol->getServiceVolumes()->isEmpty()) {
-                $this->serviceRepo->delete($projectDatastoreVol);
-            }
-        }
-
-        if ($form->datastore !== 'local') {
-            if (!$projectDatastoreVol) {
-                $projectDatastoreVol = new Entity\Docker\Volume();
-                $projectDatastoreVol->setName("{$service->getSlug()}-datastore")
-                    ->setProject($service->getProject());
-
-                $projectDatastoreVol->addServiceVolume($serviceDatastoreVol);
-                $serviceDatastoreVol->setProjectVolume($projectDatastoreVol);
-            }
-
-            $serviceDatastoreVol->setSource($projectDatastoreVol->getSlug())
-                ->setType(Entity\Docker\ServiceVolume::TYPE_VOLUME);
-
-            $this->serviceRepo->save($projectDatastoreVol, $serviceDatastoreVol);
-        }
+        $this->updateDatastore($service, $form);
 
         $this->customFilesUpdate($service, $form);
 
