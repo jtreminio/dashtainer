@@ -36,6 +36,9 @@ class AdminerTest extends KernelTestCase
     /** @var Entity\Docker\ServiceType */
     protected $serviceType;
 
+    /** @var MockObject|Repository\Docker\ServiceType */
+    protected $serviceTypeRepo;
+
     protected function setUp()
     {
         $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
@@ -46,6 +49,10 @@ class AdminerTest extends KernelTestCase
             ->getMock();
 
         $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
+            ->setConstructorArgs([$em])
+            ->getMock();
+
+        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
             ->setConstructorArgs([$em])
             ->getMock();
 
@@ -81,7 +88,7 @@ class AdminerTest extends KernelTestCase
         $this->form->name    = 'service-name';
         $this->form->design  = 'form-design';
 
-        $this->adminer = new Adminer($this->serviceRepo, $this->networkRepo);
+        $this->adminer = new Adminer($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
 
         $this->networkRepo->expects($this->any())
             ->method('getPublicNetwork')
