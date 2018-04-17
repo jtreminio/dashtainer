@@ -260,8 +260,6 @@ EOD;
 
     public function testUpdate()
     {
-        $this->seedProjectWithPrivateNetworks();
-
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
