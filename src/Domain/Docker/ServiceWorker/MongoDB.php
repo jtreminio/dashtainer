@@ -4,7 +4,6 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 
 class MongoDB extends WorkerAbstract implements WorkerInterface
 {
