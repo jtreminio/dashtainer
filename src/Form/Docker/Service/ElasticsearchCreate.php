@@ -12,17 +12,12 @@ class ElasticsearchCreate extends CreateAbstract implements Util\HydratorInterfa
 {
     use Util\HydratorTrait;
     use DashAssert\CustomFileTrait;
+    use DashAssert\DatastoreTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
      */
     public $version;
-
-    /**
-     * @Assert\NotBlank()
-     * @Assert\Choice({"docker", "local"})
-     */
-    public $datastore;
 
     /**
      * @DashAssert\NonBlankString(message = "Please enter a heap size")

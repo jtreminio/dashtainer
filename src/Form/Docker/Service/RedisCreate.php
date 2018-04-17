@@ -12,17 +12,12 @@ class RedisCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\CustomFileTrait;
+    use DashAssert\DatastoreTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
      */
     public $version;
-
-    /**
-     * @Assert\NotBlank()
-     * @Assert\Choice({"docker", "local"})
-     */
-    public $datastore;
 
     public $port_confirm;
 

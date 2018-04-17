@@ -12,12 +12,7 @@ class BeanstalkdCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\CustomFileTrait;
-
-    /**
-     * @Assert\NotBlank()
-     * @Assert\Choice({"docker", "local"})
-     */
-    public $datastore;
+    use DashAssert\DatastoreTrait;
 
     public $file = [];
 
