@@ -13,9 +13,6 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AdminerTest extends KernelTestCase
 {
-    /** @var Adminer */
-    protected $adminer;
-
     /** @var Form\Docker\Service\AdminerCreate */
     protected $form;
 
@@ -38,6 +35,9 @@ class AdminerTest extends KernelTestCase
 
     /** @var MockObject|Repository\Docker\ServiceType */
     protected $serviceTypeRepo;
+
+    /** @var Adminer */
+    protected $worker;
 
     protected function setUp()
     {
@@ -88,7 +88,7 @@ class AdminerTest extends KernelTestCase
         $this->form->name    = 'service-name';
         $this->form->design  = 'form-design';
 
-        $this->adminer = new Adminer($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Adminer($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
 
         $this->networkRepo->expects($this->any())
             ->method('getPublicNetwork')
@@ -132,7 +132,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $this->assertCount(1, $service->getNetworks());
         $this->assertContains($this->publicNetwork, $service->getNetworks());
@@ -172,7 +172,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $networks = [];
         foreach ($service->getNetworks() as $network) {
@@ -217,7 +217,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $networks = [];
         foreach ($service->getNetworks() as $network) {
@@ -262,7 +262,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $this->assertCount(2, $service->getNetworks());
         $this->assertContains($this->publicNetwork, $service->getNetworks());
@@ -295,7 +295,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $this->assertEmpty($service->getVolumes());
     }
@@ -325,7 +325,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $fileA = $service->getVolume('customfilea.txt');
         $fileB = $service->getVolume('customfileb.txt');
@@ -352,7 +352,7 @@ class AdminerTest extends KernelTestCase
             ->method('findByService')
             ->will($this->returnValue([]));
 
-        $service = $this->adminer->create($this->form);
+        $service = $this->worker->create($this->form);
 
         $labels = $service->getLabels();
 
@@ -378,7 +378,7 @@ class AdminerTest extends KernelTestCase
 
     public function testGetCreateParams()
     {
-        $this->assertEquals([], $this->adminer->getCreateParams($this->project));
+        $this->assertEquals([], $this->worker->getCreateParams($this->project));
     }
 
     public function testGetViewParams()
@@ -391,8 +391,8 @@ class AdminerTest extends KernelTestCase
 
         $this->form->custom_file = [$customFileA];
 
-        $service = $this->adminer->create($this->form);
-        $params = $this->adminer->getViewParams($service);
+        $service = $this->worker->create($this->form);
+        $params = $this->worker->getViewParams($service);
 
         $this->assertEquals($this->form->design, $params['design']);
         $this->assertEquals($this->form->plugins, $params['plugins']);
@@ -483,7 +483,7 @@ class AdminerTest extends KernelTestCase
                 $this->seededPrivateNetworks['private-network-b'],
             ]));
 
-        $updatedService = $this->adminer->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $environments = $updatedService->getEnvironments();
 
