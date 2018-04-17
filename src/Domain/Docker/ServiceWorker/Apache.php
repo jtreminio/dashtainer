@@ -4,23 +4,9 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 
 class Apache extends WorkerAbstract implements WorkerInterface
 {
-    /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
-
-    public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo
-    ) {
-        parent::__construct($serviceRepo, $networkRepo);
-
-        $this->serviceTypeRepo = $serviceTypeRepo;
-    }
-
     public function getServiceTypeSlug() : string
     {
         return 'apache';

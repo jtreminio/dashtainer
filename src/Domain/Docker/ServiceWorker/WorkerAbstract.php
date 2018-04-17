@@ -16,12 +16,17 @@ abstract class WorkerAbstract implements WorkerInterface
     /** @var Repository\Docker\Service */
     protected $serviceRepo;
 
+    /** @var Repository\Docker\ServiceType */
+    protected $serviceTypeRepo;
+
     public function __construct(
         Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo
+        Repository\Docker\Network $networkRepo,
+        Repository\Docker\ServiceType $serviceTypeRepo
     ) {
-        $this->serviceRepo = $serviceRepo;
-        $this->networkRepo = $networkRepo;
+        $this->serviceRepo     = $serviceRepo;
+        $this->networkRepo     = $networkRepo;
+        $this->serviceTypeRepo = $serviceTypeRepo;
     }
 
     public function delete(Entity\Docker\Service $service)
