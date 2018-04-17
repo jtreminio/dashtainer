@@ -87,57 +87,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->setName('Dockerfile')
-            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->file['Dockerfile'] ?? '')
-            ->setConsistency(null)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('docker')
-            ->setService($service);
-
-        $apache2Conf = new Entity\Docker\ServiceVolume();
-        $apache2Conf->setName('apache2.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
-            ->setTarget('/etc/apache2/apache2.conf')
-            ->setData($form->file['apache2.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $portsConf = new Entity\Docker\ServiceVolume();
-        $portsConf->setName('ports.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
-            ->setTarget('/etc/apache2/ports.conf')
-            ->setData($form->file['ports.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $vhostConf = new Entity\Docker\ServiceVolume();
-        $vhostConf->setName('vhost.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
-            ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
-            ->setData($form->vhost_conf ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $service->addVolume($dockerfile)
-            ->addVolume($apache2Conf)
-            ->addVolume($portsConf)
-            ->addVolume($vhostConf);
-
-        $this->serviceRepo->save(
-            $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
-        );
+        $this->addVolumes($service);
 
         $this->projectFilesCreate($service, $form);
 
@@ -259,6 +209,74 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta);
 
+        $this->updateVolumes($service, $form);
+
+        $this->projectFilesUpdate($service, $form);
+
+        $this->customFilesUpdate($service, $form);
+
+        return $service;
+    }
+
+    protected function addVolumes(Entity\Docker\Service $service)
+    {
+        $dockerfile = new Entity\Docker\ServiceVolume();
+        $dockerfile->setName('Dockerfile')
+            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
+            ->setData($form->file['Dockerfile'] ?? '')
+            ->setConsistency(null)
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setHighlight('docker')
+            ->setService($service);
+
+        $apache2Conf = new Entity\Docker\ServiceVolume();
+        $apache2Conf->setName('apache2.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
+            ->setTarget('/etc/apache2/apache2.conf')
+            ->setData($form->file['apache2.conf'] ?? '')
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
+            ->setService($service);
+
+        $portsConf = new Entity\Docker\ServiceVolume();
+        $portsConf->setName('ports.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
+            ->setTarget('/etc/apache2/ports.conf')
+            ->setData($form->file['ports.conf'] ?? '')
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
+            ->setService($service);
+
+        $vhostConf = new Entity\Docker\ServiceVolume();
+        $vhostConf->setName('vhost.conf')
+            ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
+            ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
+            ->setData($form->vhost_conf ?? '')
+            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setHighlight('apacheconf')
+            ->setService($service);
+
+        $service->addVolume($dockerfile)
+            ->addVolume($apache2Conf)
+            ->addVolume($portsConf)
+            ->addVolume($vhostConf);
+
+        $this->serviceRepo->save(
+            $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
+        );
+    }
+
+    protected function updateVolumes(
+        Entity\Docker\Service $service,
+        Form\Docker\Service\ApacheCreate $form
+    ) {
         $dockerfile  = $service->getVolume('Dockerfile');
         $dockerfile->setData($form->file['Dockerfile'] ?? '');
 
@@ -272,11 +290,5 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $vhostConf->setData($form->vhost_conf);
 
         $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
-
-        $this->projectFilesUpdate($service, $form);
-
-        $this->customFilesUpdate($service, $form);
-
-        return $service;
     }
 }
