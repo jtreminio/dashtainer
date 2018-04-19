@@ -60,7 +60,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
 
         $this->createDatastore($service, $form, '/data/db');
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -114,7 +114,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
 
         $this->updateDatastore($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

@@ -282,9 +282,9 @@ class AdminerTest extends KernelTestCase
         );
     }
 
-    public function testCreateReturnsServiceEntityWithNoCustomFiles()
+    public function testCreateReturnsServiceEntityWithNoUserFiles()
     {
-        $this->form->custom_file = [];
+        $this->form->user_file = [];
 
         $this->networkRepo->expects($this->once())
             ->method('getPrivateNetworks')
@@ -300,21 +300,21 @@ class AdminerTest extends KernelTestCase
         $this->assertEmpty($service->getVolumes());
     }
 
-    public function testCreateReturnsServiceEntityWithCustomFiles()
+    public function testCreateReturnsServiceEntityWithUserFiles()
     {
-        $customFileA = [
-            'filename' => 'custom file a.txt',
+        $userFileA = [
+            'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
             'data'     => 'you are awesome!',
         ];
 
-        $customFileB = [
-            'filename' => 'custom file b.txt',
+        $userFileB = [
+            'filename' => 'user file b.txt',
             'target'   => '/etc/foo/bam',
             'data'     => 'everyone admires you!',
         ];
 
-        $this->form->custom_file = [$customFileA, $customFileB];
+        $this->form->user_file = [$userFileA, $userFileB];
 
         $this->networkRepo->expects($this->once())
             ->method('getPrivateNetworks')
@@ -327,18 +327,18 @@ class AdminerTest extends KernelTestCase
 
         $service = $this->worker->create($this->form);
 
-        $fileA = $service->getVolume('customfilea.txt');
-        $fileB = $service->getVolume('customfileb.txt');
+        $fileA = $service->getVolume('userfilea.txt');
+        $fileB = $service->getVolume('userfileb.txt');
 
-        $expectedSourceA = '$PWD/service-name/customfilea.txt';
+        $expectedSourceA = '$PWD/service-name/userfilea.txt';
         $this->assertEquals($expectedSourceA, $fileA->getSource());
-        $this->assertEquals($customFileA['target'], $fileA->getTarget());
-        $this->assertEquals($customFileA['data'], $fileA->getData());
+        $this->assertEquals($userFileA['target'], $fileA->getTarget());
+        $this->assertEquals($userFileA['data'], $fileA->getData());
 
-        $expectedSourceA = '$PWD/service-name/customfileb.txt';
+        $expectedSourceA = '$PWD/service-name/userfileb.txt';
         $this->assertEquals($expectedSourceA, $fileB->getSource());
-        $this->assertEquals($customFileB['target'], $fileB->getTarget());
-        $this->assertEquals($customFileB['data'], $fileB->getData());
+        $this->assertEquals($userFileB['target'], $fileB->getTarget());
+        $this->assertEquals($userFileB['data'], $fileB->getData());
     }
 
     public function testCreateReturnsServiceEntity()
@@ -383,13 +383,13 @@ class AdminerTest extends KernelTestCase
 
     public function testGetViewParams()
     {
-        $customFileA = [
-            'filename' => 'custom file a.txt',
+        $userFileA = [
+            'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
             'data'     => 'you are awesome!',
         ];
 
-        $this->form->custom_file = [$customFileA];
+        $this->form->user_file = [$userFileA];
 
         $service = $this->worker->create($this->form);
         $params = $this->worker->getViewParams($service);
@@ -399,11 +399,11 @@ class AdminerTest extends KernelTestCase
         $this->assertEquals(['designA', 'designB'], $params['availableDesigns']);
         $this->assertEquals(['pluginA', 'pluginB'], $params['availablePlugins']);
 
-        $this->assertCount(1, $params['customFiles']);
+        $this->assertCount(1, $params['userFiles']);
 
         $this->assertSame(
-            $service->getVolume('customfilea.txt'),
-            array_pop($params['customFiles'])
+            $service->getVolume('userfilea.txt'),
+            array_pop($params['userFiles'])
         );
     }
 
@@ -411,18 +411,18 @@ class AdminerTest extends KernelTestCase
     {
         $this->seedProjectWithPrivateNetworks();
 
-        $customFileA = new Entity\Docker\ServiceVolume();
-        $customFileA->fromArray(['id' => 'customfilea_ID']);
-        $customFileA->setName('customfilea.txt')
-            ->setSource('$PWD/service-name/customfilea.txt')
+        $userFileA = new Entity\Docker\ServiceVolume();
+        $userFileA->fromArray(['id' => 'userfilea_ID']);
+        $userFileA->setName('userfilea.txt')
+            ->setSource('$PWD/service-name/userfilea.txt')
             ->setTarget('/etc/foo/bar')
             ->setData('you are awesome!')
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER);
 
-        $customFileB = new Entity\Docker\ServiceVolume();
-        $customFileB->fromArray(['id' => 'customfileb_ID']);
-        $customFileB->setName('customfileb.txt')
-            ->setSource('$PWD/service-name/customfileb.txt')
+        $userFileB = new Entity\Docker\ServiceVolume();
+        $userFileB->fromArray(['id' => 'userfileb_ID']);
+        $userFileB->setName('userfileb.txt')
+            ->setSource('$PWD/service-name/userfileb.txt')
             ->setTarget('/etc/foo/bam')
             ->setData('everyone admires you!')
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER);
@@ -442,8 +442,8 @@ class AdminerTest extends KernelTestCase
             ->addLabel('traefik.backend', $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', 'frontend_rule')
-            ->addVolume($customFileA)
-            ->addVolume($customFileB);
+            ->addVolume($userFileA)
+            ->addVolume($userFileB);
 
         $form = new Form\Docker\Service\AdminerCreate();
         $form->project = $this->project;
@@ -458,14 +458,14 @@ class AdminerTest extends KernelTestCase
             'new-network-a',
         ];
 
-        $form->custom_file = [
-            'customfilea_ID' => [
-                'filename' => 'custom file a_updated.txt',
+        $form->user_file = [
+            'userfilea_ID' => [
+                'filename' => 'user file a_updated.txt',
                 'target'   => '/etc/foo/updated/path',
                 'data'     => 'updated text!',
             ],
-            'customfilec_ID' => [
-                'filename' => 'custom file c.txt',
+            'userfilec_ID' => [
+                'filename' => 'user file c.txt',
                 'target'   => '/etc/foo/new/file',
                 'data'     => 'new file!',
             ],
@@ -513,8 +513,8 @@ class AdminerTest extends KernelTestCase
             $updatedService->getNetworks()
         );
 
-        $fileA = $updatedService->getVolume('customfilea_updated.txt');
-        $fileC = $updatedService->getVolume('customfilec.txt');
+        $fileA = $updatedService->getVolume('userfilea_updated.txt');
+        $fileC = $updatedService->getVolume('userfilec.txt');
 
         $this->assertEquals('/etc/foo/updated/path', $fileA->getTarget());
         $this->assertEquals('updated text!', $fileA->getData());
@@ -522,6 +522,6 @@ class AdminerTest extends KernelTestCase
         $this->assertEquals('/etc/foo/new/file', $fileC->getTarget());
         $this->assertEquals('new file!', $fileC->getData());
 
-        $this->assertNull($updatedService->getVolume('customfileb.txt'));
+        $this->assertNull($updatedService->getVolume('userfileb.txt'));
     }
 }

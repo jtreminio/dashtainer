@@ -80,7 +80,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $this->createDatastore($service, $form, '/var/lib/postgresql/data');
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -111,7 +111,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $configFileConf = $service->getVolume('postgresql.conf');
 
-        $customFiles = $service->getVolumesByOwner(
+        $userFiles = $service->getVolumesByOwner(
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
@@ -126,7 +126,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'configFiles'       => [
                 'postgresql.conf' => $configFileConf,
             ],
-            'customFiles'       => $customFiles,
+            'userFiles'         => $userFiles,
         ];
     }
 
@@ -164,7 +164,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $this->updateDatastore($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

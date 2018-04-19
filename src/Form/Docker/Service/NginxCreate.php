@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
+    use DashAssert\UserFileTrait;
     use DashAssert\ProjectFilesTrait;
 
     public $project_files = [];
@@ -30,8 +30,6 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $file = [];
 
-    public $custom_file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -43,7 +41,7 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 
         $this->validateProjectFiles($context);
         $this->validateFile($context);
-        $this->validateCustomFile($context);
+        $this->validateUserFile($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)

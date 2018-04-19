@@ -11,8 +11,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
     use DashAssert\ProjectFilesTrait;
+    use DashAssert\UserFileTrait;
 
     public $project_files = [];
 
@@ -34,8 +34,6 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $file = [];
 
-    public $custom_file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -47,7 +45,7 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 
         $this->validateProjectFiles($context);
         $this->validateFile($context);
-        $this->validateCustomFile($context);
+        $this->validateUserFile($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)

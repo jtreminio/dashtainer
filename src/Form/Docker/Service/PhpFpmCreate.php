@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
+    use DashAssert\UserFileTrait;
     use DashAssert\ProjectFilesTrait;
 
     /**
@@ -30,8 +30,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
     public $system_packages = [];
 
     public $file = [];
-
-    public $custom_file = [];
 
     public $composer = [];
 
@@ -52,7 +50,7 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
         $this->validateFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);
-        $this->validateCustomFile($context);
+        $this->validateUserFile($context);
     }
 
     protected function validateFile(ExecutionContextInterface $context)

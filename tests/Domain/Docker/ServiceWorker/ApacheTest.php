@@ -213,13 +213,13 @@ EOD;
 
     public function testGetViewParams()
     {
-        $customFileA = [
-            'filename' => 'custom file a.txt',
+        $userFileA = [
+            'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
             'data'     => 'you are awesome!',
         ];
 
-        $this->form->custom_file = [$customFileA];
+        $this->form->user_file = [$userFileA];
 
         $phpfpmServiceType = new Entity\Docker\ServiceType();
         $phpfpmServices    = [
@@ -253,8 +253,8 @@ EOD;
         );
 
         $this->assertSame(
-            $service->getVolume('customfilea.txt'),
-            array_pop($params['customFiles'])
+            $service->getVolume('userfilea.txt'),
+            array_pop($params['userFiles'])
         );
     }
 

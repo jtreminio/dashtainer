@@ -101,23 +101,23 @@ class Service extends Controller
     ) : AjaxResponse {
         $uniqid = uniqid();
 
-        $id   = "custom_file-{$uniqid}";
-        $name = "custom_file[{$uniqid}]";
+        $id   = "user_file-{$uniqid}";
+        $name = "user_file[{$uniqid}]";
 
-        $tabTemplate = '@Dashtainer/project/service/snippets/service_custom_file_content.html.twig';
+        $tabTemplate = '@Dashtainer/project/service/snippets/service_user_file_content.html.twig';
         $blockTab    = $this->render($tabTemplate, [
             'id'             => $id,
             'name'           => $name,
-            'errorContainer' => 'custom_file',
+            'errorContainer' => 'user_file',
         ]);
 
-        $blockTemplate = '@Dashtainer/project/service/snippets/service_custom_file_tab.html.twig';
+        $blockTemplate = '@Dashtainer/project/service/snippets/service_user_file_tab.html.twig';
         $blockContent  = $this->render($blockTemplate, [
             'id'             => $id,
             'name'           => $name,
             'language'       => $language,
             'targetPath'     => $targetPath ? urldecode($targetPath) : '',
-            'errorContainer' => 'custom_file',
+            'errorContainer' => 'user_file',
         ]);
 
         return new AjaxResponse([

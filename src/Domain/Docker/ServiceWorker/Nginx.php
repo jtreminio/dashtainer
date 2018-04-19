@@ -137,7 +137,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesCreate($service, $form);
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -167,7 +167,9 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $coreConf    = $service->getVolume('core.conf');
         $proxyConf   = $service->getVolume('proxy.conf');
         $vhostConf   = $service->getVolume('vhost.conf');
-        $customFiles = $service->getVolumesByOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $userFiles   = $service->getVolumesByOwner(
+            Entity\Docker\ServiceVolume::OWNER_USER
+        );
 
         $vhostMeta = $service->getMeta('vhost');
 
@@ -187,7 +189,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
                 'core.conf'  => $coreConf,
                 'proxy.conf' => $proxyConf,
             ],
-            'customFiles'            => $customFiles,
+            'userFiles'              => $userFiles,
             'vhost'                  => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
@@ -261,7 +263,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesUpdate($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

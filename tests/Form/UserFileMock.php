@@ -6,14 +6,12 @@ use Dashtainer\Validator\Constraints as DashAssert;
 
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class CustomFileMock
+class UserFileMock
 {
-    use DashAssert\CustomFileTrait;
-
-    public $custom_file = [];
+    use DashAssert\UserFileTrait;
 
     public function validate(ExecutionContextInterface $context, $payload)
     {
-        $this->validateCustomFile($context);
+        $this->validateUserFile($context);
     }
 }

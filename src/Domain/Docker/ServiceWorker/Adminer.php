@@ -58,7 +58,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -96,7 +96,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             }
         }
 
-        $customFiles = $service->getVolumesByOwner(
+        $userFiles = $service->getVolumesByOwner(
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
@@ -105,7 +105,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'plugins'          => $plugins,
             'availableDesigns' => $availableDesigns,
             'availablePlugins' => $avilablePlugins,
-            'customFiles'      => $customFiles,
+            'userFiles'        => $userFiles,
         ];
     }
 
@@ -125,7 +125,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
         $this->addToPrivateNetworks($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

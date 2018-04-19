@@ -81,7 +81,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
 
         $this->createDatastore($service, $form, '/var/lib/mysql');
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -113,7 +113,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
 
         $configFileCnf = $service->getVolume('config-file.cnf');
 
-        $customFiles = $service->getVolumesByOwner(
+        $userFiles = $service->getVolumesByOwner(
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
@@ -129,7 +129,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
             'configFiles'         => [
                 'config-file.cnf' => $configFileCnf,
             ],
-            'customFiles'         => $customFiles,
+            'userFiles'           => $userFiles,
         ];
     }
 
@@ -168,7 +168,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
 
         $this->updateDatastore($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

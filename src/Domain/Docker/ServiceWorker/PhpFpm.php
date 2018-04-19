@@ -169,7 +169,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $this->serviceRepo->save($xdebugIni, $xdebugCliIni, $service);
         }
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         if (!empty($form->blackfire['install'])) {
             $this->createUpdateBlackfireChild($service, $form);
@@ -239,7 +239,9 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
         }
 
-        $customFiles = $service->getVolumesByOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $userFiles = $service->getVolumesByOwner(
+            Entity\Docker\ServiceVolume::OWNER_USER
+        );
 
         return [
             'version'                => $version,
@@ -254,7 +256,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
                 'php.ini'      => $phpIni,
                 'php-fpm.conf' => $fpmConf,
             ],
-            'customFiles'            => $customFiles,
+            'userFiles'              => $userFiles,
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
@@ -378,7 +380,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $this->deleteBlackfireChild($service);
         }
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

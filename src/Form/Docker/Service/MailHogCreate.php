@@ -8,5 +8,5 @@ use Dashtainer\Validator\Constraints as DashAssert;
 class MailHogCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
+    use DashAssert\UserFileTrait;
 }

@@ -2,15 +2,15 @@
 
 namespace Dashtainer\Tests\Validator\Constraints;
 
-use Dashtainer\Tests\Form\CustomFileMock;
-use Dashtainer\Validator\Constraints\CustomFileTrait;
+use Dashtainer\Tests\Form\UserFileMock;
+use Dashtainer\Validator\Constraints\UserFileTrait;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
-class CustomFileTraitTest extends KernelTestCase
+class UserFileTraitTest extends KernelTestCase
 {
     /** @var MockObject|ConstraintViolationBuilderInterface */
     protected $constraintBuilder;
@@ -18,8 +18,8 @@ class CustomFileTraitTest extends KernelTestCase
     /** @var MockObject|ExecutionContextInterface */
     protected $context;
 
-    /** @var CustomFileMock */
-    protected $customFile;
+    /** @var UserFileMock */
+    protected $userFile;
 
     protected function setUp()
     {
@@ -32,12 +32,12 @@ class CustomFileTraitTest extends KernelTestCase
             ->setConstructorArgs([])
             ->getMock();
 
-        $this->customFile = new CustomFileMock();
+        $this->userFile = new UserFileMock();
     }
 
-    public function testValidateCustomFileFailsOnEmptyFilename()
+    public function testValidateUserFileFailsOnEmptyFilename()
     {
-        $custom_file = [
+        $user_file = [
             [
                 'filename' => '',
                 'target'   => 'targetData',
@@ -58,7 +58,7 @@ class CustomFileTraitTest extends KernelTestCase
 
         $this->context->expects($this->exactly(4))
             ->method('buildViolation')
-            ->with('Ensure all custom config files have a filename')
+            ->with('Ensure all user config files have a filename')
             ->willReturn($this->constraintBuilder);
 
         $this->constraintBuilder->expects($this->exactly(4))
@@ -68,13 +68,13 @@ class CustomFileTraitTest extends KernelTestCase
         $this->constraintBuilder->expects($this->exactly(4))
             ->method('addViolation');
 
-        $this->customFile->custom_file = $custom_file;
-        $this->customFile->validate($this->context, null);
+        $this->userFile->user_file = $user_file;
+        $this->userFile->validate($this->context, null);
     }
 
-    public function testValidateCustomFileFailsOnEmptyTarget()
+    public function testValidateUserFileFailsOnEmptyTarget()
     {
-        $custom_file = [
+        $user_file = [
             [
                 'filename' => 'filenameData',
                 'target'   => '',
@@ -95,7 +95,7 @@ class CustomFileTraitTest extends KernelTestCase
 
         $this->context->expects($this->exactly(4))
             ->method('buildViolation')
-            ->with('Ensure all custom config files have a target')
+            ->with('Ensure all user config files have a target')
             ->willReturn($this->constraintBuilder);
 
         $this->constraintBuilder->expects($this->exactly(4))
@@ -105,13 +105,13 @@ class CustomFileTraitTest extends KernelTestCase
         $this->constraintBuilder->expects($this->exactly(4))
             ->method('addViolation');
 
-        $this->customFile->custom_file = $custom_file;
-        $this->customFile->validate($this->context, null);
+        $this->userFile->user_file = $user_file;
+        $this->userFile->validate($this->context, null);
     }
 
-    public function testValidateCustomFileFailsOnDupliecateFilename()
+    public function testValidateUserFileFailsOnDupliecateFilename()
     {
-        $custom_file = [
+        $user_file = [
             [
                 'filename' => 'filenameData1',
                 'target'   => 'targetData1',
@@ -132,7 +132,7 @@ class CustomFileTraitTest extends KernelTestCase
 
         $this->context->expects($this->once())
             ->method('buildViolation')
-            ->with('Ensure all custom config filenames are unique')
+            ->with('Ensure all user config filenames are unique')
             ->willReturn($this->constraintBuilder);
 
         $this->constraintBuilder->expects($this->once())
@@ -142,14 +142,14 @@ class CustomFileTraitTest extends KernelTestCase
         $this->constraintBuilder->expects($this->once())
             ->method('addViolation');
 
-        $this->customFile->custom_file = $custom_file;
-        $this->customFile->validate($this->context, null);
+        $this->userFile->user_file = $user_file;
+        $this->userFile->validate($this->context, null);
     }
 
 
-    public function testValidateCustomFileFailsOnDupliecateTarget()
+    public function testValidateUserFileFailsOnDupliecateTarget()
     {
-        $custom_file = [
+        $user_file = [
             [
                 'filename' => 'filenameData1',
                 'target'   => 'targetData1',
@@ -170,7 +170,7 @@ class CustomFileTraitTest extends KernelTestCase
 
         $this->context->expects($this->once())
             ->method('buildViolation')
-            ->with('Ensure all custom config targets are unique')
+            ->with('Ensure all user config targets are unique')
             ->willReturn($this->constraintBuilder);
 
         $this->constraintBuilder->expects($this->once())
@@ -180,7 +180,7 @@ class CustomFileTraitTest extends KernelTestCase
         $this->constraintBuilder->expects($this->once())
             ->method('addViolation');
 
-        $this->customFile->custom_file = $custom_file;
-        $this->customFile->validate($this->context, null);
+        $this->userFile->user_file = $user_file;
+        $this->userFile->validate($this->context, null);
     }
 }

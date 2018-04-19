@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class RedisCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
+    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
 
     /**

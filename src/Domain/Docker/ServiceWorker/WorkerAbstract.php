@@ -65,15 +65,15 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service       $service
-     * @param Constraints\CustomFileTrait $form
+     * @param Entity\Docker\Service     $service
+     * @param Constraints\UserFileTrait $form
      */
-    protected function customFilesCreate(
+    protected function userFilesCreate(
         Entity\Docker\Service $service,
         $form
     ) {
         $files = [];
-        foreach ($form->custom_file as $fileConfig) {
+        foreach ($form->user_file as $fileConfig) {
             $name = Util\Strings::filename($fileConfig['filename']);
 
             $file = new Entity\Docker\ServiceVolume();
@@ -97,10 +97,10 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service       $service
-     * @param Constraints\CustomFileTrait $form
+     * @param Entity\Docker\Service     $service
+     * @param Constraints\UserFileTrait $form
      */
-    protected function customFilesUpdate(
+    protected function userFilesUpdate(
         Entity\Docker\Service $service,
         $form
     ) {
@@ -109,7 +109,7 @@ abstract class WorkerAbstract implements WorkerInterface
         );
 
         $files = [];
-        foreach ($form->custom_file as $id => $fileConfig) {
+        foreach ($form->user_file as $id => $fileConfig) {
             $name = Util\Strings::filename($fileConfig['filename']);
 
             if (empty($existingUserFiles[$id])) {

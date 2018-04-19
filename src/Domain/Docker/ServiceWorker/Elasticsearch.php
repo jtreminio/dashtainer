@@ -131,7 +131,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->updateDatastore($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

@@ -11,7 +11,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\CustomFileTrait;
+    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
 
     /**
@@ -51,8 +51,6 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $file = [];
 
-    public $custom_file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -63,7 +61,7 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
         parent::validate($context, $payload);
 
         $this->validateFile($context);
-        $this->validateCustomFile($context);
+        $this->validateUserFile($context);
         $this->validatePort($context);
     }
 

@@ -92,7 +92,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $this->createDatastore($service, $form, '/var/lib/mysql');
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -125,7 +125,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $myCnf         = $service->getVolume('my.cnf');
         $configFileCnf = $service->getVolume('config-file.cnf');
 
-        $customFiles = $service->getVolumesByOwner(
+        $userFiles = $service->getVolumesByOwner(
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
@@ -142,7 +142,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
                 'my.cnf'          => $myCnf,
                 'config-file.cnf' => $configFileCnf,
             ],
-            'customFiles'         => $customFiles,
+            'userFiles'           => $userFiles,
         ];
     }
 
@@ -184,7 +184,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $this->updateDatastore($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

@@ -77,7 +77,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesCreate($service, $form);
 
-        $this->customFilesCreate($service, $form);
+        $this->userFilesCreate($service, $form);
 
         return $service;
     }
@@ -116,7 +116,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $apache2Conf = $service->getVolume('apache2.conf');
         $portsConf   = $service->getVolume('ports.conf');
         $vhostConf   = $service->getVolume('vhost.conf');
-        $customFiles = $service->getVolumesByOwner(
+        $userFiles   = $service->getVolumesByOwner(
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
@@ -140,7 +140,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
                 'apache2.conf' => $apache2Conf,
                 'ports.conf'   => $portsConf,
             ],
-            'customFiles'            => $customFiles,
+            'userFiles'              => $userFiles,
             'vhost'                  => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
@@ -199,7 +199,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->projectFilesUpdate($service, $form);
 
-        $this->customFilesUpdate($service, $form);
+        $this->userFilesUpdate($service, $form);
 
         return $service;
     }

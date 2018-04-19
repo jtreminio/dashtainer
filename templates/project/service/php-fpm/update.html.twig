@@ -105,17 +105,17 @@
                         </li>
                     {% endfor %}
 
-                    {% for file in customFiles %}
+                    {% for file in userFiles %}
                         <li class="nav-item">
-                            <a id="nav-custom_file-{{ file.id }}-tab"
+                            <a id="nav-user_file-{{ file.id }}-tab"
                                class="nav-link"
-                               data-toggle="tab" href="#custom_file-{{ file.id }}"
-                               role="tab" aria-controls="custom_file-{{ file.id }}"
+                               data-toggle="tab" href="#user_file-{{ file.id }}"
+                               role="tab" aria-controls="user_file-{{ file.id }}"
                                aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-default"
                                         data-toggle="delete-block"
-                                        data-target="#custom_file-{{ file.id }}">
+                                        data-target="#user_file-{{ file.id }}">
                                     <i class="fa fa-close"></i></button>
                             </div>
                         </li>
@@ -140,21 +140,21 @@
                         </div>
                     {% endfor %}
 
-                    {% for file in customFiles %}
-                        <div id="custom_file-{{ file.id }}"
+                    {% for file in userFiles %}
+                        <div id="user_file-{{ file.id }}"
                              class="tab-pane fade"
                              role="tabpanel">
                             <div class="row">
                                 <div class="form-group col">
                                     <label class="form-label"
-                                           for="custom_file-{{ file.id }}-filename">Filename</label>
+                                           for="user_file-{{ file.id }}-filename">Filename</label>
                                     <input type="text" class="form-control" maxlength="255"
-                                           id="custom_file-{{ file.id }}-filename"
-                                           name="custom_file[{{ file.id }}][filename]"
+                                           id="user_file-{{ file.id }}-filename"
+                                           name="user_file[{{ file.id }}][filename]"
                                            placeholder="" value="{{ file.name }}"
-                                           data-update-text="nav-custom_file-{{ file.id }}-tab"
+                                           data-update-text="nav-user_file-{{ file.id }}-tab"
                                            data-mask-type="filename"
-                                           data-error-container="custom_file" />
+                                           data-error-container="user_file" />
                                     <small class="text-muted">
                                         Save config into this local file.
                                     </small>
@@ -162,12 +162,12 @@
 
                                 <div class="form-group col">
                                     <label class="form-label"
-                                           for="custom_file-{{ file.id }}-target">Target Path</label>
+                                           for="user_file-{{ file.id }}-target">Target Path</label>
                                     <input type="text" class="form-control" maxlength="255"
-                                           id="custom_file-{{ file.id }}-target"
-                                           name="custom_file[{{ file.id }}][target]"
+                                           id="user_file-{{ file.id }}-target"
+                                           name="user_file[{{ file.id }}][target]"
                                            placeholder="" value="{{ file.target }}"
-                                           data-error-container="custom_file" />
+                                           data-error-container="user_file" />
                                     <small class="text-muted">
                                         Make file available inside container at this location.
                                     </small>
