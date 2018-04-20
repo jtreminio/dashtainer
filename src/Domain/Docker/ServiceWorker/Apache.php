@@ -73,7 +73,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
-        $this->addVolumes($service);
+        $this->addVolumes($service, $form);
 
         $this->projectFilesCreate($service, $form);
 
@@ -204,8 +204,10 @@ class Apache extends WorkerAbstract implements WorkerInterface
         return $service;
     }
 
-    protected function addVolumes(Entity\Docker\Service $service)
-    {
+    protected function addVolumes(
+        Entity\Docker\Service $service,
+        Form\Docker\Service\ApacheCreate $form
+    ) {
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
