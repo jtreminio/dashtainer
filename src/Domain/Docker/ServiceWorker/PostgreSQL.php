@@ -68,7 +68,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $configFileConf->setName('postgresql.conf')
             ->setSource("\$PWD/{$service->getSlug()}/postgresql.conf")
             ->setTarget('/etc/postgresql/postgresql.conf')
-            ->setData($form->file['postgresql.conf'] ?? '')
+            ->setData($form->system_file['postgresql.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -123,7 +123,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'postgres_db'       => $postgres_db,
             'postgres_user'     => $postgres_user,
             'postgres_password' => $postgres_password,
-            'configFiles'       => [
+            'systemFiles'       => [
                 'postgresql.conf' => $configFileConf,
             ],
             'userFiles'         => $userFiles,
@@ -158,7 +158,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $service->setPorts($servicePort);
 
         $configFileConf = $service->getVolume('postgresql.conf');
-        $configFileConf->setData($form->file['postgresql.conf'] ?? '');
+        $configFileConf->setData($form->system_file['postgresql.conf'] ?? '');
 
         $this->serviceRepo->save($configFileConf);
 

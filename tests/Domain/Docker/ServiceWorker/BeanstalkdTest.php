@@ -70,10 +70,11 @@ class BeanstalkdTest extends KernelTestCase
         $this->form->project = $this->project;
         $this->form->type    = $this->serviceType;
         $this->form->name    = 'service-name';
-        $this->form->file    = [
+
+        $this->form->system_file = [
             'Dockerfile' => 'Dockerfile contents',
         ];
-        $this->form->datastore = 'local';
+        $this->form->datastore   = 'local';
 
         $this->worker = new Beanstalkd($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
 
@@ -176,7 +177,7 @@ class BeanstalkdTest extends KernelTestCase
         $this->assertEquals('local', $params['datastore']);
         $this->assertSame(
             $service->getVolume('Dockerfile'),
-            $params['configFiles']['Dockerfile']
+            $params['systemFiles']['Dockerfile']
         );
     }
 
@@ -186,7 +187,7 @@ class BeanstalkdTest extends KernelTestCase
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
             ->setSource('Dockerfile')
-            ->setData($this->form->file['Dockerfile'])
+            ->setData($this->form->system_file['Dockerfile'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $build = new Entity\Docker\Service\Build();
@@ -215,7 +216,7 @@ class BeanstalkdTest extends KernelTestCase
             ->setBuild($build);
 
         $form = clone $this->form;
-        $form->file['Dockerfile'] = 'new dockerfile data';
+        $form->system_file['Dockerfile'] = 'new dockerfile data';
 
         $this->networkRepo->expects($this->once())
             ->method('getPrivateNetworks')
@@ -238,7 +239,7 @@ class BeanstalkdTest extends KernelTestCase
 
         $this->assertEquals(['local'], $uDatastoreMeta->getData());
         $this->assertEquals(Entity\Docker\ServiceVolume::TYPE_BIND, $uServiceDatastoreVol->getType());
-        $this->assertEquals($form->file['Dockerfile'], $uDockerfileVol->getData());
+        $this->assertEquals($form->system_file['Dockerfile'], $uDockerfileVol->getData());
 
         $this->assertNull($uProjectDatastoreVol);
     }
@@ -249,7 +250,7 @@ class BeanstalkdTest extends KernelTestCase
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
             ->setSource('Dockerfile')
-            ->setData($this->form->file['Dockerfile'])
+            ->setData($this->form->system_file['Dockerfile'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $build = new Entity\Docker\Service\Build();
@@ -317,7 +318,7 @@ class BeanstalkdTest extends KernelTestCase
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
             ->setSource('Dockerfile')
-            ->setData($this->form->file['Dockerfile'])
+            ->setData($this->form->system_file['Dockerfile'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $build = new Entity\Docker\Service\Build();
@@ -378,7 +379,7 @@ class BeanstalkdTest extends KernelTestCase
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
             ->setSource('Dockerfile')
-            ->setData($this->form->file['Dockerfile'])
+            ->setData($this->form->system_file['Dockerfile'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $build = new Entity\Docker\Service\Build();

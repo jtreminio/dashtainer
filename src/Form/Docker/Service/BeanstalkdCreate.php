@@ -11,10 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class BeanstalkdCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
-
-    public $file = [];
+    use DashAssert\SystemFileTrait;
+    use DashAssert\UserFileTrait;
 
     /**
      * @Assert\Callback
@@ -25,17 +24,7 @@ class BeanstalkdCreate extends CreateAbstract implements Util\HydratorInterface
     {
         parent::validate($context, $payload);
 
-        $this->validateFile($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
-        foreach ($this->file as $filename => $contents) {
-            if (empty(trim($contents ?? ''))) {
-                $context->buildViolation("{$filename} cannot be empty")
-                    ->atPath("file[{$filename}]")
-                    ->addViolation();
-            }
-        }
+        $this->validateSystemFile($context);
+        $this->validateUserFile($context);
     }
 }

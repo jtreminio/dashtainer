@@ -11,8 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PostgreSQLCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
+    use DashAssert\SystemFileTrait;
+    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -43,8 +44,6 @@ class PostgreSQLCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $postgres_password;
 
-    public $file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -54,20 +53,9 @@ class PostgreSQLCreate extends CreateAbstract implements Util\HydratorInterface
     {
         parent::validate($context, $payload);
 
-        $this->validateFile($context);
-        $this->validateUserFile($context);
         $this->validatePort($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
-        foreach ($this->file as $filename => $contents) {
-            if (empty(trim($contents ?? ''))) {
-                $context->buildViolation("{$filename} cannot be empty")
-                    ->atPath("file[{$filename}]")
-                    ->addViolation();
-            }
-        }
+        $this->validateSystemFile($context);
+        $this->validateUserFile($context);
     }
 
     protected function validatePort(ExecutionContextInterface $context)

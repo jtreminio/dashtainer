@@ -11,8 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
+    use DashAssert\SystemFileTrait;
+    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -49,8 +50,6 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $mysql_password;
 
-    public $file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -60,18 +59,9 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
     {
         parent::validate($context, $payload);
 
-        $this->validateFile($context);
-        $this->validateUserFile($context);
         $this->validatePort($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
-        if (empty(trim($this->file['my.cnf'] ?? ''))) {
-            $context->buildViolation('my.cnf cannot be empty')
-                ->atPath('file[my.cnf]')
-                ->addViolation();
-        }
+        $this->validateSystemFile($context);
+        $this->validateUserFile($context);
     }
 
     protected function validatePort(ExecutionContextInterface $context)

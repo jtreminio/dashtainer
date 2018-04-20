@@ -74,7 +74,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->file['Dockerfile'] ?? '')
+            ->setData($form->system_file['Dockerfile'] ?? '')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -85,7 +85,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $nginxConf->setName('nginx.conf')
             ->setSource("\$PWD/{$service->getSlug()}/nginx.conf")
             ->setTarget('/etc/nginx/nginx.conf')
-            ->setData($form->file['nginx.conf'] ?? '')
+            ->setData($form->system_file['nginx.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -96,7 +96,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $coreConf->setName('core.conf')
             ->setSource("\$PWD/{$service->getSlug()}/core.conf")
             ->setTarget('/etc/nginx/conf.d/core.conf')
-            ->setData($form->file['core.conf'] ?? '')
+            ->setData($form->system_file['core.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -107,7 +107,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $proxyConf->setName('proxy.conf')
             ->setSource("\$PWD/{$service->getSlug()}/proxy.conf")
             ->setTarget('/etc/nginx/conf.d/proxy.conf')
-            ->setData($form->file['proxy.conf'] ?? '')
+            ->setData($form->system_file['proxy.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -183,7 +183,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         return [
             'projectFiles'           => $this->projectFilesViewParams($service),
             'systemPackagesSelected' => $systemPackagesSelected,
-            'configFiles'            => [
+            'systemFiles'            => [
                 'Dockerfile' => $dockerfile,
                 'nginx.conf' => $nginxConf,
                 'core.conf'  => $coreConf,
@@ -243,16 +243,16 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($vhostMeta);
 
         $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
 
         $nginxConf = $service->getVolume('nginx.conf');
-        $nginxConf->setData($form->file['nginx.conf'] ?? '');
+        $nginxConf->setData($form->system_file['nginx.conf'] ?? '');
 
         $coreConf = $service->getVolume('core.conf');
-        $coreConf->setData($form->file['core.conf'] ?? '');
+        $coreConf->setData($form->system_file['core.conf'] ?? '');
 
         $proxyConf = $service->getVolume('proxy.conf');
-        $proxyConf->setData($form->file['proxy.conf'] ?? '');
+        $proxyConf->setData($form->system_file['proxy.conf'] ?? '');
 
         $vhostConf = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf ?? '');

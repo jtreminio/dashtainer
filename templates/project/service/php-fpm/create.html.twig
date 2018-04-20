@@ -137,7 +137,7 @@
                     <li class="nav-item active">
                         <a id="nav-Dockerfile-tab" class="nav-link active"
                            data-toggle="tab" role="tab"
-                           href="#file-Dockerfile" aria-controls="file-Dockerfile"
+                           href="#system_file-Dockerfile" aria-controls="system_file-Dockerfile"
                            aria-selected="true">Dockerfile</a>
                     </li>
                     {% if iniMeta %}
@@ -145,7 +145,7 @@
                             <li class="nav-item">
                                 <a id="nav-{{ key }}-tab" class="nav-link"
                                    data-toggle="tab" role="tab"
-                                   href="#file-{{ key }}" aria-controls="file-{{ key }}"
+                                   href="#system_file-{{ key }}" aria-controls="system_file-{{ key }}"
                                    aria-selected="false">{{ key }}</a>
                             </li>
                         {% endfor %}
@@ -153,33 +153,33 @@
                 </ul>
 
                 <div id="nav-file-content" class="tab-content">
-                    <div id="file-Dockerfile" role="tabpanel"
+                    <div id="system_file-Dockerfile" role="tabpanel"
                          class="tab-pane fade show active">
                         <div class="row">
                             <div class="col">
                                 <pre class="language-docker" data-code-highlight><code
-                                        id="file-Dockerfile-source"
+                                        id="system_file-Dockerfile-source"
                                         contenteditable autocorrect="off" autocapitalize="off"
                                         spellcheck="false">{{ Dockerfile.data[0] }}</code></pre>
-                                <input type="hidden" value="" name="file[Dockerfile]"
-                                       data-error-container="file-error"
-                                       data-get-value-source="file-Dockerfile-source" />
+                                <input type="hidden" value="" name="system_file[Dockerfile]"
+                                       data-error-container="system_file-error"
+                                       data-get-value-source="system_file-Dockerfile-source" />
                             </div>
                         </div>
                     </div>
                     {% if iniMeta %}
                         {% for key, value in iniMeta.data %}
-                            <div id="file-{{ key }}" role="tabpanel"
+                            <div id="system_file-{{ key }}" role="tabpanel"
                                  class="tab-pane fade">
                                 <div class="row">
                                     <div class="col">
                                         <pre class="language-ini" data-code-highlight><code
-                                                id="file-{{ key }}-source"
+                                                id="system_file-{{ key }}-source"
                                                 contenteditable autocorrect="off" autocapitalize="off"
                                                 spellcheck="false">{{ value }}</code></pre>
-                                        <input type="hidden" value="" name="file[{{ key }}]"
-                                               data-error-container="file-error"
-                                               data-get-value-source="file-{{ key }}-source" />
+                                        <input type="hidden" value="" name="system_file[{{ key }}]"
+                                               data-error-container="system_file-error"
+                                               data-get-value-source="system_file-{{ key }}-source" />
                                     </div>
                                 </div>
                             </div>
@@ -188,7 +188,7 @@
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="file-error"></div>
+                     data-error-container-name="system_file-error"></div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
                      data-error-container-name="custom_file"></div>

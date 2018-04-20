@@ -66,7 +66,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $configYml->setName('elasticsearch.yml')
             ->setSource("\$PWD/{$service->getSlug()}/elasticsearch.yml")
             ->setTarget('/usr/share/elasticsearch/config/elasticsearch.yml')
-            ->setData($form->file['elasticsearch.yml'] ?? '')
+            ->setData($form->system_file['elasticsearch.yml'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -98,7 +98,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
             'version'             => $version,
             'datastore'           => $datastore,
             'heap_size'           => $heap_size,
-            'configFiles'         => [
+            'systemFiles'         => [
                 'elasticsearch.yml' => $configYml,
             ],
         ];
@@ -125,7 +125,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($heapsizeMeta);
 
         $configYml = $service->getVolume('elasticsearch.yml');
-        $configYml->setData($form->file['elasticsearch.yml'] ?? '');
+        $configYml->setData($form->system_file['elasticsearch.yml'] ?? '');
 
         $this->serviceRepo->save($configYml);
 

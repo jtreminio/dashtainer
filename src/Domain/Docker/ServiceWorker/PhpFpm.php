@@ -80,7 +80,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->file['Dockerfile'] ?? '')
+            ->setData($form->system_file['Dockerfile'] ?? '')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -91,7 +91,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $phpIni->setName('php.ini')
             ->setSource("\$PWD/{$service->getSlug()}/php.ini")
             ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
-            ->setData($form->file['php.ini'] ?? '')
+            ->setData($form->system_file['php.ini'] ?? '')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -102,7 +102,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $phpCliIni->setName('php-cli.ini')
             ->setSource("\$PWD/{$service->getSlug()}/php-cli.ini")
             ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
-            ->setData($form->file['php.ini'] ?? '')
+            ->setData($form->system_file['php.ini'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -113,7 +113,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $fpmConf->setName('php-fpm.conf')
             ->setSource("\$PWD/{$service->getSlug()}/php-fpm.conf")
             ->setTarget("/etc/php/{$form->version}/fpm/php-fpm.conf")
-            ->setData($form->file['php-fpm.conf'])
+            ->setData($form->system_file['php-fpm.conf'])
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -251,7 +251,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             'pearPackagesSelected'   => $pearPackagesSelected,
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
-            'configFiles'            => [
+            'systemFiles'            => [
                 'Dockerfile'   => $dockerfile,
                 'php.ini'      => $phpIni,
                 'php-fpm.conf' => $fpmConf,
@@ -297,7 +297,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $this->addToPrivateNetworks($service, $form);
 
         $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
 
         if (!$phpIni = $service->getVolume('php.ini')) {
             $phpIni = new Entity\Docker\ServiceVolume();
@@ -327,11 +327,11 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $service->addVolume($phpCliIni);
         }
 
-        $phpIni->setData($form->file['php.ini'] ?? '');
-        $phpCliIni->setData($form->file['php.ini'] ?? '');
+        $phpIni->setData($form->system_file['php.ini'] ?? '');
+        $phpCliIni->setData($form->system_file['php.ini'] ?? '');
 
         $fpmConf = $service->getVolume('php-fpm.conf');
-        $fpmConf->setData($form->file['php-fpm.conf']);
+        $fpmConf->setData($form->system_file['php-fpm.conf']);
 
         $this->serviceRepo->save($dockerfile, $phpIni, $phpCliIni, $fpmConf);
 

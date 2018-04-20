@@ -11,8 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class ElasticsearchCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\UserFileTrait;
     use DashAssert\DatastoreTrait;
+    use DashAssert\SystemFileTrait;
+    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -24,8 +25,6 @@ class ElasticsearchCreate extends CreateAbstract implements Util\HydratorInterfa
      */
     public $heap_size;
 
-    public $file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -35,10 +34,7 @@ class ElasticsearchCreate extends CreateAbstract implements Util\HydratorInterfa
     {
         parent::validate($context, $payload);
 
-        $this->validateFile($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
+        $this->validateSystemFile($context);
+        $this->validateUserFile($context);
     }
 }

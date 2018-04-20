@@ -69,7 +69,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
         $configFileCnf->setName('config-file.cnf')
             ->setSource("\$PWD/{$service->getSlug()}/config-file.cnf")
             ->setTarget('/etc/mysql/conf.d/config-file.cnf')
-            ->setData($form->file['config-file.cnf'] ?? '')
+            ->setData($form->system_file['config-file.cnf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -126,7 +126,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
             'mysql_database'      => $mysql_database,
             'mysql_user'          => $mysql_user,
             'mysql_password'      => $mysql_password,
-            'configFiles'         => [
+            'systemFiles'         => [
                 'config-file.cnf' => $configFileCnf,
             ],
             'userFiles'           => $userFiles,
@@ -162,7 +162,7 @@ class MySQL extends WorkerAbstract implements WorkerInterface
         $service->setPorts($servicePort);
 
         $configFileCnf = $service->getVolume('config-file.cnf');
-        $configFileCnf->setData($form->file['config-file.cnf'] ?? '');
+        $configFileCnf->setData($form->system_file['config-file.cnf'] ?? '');
 
         $this->serviceRepo->save($configFileCnf);
 

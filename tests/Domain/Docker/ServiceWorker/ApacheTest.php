@@ -93,7 +93,7 @@ example
 vhost
 config
 EOD;
-        $this->form->file = [
+        $this->form->system_file = [
             'Dockerfile'   => 'Dockerfile contents',
             'apache2.conf' => 'apache2.conf contents',
             'ports.conf'   => 'ports.conf contents',
@@ -241,15 +241,15 @@ EOD;
 
         $this->assertSame(
             $service->getVolume('Dockerfile'),
-            $params['configFiles']['Dockerfile']
+            $params['systemFiles']['Dockerfile']
         );
         $this->assertSame(
             $service->getVolume('apache2.conf'),
-            $params['configFiles']['apache2.conf']
+            $params['systemFiles']['apache2.conf']
         );
         $this->assertSame(
             $service->getVolume('ports.conf'),
-            $params['configFiles']['ports.conf']
+            $params['systemFiles']['ports.conf']
         );
 
         $this->assertSame(
@@ -264,7 +264,7 @@ EOD;
         $dockerfile->fromArray(['id' => 'Dockerfile']);
         $dockerfile->setName('Dockerfile')
             ->setSource('Dockerfile')
-            ->setData($this->form->file['Dockerfile'])
+            ->setData($this->form->system_file['Dockerfile'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $apache2Conf = new Entity\Docker\ServiceVolume();
@@ -272,7 +272,7 @@ EOD;
         $apache2Conf->setName('apache2.conf')
             ->setSource('apache2.conf')
             ->setTarget('/etc/apache2/apache2.conf')
-            ->setData($this->form->file['apache2.conf'])
+            ->setData($this->form->system_file['apache2.conf'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $portsConf = new Entity\Docker\ServiceVolume();
@@ -280,7 +280,7 @@ EOD;
         $portsConf->setName('ports.conf')
             ->setSource('ports.conf')
             ->setTarget('/etc/apache2/ports.conf')
-            ->setData($this->form->file['ports.conf'])
+            ->setData($this->form->system_file['ports.conf'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
 
         $vhostConf = new Entity\Docker\ServiceVolume();
@@ -347,9 +347,9 @@ EOD;
         $form->document_root = '/path/to/glory';
         $form->fcgi_handler  = '';
 
-        $form->file['Dockerfile']     = 'new dockerfile data';
-        $form->file['apache2.conf']   = 'new apache2.conf data';
-        $form->file['ports.conf']     = 'new ports.conf data';
+        $form->system_file['Dockerfile']     = 'new dockerfile data';
+        $form->system_file['apache2.conf']   = 'new apache2.conf data';
+        $form->system_file['ports.conf']     = 'new ports.conf data';
         $form->vhost_conf             = 'new vhost.conf data';
         $form->project_files          = [
             'type'  => 'local',
@@ -386,9 +386,9 @@ EOD;
         $filePorts      = $updatedService->getVolume('ports.conf');
         $fileVhost      = $updatedService->getVolume('vhost.conf');
 
-        $this->assertEquals($form->file['Dockerfile'], $fileDockerFile->getData());
-        $this->assertEquals($form->file['apache2.conf'], $fileApache2->getData());
-        $this->assertEquals($form->file['ports.conf'], $filePorts->getData());
+        $this->assertEquals($form->system_file['Dockerfile'], $fileDockerFile->getData());
+        $this->assertEquals($form->system_file['apache2.conf'], $fileApache2->getData());
+        $this->assertEquals($form->system_file['ports.conf'], $filePorts->getData());
         $this->assertEquals($form->vhost_conf, $fileVhost->getData());
     }
 }

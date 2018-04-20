@@ -12,6 +12,7 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\ProjectFilesTrait;
+    use DashAssert\SystemFileTrait;
     use DashAssert\UserFileTrait;
 
     public $project_files = [];
@@ -32,8 +33,6 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $vhost_conf;
 
-    public $file = [];
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -44,18 +43,7 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
         parent::validate($context, $payload);
 
         $this->validateProjectFiles($context);
-        $this->validateFile($context);
+        $this->validateSystemFile($context);
         $this->validateUserFile($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
-        foreach ($this->file as $filename => $contents) {
-            if (empty(trim($contents ?? ''))) {
-                $context->buildViolation("{$filename} cannot be empty")
-                    ->atPath("file[{$filename}]")
-                    ->addViolation();
-            }
-        }
     }
 }

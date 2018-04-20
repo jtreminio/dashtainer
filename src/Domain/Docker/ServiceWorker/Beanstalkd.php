@@ -42,7 +42,7 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->file['Dockerfile'] ?? '')
+            ->setData($form->system_file['Dockerfile'] ?? '')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -71,7 +71,7 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
         return [
             'datastore'   => $datastore,
-            'configFiles' => [
+            'systemFiles' => [
                 'Dockerfile' => $dockerfile,
             ],
         ];
@@ -89,7 +89,7 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $this->addToPrivateNetworks($service, $form);
 
         $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
 
         $this->serviceRepo->save($dockerfile);
 

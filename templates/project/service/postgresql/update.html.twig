@@ -179,11 +179,11 @@
                            }) }}">
                             <i class="fe fe-plus"></i> Add</a>
                     </li>
-                    {% for file in configFiles %}
+                    {% for file in systemFiles %}
                         <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
+                            <a id="nav-system_file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
                                data-toggle="tab" role="tab"
-                               href="#file-{{ file.name }}" aria-controls="file-{{ file.name }}"
+                               href="#system_file-{{ file.name }}" aria-controls="system_file-{{ file.name }}"
                                aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
                         </li>
                     {% endfor %}
@@ -205,18 +205,18 @@
                 </ul>
 
                 <div id="nav-file-content" class="tab-content">
-                    {% for file in configFiles %}
-                        <div id="file-{{ file.name }}" role="tabpanel"
+                    {% for file in systemFiles %}
+                        <div id="system_file-{{ file.name }}" role="tabpanel"
                              class="tab-pane fade {{ loop.first ? 'show active' }}">
                             <div class="row">
                                 <div class="col">
                                     <pre class="language-ini" data-code-highlight><code
-                                            id="file-{{ file.name }}-source"
+                                            id="system_file-{{ file.name }}-source"
                                             contenteditable autocorrect="off" autocapitalize="off"
                                             spellcheck="false">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="file[{{ file.name }}]"
-                                           data-error-container="file-error"
-                                           data-get-value-source="file-{{ file.name }}-source" />
+                                    <input type="hidden" value="" name="system_file[{{ file.name }}]"
+                                           data-error-container="system_file-error"
+                                           data-get-value-source="system_file-{{ file.name }}-source" />
                                 </div>
                             </div>
                         </div>
@@ -269,7 +269,7 @@
                 </div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="file-error"></div>
+                     data-error-container-name="system_file-error"></div>
 
                 <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
                      data-error-container-name="user_file"></div>

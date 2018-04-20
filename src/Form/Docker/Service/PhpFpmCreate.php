@@ -11,8 +11,9 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\UserFileTrait;
     use DashAssert\ProjectFilesTrait;
+    use DashAssert\SystemFileTrait;
+    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -28,8 +29,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
     public $pecl_packages = [];
 
     public $system_packages = [];
-
-    public $file = [];
 
     public $composer = [];
 
@@ -47,19 +46,10 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
         parent::validate($context, $payload);
 
         $this->validateProjectFiles($context);
-        $this->validateFile($context);
+        $this->validateSystemFile($context);
+        $this->validateUserFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);
-        $this->validateUserFile($context);
-    }
-
-    protected function validateFile(ExecutionContextInterface $context)
-    {
-        if (empty(trim($this->file['php-fpm.conf'] ?? ''))) {
-            $context->buildViolation('php-fpm.conf cannot be empty')
-                ->atPath('file[php-fpm.conf]')
-                ->addViolation();
-        }
     }
 
     protected function validateXdebug(ExecutionContextInterface $context)

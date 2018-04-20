@@ -69,7 +69,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $myCnf->setName('my.cnf')
             ->setSource("\$PWD/{$service->getSlug()}/my.cnf")
             ->setTarget('/etc/mysql/my.cnf')
-            ->setData($form->file['my.cnf'] ?? '')
+            ->setData($form->system_file['my.cnf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -79,7 +79,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $configFileCnf->setName('config-file.cnf')
             ->setSource("\$PWD/{$service->getSlug()}/config-file.cnf")
             ->setTarget('/etc/mysql/conf.d/config-file.cnf')
-            ->setData($form->file['config-file.cnf'] ?? '')
+            ->setData($form->system_file['config-file.cnf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -138,7 +138,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             'mysql_database'      => $mysql_database,
             'mysql_user'          => $mysql_user,
             'mysql_password'      => $mysql_password,
-            'configFiles'         => [
+            'systemFiles'         => [
                 'my.cnf'          => $myCnf,
                 'config-file.cnf' => $configFileCnf,
             ],
@@ -175,10 +175,10 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $service->setPorts($servicePort);
 
         $myCnf = $service->getVolume('my.cnf');
-        $myCnf->setData($form->file['my.cnf'] ?? '');
+        $myCnf->setData($form->system_file['my.cnf'] ?? '');
 
         $configFileCnf = $service->getVolume('config-file.cnf');
-        $configFileCnf->setData($form->file['config-file.cnf'] ?? '');
+        $configFileCnf->setData($form->system_file['config-file.cnf'] ?? '');
 
         $this->serviceRepo->save($myCnf, $configFileCnf);
 

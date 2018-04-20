@@ -70,12 +70,13 @@ class ElasticsearchTest extends KernelTestCase
         $this->form->project = $this->project;
         $this->form->type    = $this->serviceType;
         $this->form->name    = 'service-name';
-        $this->form->file    = [
+
+        $this->form->system_file = [
             'elasticsearch.yml' => 'elasticsearch.yml contents',
         ];
-        $this->form->datastore = 'local';
-        $this->form->version   = '1.2';
-        $this->form->heap_size = '1m';
+        $this->form->datastore   = 'local';
+        $this->form->version     = '1.2';
+        $this->form->heap_size   = '1m';
 
         $this->worker = new Elasticsearch($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
 
@@ -140,7 +141,7 @@ class ElasticsearchTest extends KernelTestCase
         $this->assertNotNull($service->getMeta('heap_size'));
 
         $this->assertEquals('$PWD/service-name/datadir', $datastoreVolume->getSource());
-        $this->assertEquals($this->form->file['elasticsearch.yml'], $esVolume->getData());
+        $this->assertEquals($this->form->system_file['elasticsearch.yml'], $esVolume->getData());
     }
 
     public function testGetCreateParams()
@@ -158,7 +159,7 @@ class ElasticsearchTest extends KernelTestCase
         $this->assertEquals($this->form->heap_size, $params['heap_size']);
         $this->assertSame(
             $service->getVolume('elasticsearch.yml'),
-            $params['configFiles']['elasticsearch.yml']
+            $params['systemFiles']['elasticsearch.yml']
         );
     }
 
@@ -168,7 +169,7 @@ class ElasticsearchTest extends KernelTestCase
         $esVol->fromArray(['id' => 'elasticsearch.yml']);
         $esVol->setName('elasticsearch.yml')
             ->setSource('elasticsearch.yml')
-            ->setData($this->form->file['elasticsearch.yml'])
+            ->setData($this->form->system_file['elasticsearch.yml'])
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE);
 
@@ -214,7 +215,7 @@ class ElasticsearchTest extends KernelTestCase
             ->setUlimits($ulimits);
 
         $form = clone $this->form;
-        $form->file['elasticsearch.yml'] = 'new elasticsearch.yml data';
+        $form->system_file['elasticsearch.yml'] = 'new elasticsearch.yml data';
         $form->heap_size = '5m';
 
         $this->networkRepo->expects($this->once())
@@ -244,7 +245,7 @@ class ElasticsearchTest extends KernelTestCase
         $this->assertEquals(['local'], $uDatastoreMeta->getData());
         $this->assertEquals(['5m'], $uHeapsizeMeta->getData());
         $this->assertEquals(Entity\Docker\ServiceVolume::TYPE_BIND, $uServiceDatastoreVol->getType());
-        $this->assertEquals($form->file['elasticsearch.yml'], $uEsVol->getData());
+        $this->assertEquals($form->system_file['elasticsearch.yml'], $uEsVol->getData());
         $this->assertEquals($expectedEnvironments, $uEnvironments);
     }
 }

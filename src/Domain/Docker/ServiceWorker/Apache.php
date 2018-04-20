@@ -135,7 +135,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
             'apacheModulesDisable'   => $apacheModulesDisable,
             'availableApacheModules' => $availableApacheModules,
             'systemPackagesSelected' => $systemPackagesSelected,
-            'configFiles'            => [
+            'systemFiles'            => [
                 'Dockerfile'   => $dockerfile,
                 'apache2.conf' => $apache2Conf,
                 'ports.conf'   => $portsConf,
@@ -209,7 +209,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $dockerfile = new Entity\Docker\ServiceVolume();
         $dockerfile->setName('Dockerfile')
             ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->file['Dockerfile'] ?? '')
+            ->setData($form->system_file['Dockerfile'] ?? '')
             ->setConsistency(null)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -220,7 +220,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $apache2Conf->setName('apache2.conf')
             ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
             ->setTarget('/etc/apache2/apache2.conf')
-            ->setData($form->file['apache2.conf'] ?? '')
+            ->setData($form->system_file['apache2.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -231,7 +231,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $portsConf->setName('ports.conf')
             ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
             ->setTarget('/etc/apache2/ports.conf')
-            ->setData($form->file['ports.conf'] ?? '')
+            ->setData($form->system_file['ports.conf'] ?? '')
             ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
             ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -264,13 +264,13 @@ class Apache extends WorkerAbstract implements WorkerInterface
         Form\Docker\Service\ApacheCreate $form
     ) {
         $dockerfile  = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->file['Dockerfile'] ?? '');
+        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
 
         $apache2Conf = $service->getVolume('apache2.conf');
-        $apache2Conf->setData($form->file['apache2.conf'] ?? '');
+        $apache2Conf->setData($form->system_file['apache2.conf'] ?? '');
 
         $portsConf   = $service->getVolume('ports.conf');
-        $portsConf->setData($form->file['ports.conf'] ?? '');
+        $portsConf->setData($form->system_file['ports.conf'] ?? '');
 
         $vhostConf   = $service->getVolume('vhost.conf');
         $vhostConf->setData($form->vhost_conf);
