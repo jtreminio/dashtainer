@@ -104,14 +104,14 @@ class Service extends Controller
         $id   = "user_file-{$uniqid}";
         $name = "user_file[{$uniqid}]";
 
-        $tabTemplate = '@Dashtainer/project/service/snippets/service_user_file_content.html.twig';
+        $tabTemplate = '@Dashtainer/project/service/snippets/service_user_file_tab.html.twig';
         $blockTab    = $this->render($tabTemplate, [
             'id'             => $id,
             'name'           => $name,
             'errorContainer' => 'user_file',
         ]);
 
-        $blockTemplate = '@Dashtainer/project/service/snippets/service_user_file_tab.html.twig';
+        $blockTemplate = '@Dashtainer/project/service/snippets/service_user_file_content.html.twig';
         $blockContent  = $this->render($blockTemplate, [
             'id'             => $id,
             'name'           => $name,

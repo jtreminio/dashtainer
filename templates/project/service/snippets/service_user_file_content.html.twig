@@ -1,11 +1,36 @@
-<li class="nav-item">
-    <a id="nav-{{ id }}-tab" class="nav-link" data-toggle="tab"
-       href="#{{ id }}" role="tab" aria-controls="{{ id }}"
-       aria-selected="false">* Needs Data</a>
-    <div class="btn-group">
-        <button type="button" class="btn btn-default"
-                data-toggle="delete-block"
-                data-target="#{{ id }}">
-            <i class="fa fa-close"></i></button>
+<div id="{{ id }}" class="tab-pane fade" role="tabpanel">
+    <div class="row">
+        <div class="form-group col">
+            <label class="form-label" for="{{ id }}-filename">Filename</label>
+            <input type="text" class="form-control" maxlength="255"
+                   id="{{ id }}-filename" name="{{ name }}[filename]" placeholder=""
+                   value="" data-update-text="nav-{{ id }}-tab"
+                   data-mask-type="filename"
+                   data-error-container="{{ errorContainer }}" />
+            <small class="text-muted">
+                Save config into this local file.
+            </small>
+        </div>
+
+        <div class="form-group col">
+            <label class="form-label" for="{{ id }}-target">Target Path</label>
+            <input type="text" class="form-control" maxlength="255"
+                   id="{{ id }}-target" name="{{ name }}[target]" placeholder=""
+                   value="{{ targetPath }}"
+                   data-error-container="{{ errorContainer }}" />
+            <small class="text-muted">
+                Make file available inside container at this location.
+            </small>
+        </div>
+
+        <div class="col-12">
+            <pre class="language-{{ language }}" data-code-highlight><code
+                    contenteditable autocorrect="off" autocapitalize="off"
+                    spellcheck="false"
+                    id="{{ id }}-data"># edit me</code></pre>
+            <input type="hidden" value="" name="{{ name }}[data]"
+                   data-error-container="{{ errorContainer }}"
+                   data-get-value-source="{{ id }}-data" />
+        </div>
     </div>
-</li>
+</div>
