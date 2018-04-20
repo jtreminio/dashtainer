@@ -20,8 +20,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $version;
 
-    public $project_files = [];
-
     public $php_packages = [];
 
     public $pear_packages = [];

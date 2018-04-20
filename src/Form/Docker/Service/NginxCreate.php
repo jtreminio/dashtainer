@@ -15,8 +15,6 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
     use DashAssert\SystemFileTrait;
     use DashAssert\UserFileTrait;
 
-    public $project_files = [];
-
     public $system_packages = [];
 
     public $server_name;
