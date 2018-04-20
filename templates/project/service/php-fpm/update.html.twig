@@ -154,7 +154,7 @@
                                            placeholder="" value="{{ file.name }}"
                                            data-update-text="nav-user_file-{{ file.id }}-tab"
                                            data-mask-type="filename"
-                                           data-error-container="user_file" />
+                                           data-error-container="user_file-error" />
                                     <small class="text-muted">
                                         Save config into this local file.
                                     </small>
@@ -167,7 +167,7 @@
                                            id="user_file-{{ file.id }}-target"
                                            name="user_file[{{ file.id }}][target]"
                                            placeholder="" value="{{ file.target }}"
-                                           data-error-container="user_file" />
+                                           data-error-container="user_file-error" />
                                     <small class="text-muted">
                                         Make file available inside container at this location.
                                     </small>
@@ -179,7 +179,7 @@
                                             spellcheck="false"
                                             id="user_file-{{ file.id }}-data">{{ file.data }}</code></pre>
                                     <input type="hidden" value="" name="user_file[{{ file.id }}][data]"
-                                           data-error-container="user_file"
+                                           data-error-container="user_file-error"
                                            data-get-value-source="user_file-{{ file.id }}-data" />
                                 </div>
                             </div>

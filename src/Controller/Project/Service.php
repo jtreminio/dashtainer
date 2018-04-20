@@ -108,7 +108,7 @@ class Service extends Controller
         $blockTab    = $this->render($tabTemplate, [
             'id'             => $id,
             'name'           => $name,
-            'errorContainer' => 'user_file',
+            'errorContainer' => 'user_file-error',
         ]);
 
         $blockTemplate = '@Dashtainer/project/service/snippets/service_user_file_content.html.twig';
@@ -117,7 +117,7 @@ class Service extends Controller
             'name'           => $name,
             'language'       => $language,
             'targetPath'     => $targetPath ? urldecode($targetPath) : '',
-            'errorContainer' => 'user_file',
+            'errorContainer' => 'user_file-error',
         ]);
 
         return new AjaxResponse([
