@@ -66,12 +66,6 @@ class MySQLTest extends KernelTestCase
         $this->serviceType = new Entity\Docker\ServiceType();
         $this->serviceType->setName('service-type-name');
 
-        $moduleMeta = new Entity\Docker\ServiceTypeMeta();
-        $moduleMeta->setName('modules')
-            ->setData(['default' => ['default_data'], 'available' => ['available_data']]);
-
-        $this->serviceType->addMeta($moduleMeta);
-
         $this->form = new Form\Docker\Service\MySQLCreate();
         $this->form->project = $this->project;
         $this->form->type    = $this->serviceType;
