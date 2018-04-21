@@ -199,6 +199,29 @@ class MariaDBTest extends KernelTestCase
         ];
     }
 
+    public function testGetViewParams()
+    {
+        $service = $this->worker->create($this->form);
+        $params  = $this->worker->getViewParams($service);
+
+        $this->assertSame(
+            $service->getVolume('my.cnf'),
+            $params['systemFiles']['my.cnf']
+        );
+        $this->assertSame(
+            $service->getVolume('config-file.cnf'),
+            $params['systemFiles']['config-file.cnf']
+        );
+
+        $this->assertEquals($this->form->version, $params['version']);
+        $this->assertEquals(3307, $params['bindPort']);
+        $this->assertEquals($this->form->port_confirm, $params['portConfirm']);
+        $this->assertEquals($this->form->mysql_root_password, $params['mysql_root_password']);
+        $this->assertEquals($this->form->mysql_database, $params['mysql_database']);
+        $this->assertEquals($this->form->mysql_user, $params['mysql_user']);
+        $this->assertEquals($this->form->mysql_password, $params['mysql_password']);
+    }
+
     public function testUpdate()
     {
         $myCnfVol = new Entity\Docker\ServiceVolume();
