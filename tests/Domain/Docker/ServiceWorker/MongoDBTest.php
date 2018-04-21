@@ -205,7 +205,7 @@ class MongoDBTest extends KernelTestCase
         $service->setName($this->form->name)
             ->setType($this->serviceType)
             ->setProject($this->project)
-            ->setImage('mariadb:1.2')
+            ->setImage('mongodb:1.2')
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS)
             ->addNetwork($this->publicNetwork)
             ->addNetwork($this->seededPrivateNetworks['private-network-a'])
