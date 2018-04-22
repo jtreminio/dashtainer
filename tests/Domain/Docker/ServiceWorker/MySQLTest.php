@@ -5,66 +5,19 @@ namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 use Dashtainer\Domain\Docker\ServiceWorker\MySQL;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
-class MySQLTest extends KernelTestCase
+class MySQLTest extends ServiceWorkerBase
 {
     /** @var Form\Docker\Service\MySQLCreate */
     protected $form;
-
-    /** @var MockObject|Repository\Docker\Network */
-    protected $networkRepo;
-
-    /** @var Entity\Docker\Project */
-    protected $project;
-
-    /** @var Entity\Docker\Network */
-    protected $publicNetwork;
-
-    protected $seededPrivateNetworks = [];
-
-    /** @var MockObject|Repository\Docker\Service */
-    protected $serviceRepo;
-
-    /** @var Entity\Docker\ServiceType */
-    protected $serviceType;
-
-    /** @var MockObject|Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
 
     /** @var MySQL */
     protected $worker;
 
     protected function setUp()
     {
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->networkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->project = new Entity\Docker\Project();
-        $this->project->setName('project-name');
-
-        $this->publicNetwork = new Entity\Docker\Network();
-
-        $this->project->addNetwork($this->publicNetwork);
-
-        $this->serviceType = new Entity\Docker\ServiceType();
-        $this->serviceType->setName('service-type-name');
+        parent::setUp();
 
         $this->form = new Form\Docker\Service\MySQLCreate();
         $this->form->project = $this->project;
@@ -87,46 +40,11 @@ class MySQLTest extends KernelTestCase
         $this->form->mysql_password      = 'userpw';
 
         $this->worker = new MySQL($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
-
-        $this->seedProjectWithPrivateNetworks();
-
-        $this->networkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-    }
-
-    protected function seedProjectWithPrivateNetworks()
-    {
-        $privateNetworkA = new Entity\Docker\Network();
-        $privateNetworkA->setName('private-network-a');
-
-        $privateNetworkB = new Entity\Docker\Network();
-        $privateNetworkB->setName('private-network-b');
-
-        $privateNetworkC = new Entity\Docker\Network();
-        $privateNetworkC->setName('private-network-c');
-
-        $this->project->addNetwork($privateNetworkA)
-            ->addNetwork($privateNetworkB)
-            ->addNetwork($privateNetworkC);
-
-        $this->seededPrivateNetworks = [
-            'private-network-a' => $privateNetworkA,
-            'private-network-b' => $privateNetworkB,
-            'private-network-c' => $privateNetworkC,
-        ];
     }
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
+        $this->networkRepoDefaultExpects();
 
         $service = $this->worker->create($this->form);
 
@@ -211,55 +129,16 @@ class MySQLTest extends KernelTestCase
 
     public function testUpdate()
     {
-        $configFileVol = new Entity\Docker\ServiceVolume();
-        $configFileVol->fromArray(['id' => 'config-file.cnf']);
-        $configFileVol->setName('config-file.cnf')
-            ->setSource('config-file.cnf')
-            ->setData($this->form->system_file['config-file.cnf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE);
+        $this->networkRepoDefaultExpects();
 
-        $serviceDatastoreVol = new Entity\Docker\ServiceVolume();
-        $serviceDatastoreVol->setName('datastore')
-            ->setTarget('datastore-target')
-            ->setType(Entity\Docker\ServiceVolume::TYPE_BIND);
+        $service = $this->worker->create($this->form);
 
-        $dataStoreMeta = new Entity\Docker\ServiceMeta();
-        $dataStoreMeta->setName('datastore')
-            ->setData(['local']);
+        $networkRepo = $this->getUpdateNetworkRepo();
 
-        $versionMeta = new Entity\Docker\ServiceMeta();
-        $versionMeta->setName('version')
-            ->setData([$this->form->version]);
-
-        $portMeta = new Entity\Docker\ServiceMeta();
-        $portMeta->setName('bind-port')
-            ->setData([]);
-
-        $environments = [
-            'MYSQL_ROOT_PASSWORD' => $this->form->mysql_root_password,
-            'MYSQL_DATABASE'      => $this->form->mysql_database,
-            'MYSQL_USER'          => $this->form->mysql_user,
-            'MYSQL_PASSWORD'      => $this->form->mysql_password,
-        ];
-
-        $service = new Entity\Docker\Service();
-        $service->setName($this->form->name)
-            ->setType($this->serviceType)
-            ->setProject($this->project)
-            ->setImage('mysql:1.2')
-            ->setRestart(Entity\Docker\Service::RESTART_ALWAYS)
-            ->setEnvironments($environments)
-            ->addNetwork($this->publicNetwork)
-            ->addNetwork($this->seededPrivateNetworks['private-network-a'])
-            ->addNetwork($this->seededPrivateNetworks['private-network-b'])
-            ->addVolume($configFileVol)
-            ->addVolume($serviceDatastoreVol)
-            ->addMeta($dataStoreMeta)
-            ->addMeta($versionMeta)
-            ->addMeta($portMeta);
+        $worker = new MySQL($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
+
         $form->mysql_root_password = 'newrootpw';
         $form->mysql_database      = 'newdb';
         $form->mysql_user          = 'newuser';
@@ -270,19 +149,7 @@ class MySQLTest extends KernelTestCase
 
         $form->system_file['config-file.cnf'] = 'new configfile data';
 
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([
-                $this->seededPrivateNetworks['private-network-a'],
-                $this->seededPrivateNetworks['private-network-b'],
-            ]));
-
-        $updatedService = $this->worker->update($service, $form);
+        $updatedService = $worker->update($service, $form);
 
         $uConfigFileVol = $updatedService->getVolume('config-file.cnf');
         $uPortMeta      = $updatedService->getMeta('bind-port');

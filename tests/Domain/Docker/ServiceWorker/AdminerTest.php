@@ -5,66 +5,19 @@ namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 use Dashtainer\Domain\Docker\ServiceWorker\Adminer;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
-class AdminerTest extends KernelTestCase
+class AdminerTest extends ServiceWorkerBase
 {
     /** @var Form\Docker\Service\AdminerCreate */
     protected $form;
-
-    /** @var MockObject|Repository\Docker\Network */
-    protected $networkRepo;
-
-    /** @var Entity\Docker\Project */
-    protected $project;
-
-    /** @var Entity\Docker\Network */
-    protected $publicNetwork;
-
-    protected $seededPrivateNetworks = [];
-
-    /** @var MockObject|Repository\Docker\Service */
-    protected $serviceRepo;
-
-    /** @var Entity\Docker\ServiceType */
-    protected $serviceType;
-
-    /** @var MockObject|Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
 
     /** @var Adminer */
     protected $worker;
 
     protected function setUp()
     {
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->networkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->project = new Entity\Docker\Project();
-        $this->project->setName('project-name');
-
-        $this->publicNetwork = new Entity\Docker\Network();
-
-        $this->project->addNetwork($this->publicNetwork);
-
-        $this->serviceType = new Entity\Docker\ServiceType();
-        $this->serviceType->setName('service-type-name');
+        parent::setUp();
 
         $availableDesignsMeta = new Entity\Docker\ServiceTypeMeta();
         $availableDesignsMeta->setName('designs')
@@ -86,51 +39,17 @@ class AdminerTest extends KernelTestCase
         $this->form->project = $this->project;
         $this->form->type    = $this->serviceType;
         $this->form->name    = 'service-name';
-        $this->form->design  = 'form-design';
+
+        $this->form->design = 'form-design';
 
         $this->worker = new Adminer($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
-
-        $this->networkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-    }
-
-    protected function seedProjectWithPrivateNetworks()
-    {
-        $privateNetworkA = new Entity\Docker\Network();
-        $privateNetworkA->setName('private-network-a');
-
-        $privateNetworkB = new Entity\Docker\Network();
-        $privateNetworkB->setName('private-network-b');
-
-        $privateNetworkC = new Entity\Docker\Network();
-        $privateNetworkC->setName('private-network-c');
-
-        $this->project->addNetwork($privateNetworkA)
-            ->addNetwork($privateNetworkB)
-            ->addNetwork($privateNetworkC);
-
-        $this->seededPrivateNetworks = [
-            'private-network-a' => $privateNetworkA,
-            'private-network-b' => $privateNetworkB,
-            'private-network-c' => $privateNetworkC,
-        ];
     }
 
     public function testCreateReturnsServiceEntityWithNoPrivateNetworks()
     {
-        $this->seedProjectWithPrivateNetworks();
+        $this->networkRepoDefaultExpects();
 
         $this->form->networks = [];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -155,22 +74,13 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntityWithNewAndExistingPrivateNetworks()
     {
-        $this->seedProjectWithPrivateNetworks();
+        $this->networkRepoDefaultExpects();
 
         $this->form->networks = [
             'new-network-a',
             'new-network-b',
             'private-network-a',
         ];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -201,21 +111,12 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntityWithNewPrivateNetworks()
     {
-        $this->seedProjectWithPrivateNetworks();
+        $this->networkRepoDefaultExpects();
 
         $this->form->networks = [
             'new-network-a',
             'new-network-b',
         ];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -247,20 +148,11 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntityWithExistingPrivateNetworks()
     {
-        $this->seedProjectWithPrivateNetworks();
+        $this->networkRepoDefaultExpects();
 
         $this->form->networks = [
             'private-network-a',
         ];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -284,16 +176,9 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntityWithNoUserFiles()
     {
+        $this->networkRepoDefaultExpects();
+
         $this->form->user_file = [];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -302,6 +187,8 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntityWithUserFiles()
     {
+        $this->networkRepoDefaultExpects();
+
         $userFileA = [
             'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
@@ -315,15 +202,6 @@ class AdminerTest extends KernelTestCase
         ];
 
         $this->form->user_file = [$userFileA, $userFileB];
-
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
 
         $service = $this->worker->create($this->form);
 
@@ -343,14 +221,7 @@ class AdminerTest extends KernelTestCase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
+        $this->networkRepoDefaultExpects();
 
         $service = $this->worker->create($this->form);
 
@@ -409,49 +280,23 @@ class AdminerTest extends KernelTestCase
 
     public function testUpdate()
     {
-        $this->seedProjectWithPrivateNetworks();
+        $this->networkRepoDefaultExpects();
 
-        $userFileA = new Entity\Docker\ServiceVolume();
-        $userFileA->fromArray(['id' => 'userfilea_ID']);
-        $userFileA->setName('userfilea.txt')
-            ->setSource('$PWD/service-name/userfilea.txt')
-            ->setTarget('/etc/foo/bar')
-            ->setData('you are awesome!')
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $this->form->networks = [
+            'private-network-a',
+            'private-network-b',
+        ];
 
-        $userFileB = new Entity\Docker\ServiceVolume();
-        $userFileB->fromArray(['id' => 'userfileb_ID']);
-        $userFileB->setName('userfileb.txt')
-            ->setSource('$PWD/service-name/userfileb.txt')
-            ->setTarget('/etc/foo/bam')
-            ->setData('everyone admires you!')
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_USER);
+        $service = $this->worker->create($this->form);
 
-        $service = new Entity\Docker\Service();
-        $service->setName($this->form->name)
-            ->setType($this->serviceType)
-            ->setProject($this->project)
-            ->setImage('adminer')
-            ->setEnvironments([
-                'ADMINER_DESIGN'  => $this->form->design,
-                'ADMINER_PLUGINS' => join(' ', $this->form->plugins),
-            ])
-            ->addNetwork($this->publicNetwork)
-            ->addNetwork($this->seededPrivateNetworks['private-network-a'])
-            ->addNetwork($this->seededPrivateNetworks['private-network-b'])
-            ->addLabel('traefik.backend', $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', 'frontend_rule')
-            ->addVolume($userFileA)
-            ->addVolume($userFileB);
+        $networkRepo = $this->getUpdateNetworkRepo();
 
-        $form = new Form\Docker\Service\AdminerCreate();
-        $form->project = $this->project;
-        $form->type    = $this->serviceType;
-        $form->name    = 'service-name';
+        $worker = new Adminer($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
-        $form->design = 'new-design-choice';
-        $form->plugins = ['new-plugin-a', 'new-plugin-b'];
+        $form = clone $this->form;
+
+        $form->design   = 'new-design-choice';
+        $form->plugins  = ['new-plugin-a', 'new-plugin-b'];
         $form->networks = [
             'private-network-a',
             'private-network-c',
@@ -471,19 +316,7 @@ class AdminerTest extends KernelTestCase
             ],
         ];
 
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([
-                $this->seededPrivateNetworks['private-network-a'],
-                $this->seededPrivateNetworks['private-network-b'],
-            ]));
-
-        $updatedService = $this->worker->update($service, $form);
+        $updatedService = $worker->update($service, $form);
 
         $environments = $updatedService->getEnvironments();
 

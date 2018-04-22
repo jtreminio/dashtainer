@@ -5,66 +5,19 @@ namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 use Dashtainer\Domain\Docker\ServiceWorker\Nginx;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
-class NginxTest extends KernelTestCase
+class NginxTest extends ServiceWorkerBase
 {
     /** @var Form\Docker\Service\NginxCreate */
     protected $form;
-
-    /** @var MockObject|Repository\Docker\Network */
-    protected $networkRepo;
-
-    /** @var Entity\Docker\Project */
-    protected $project;
-
-    /** @var Entity\Docker\Network */
-    protected $publicNetwork;
-
-    protected $seededPrivateNetworks = [];
-
-    /** @var MockObject|Repository\Docker\Service */
-    protected $serviceRepo;
-
-    /** @var Entity\Docker\ServiceType */
-    protected $serviceType;
-
-    /** @var MockObject|Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
 
     /** @var Nginx */
     protected $worker;
 
     protected function setUp()
     {
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->networkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->project = new Entity\Docker\Project();
-        $this->project->setName('project-name');
-
-        $this->publicNetwork = new Entity\Docker\Network();
-
-        $this->project->addNetwork($this->publicNetwork);
-
-        $this->serviceType = new Entity\Docker\ServiceType();
-        $this->serviceType->setName('service-type-name');
+        parent::setUp();
 
         $this->form = new Form\Docker\Service\NginxCreate();
         $this->form->project = $this->project;
@@ -94,46 +47,11 @@ EOD;
         ];
 
         $this->worker = new Nginx($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
-
-        $this->seedProjectWithPrivateNetworks();
-
-        $this->networkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-    }
-
-    protected function seedProjectWithPrivateNetworks()
-    {
-        $privateNetworkA = new Entity\Docker\Network();
-        $privateNetworkA->setName('private-network-a');
-
-        $privateNetworkB = new Entity\Docker\Network();
-        $privateNetworkB->setName('private-network-b');
-
-        $privateNetworkC = new Entity\Docker\Network();
-        $privateNetworkC->setName('private-network-c');
-
-        $this->project->addNetwork($privateNetworkA)
-            ->addNetwork($privateNetworkB)
-            ->addNetwork($privateNetworkC);
-
-        $this->seededPrivateNetworks = [
-            'private-network-a' => $privateNetworkA,
-            'private-network-b' => $privateNetworkB,
-            'private-network-c' => $privateNetworkC,
-        ];
     }
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
+        $this->networkRepoDefaultExpects();
 
         $service = $this->worker->create($this->form);
 
@@ -192,7 +110,7 @@ EOD;
             ->will($this->returnValue($phpfpmServiceType));
 
         $this->serviceRepo->expects($this->once())
-            ->method('findByProjectandType')
+            ->method('findByProjectAndType')
             ->with($this->project, $phpfpmServiceType)
             ->will($this->returnValue($phpfpmServices));
 
@@ -218,7 +136,7 @@ EOD;
             ->will($this->returnValue($phpfpmServiceType));
 
         $this->serviceRepo->expects($this->once())
-            ->method('findByProjectandType')
+            ->method('findByProjectAndType')
             ->with($this->project, $phpfpmServiceType)
             ->will($this->returnValue($phpfpmServices));
 
@@ -245,87 +163,16 @@ EOD;
 
     public function testUpdate()
     {
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->fromArray(['id' => 'Dockerfile']);
-        $dockerfile->setName('Dockerfile')
-            ->setSource('Dockerfile')
-            ->setData($this->form->system_file['Dockerfile'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $this->networkRepoDefaultExpects();
 
-        $nginxConf = new Entity\Docker\ServiceVolume();
-        $nginxConf->fromArray(['id' => 'nginx.conf']);
-        $nginxConf->setName('nginx.conf')
-            ->setSource('nginx.conf')
-            ->setTarget('/etc/nginx/nginx.conf')
-            ->setData($this->form->system_file['nginx.conf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $service = $this->worker->create($this->form);
 
-        $coreConf = new Entity\Docker\ServiceVolume();
-        $coreConf->fromArray(['id' => 'core.conf']);
-        $coreConf->setName('core.conf')
-            ->setSource('core.conf')
-            ->setTarget('/etc/nginx/core.conf')
-            ->setData($this->form->system_file['core.conf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $networkRepo = $this->getUpdateNetworkRepo();
 
-        $proxyConf = new Entity\Docker\ServiceVolume();
-        $proxyConf->fromArray(['id' => 'proxy.conf']);
-        $proxyConf->setName('proxy.conf')
-            ->setSource('proxy.conf')
-            ->setTarget('/etc/nginx/proxy.conf')
-            ->setData($this->form->system_file['proxy.conf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $worker = new Nginx($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
-        $vhostConf = new Entity\Docker\ServiceVolume();
-        $vhostConf->fromArray(['id' => 'vhost.conf']);
-        $vhostConf->setName('vhost.conf')
-            ->setSource('vhost.conf')
-            ->setTarget('/etc/nginx/sites-enabled/000-default.conf')
-            ->setData($this->form->vhost_conf)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $form = clone $this->form;
 
-        $build = new Entity\Docker\Service\Build();
-        $build->setContext('build-context')
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($this->form->system_packages),
-            ]);
-
-        $vhost = [
-            'server_name'   => $this->form->server_name,
-            'server_alias'  => $this->form->server_alias,
-            'document_root' => $this->form->document_root,
-            'fcgi_handler'  => $this->form->fcgi_handler,
-        ];
-
-        $vhostMeta = new Entity\Docker\ServiceMeta();
-        $vhostMeta->setName('vhost')
-            ->setData($vhost);
-
-        $projectFilesMeta = new Entity\Docker\ServiceMeta();
-        $projectFilesMeta->setName('project_files')
-            ->setData($vhost);
-
-        $service = new Entity\Docker\Service();
-        $service->setName($this->form->name)
-            ->setType($this->serviceType)
-            ->setProject($this->project)
-            ->addNetwork($this->publicNetwork)
-            ->addNetwork($this->seededPrivateNetworks['private-network-a'])
-            ->addNetwork($this->seededPrivateNetworks['private-network-b'])
-            ->addLabel('traefik.backend', $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', 'frontend_rule')
-            ->addVolume($dockerfile)
-            ->addVolume($nginxConf)
-            ->addVolume($coreConf)
-            ->addVolume($proxyConf)
-            ->addVolume($vhostConf)
-            ->addMeta($vhostMeta)
-            ->addMeta($projectFilesMeta)
-            ->setBuild($build);
-
-        $form = new Form\Docker\Service\NginxCreate();
         $form->project = $this->project;
         $form->type    = $this->serviceType;
         $form->name    = 'service-name';
@@ -347,19 +194,7 @@ EOD;
             'local' => [ 'source' => '/path/to/glory' ]
         ];
 
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([
-                $this->seededPrivateNetworks['private-network-a'],
-                $this->seededPrivateNetworks['private-network-b'],
-            ]));
-
-        $updatedService = $this->worker->update($service, $form);
+        $updatedService = $worker->update($service, $form);
 
         $updatedBuild = $updatedService->getBuild();
 

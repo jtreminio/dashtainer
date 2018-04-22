@@ -5,66 +5,19 @@ namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 use Dashtainer\Domain\Docker\ServiceWorker\Apache;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-
-class ApacheTest extends KernelTestCase
+class ApacheTest extends ServiceWorkerBase
 {
     /** @var Form\Docker\Service\ApacheCreate */
     protected $form;
-
-    /** @var MockObject|Repository\Docker\Network */
-    protected $networkRepo;
-
-    /** @var Entity\Docker\Project */
-    protected $project;
-
-    /** @var Entity\Docker\Network */
-    protected $publicNetwork;
-
-    protected $seededPrivateNetworks = [];
-
-    /** @var MockObject|Repository\Docker\Service */
-    protected $serviceRepo;
-
-    /** @var Entity\Docker\ServiceType */
-    protected $serviceType;
-
-    /** @var MockObject|Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
 
     /** @var Apache */
     protected $worker;
 
     protected function setUp()
     {
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->networkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->project = new Entity\Docker\Project();
-        $this->project->setName('project-name');
-
-        $this->publicNetwork = new Entity\Docker\Network();
-
-        $this->project->addNetwork($this->publicNetwork);
-
-        $this->serviceType = new Entity\Docker\ServiceType();
-        $this->serviceType->setName('service-type-name');
+        parent::setUp();
 
         $moduleMeta = new Entity\Docker\ServiceTypeMeta();
         $moduleMeta->setName('modules')
@@ -76,13 +29,15 @@ class ApacheTest extends KernelTestCase
         $this->form->project = $this->project;
         $this->form->type    = $this->serviceType;
         $this->form->name    = 'service-name';
+
         $this->form->enabled_modules  = ['mpm_event', 'proxy_fcgi', 'rewrite'];
         $this->form->disabled_modules = ['mpm_prefork', 'mpm_worker', 'dupe', 'dupe'];
         $this->form->server_name      = 'server_name';
         $this->form->server_alias     = ['server_alias'];
         $this->form->document_root    = '~/www/project';
         $this->form->fcgi_handler     = 'php-fpm-7.2';
-        $this->form->project_files    = [
+
+        $this->form->project_files = [
             'type'  => 'local',
             'local' => [
                 'source' => '~/www/project',
@@ -100,46 +55,11 @@ EOD;
         ];
 
         $this->worker = new Apache($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
-
-        $this->seedProjectWithPrivateNetworks();
-
-        $this->networkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-    }
-
-    protected function seedProjectWithPrivateNetworks()
-    {
-        $privateNetworkA = new Entity\Docker\Network();
-        $privateNetworkA->setName('private-network-a');
-
-        $privateNetworkB = new Entity\Docker\Network();
-        $privateNetworkB->setName('private-network-b');
-
-        $privateNetworkC = new Entity\Docker\Network();
-        $privateNetworkC->setName('private-network-c');
-
-        $this->project->addNetwork($privateNetworkA)
-            ->addNetwork($privateNetworkB)
-            ->addNetwork($privateNetworkC);
-
-        $this->seededPrivateNetworks = [
-            'private-network-a' => $privateNetworkA,
-            'private-network-b' => $privateNetworkB,
-            'private-network-c' => $privateNetworkC,
-        ];
     }
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue([]));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([]));
+        $this->networkRepoDefaultExpects();
 
         $service = $this->worker->create($this->form);
 
@@ -198,7 +118,7 @@ EOD;
             ->will($this->returnValue($phpfpmServiceType));
 
         $this->serviceRepo->expects($this->once())
-            ->method('findByProjectandType')
+            ->method('findByProjectAndType')
             ->with($this->project, $phpfpmServiceType)
             ->will($this->returnValue($phpfpmServices));
 
@@ -213,6 +133,8 @@ EOD;
 
     public function testGetViewParams()
     {
+        $this->networkRepoDefaultExpects();
+
         $userFileA = [
             'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
@@ -232,7 +154,7 @@ EOD;
             ->will($this->returnValue($phpfpmServiceType));
 
         $this->serviceRepo->expects($this->once())
-            ->method('findByProjectandType')
+            ->method('findByProjectAndType')
             ->with($this->project, $phpfpmServiceType)
             ->will($this->returnValue($phpfpmServices));
 
@@ -260,83 +182,15 @@ EOD;
 
     public function testUpdate()
     {
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->fromArray(['id' => 'Dockerfile']);
-        $dockerfile->setName('Dockerfile')
-            ->setSource('Dockerfile')
-            ->setData($this->form->system_file['Dockerfile'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $this->networkRepoDefaultExpects();
 
-        $apache2Conf = new Entity\Docker\ServiceVolume();
-        $apache2Conf->fromArray(['id' => 'apache2.conf']);
-        $apache2Conf->setName('apache2.conf')
-            ->setSource('apache2.conf')
-            ->setTarget('/etc/apache2/apache2.conf')
-            ->setData($this->form->system_file['apache2.conf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $service = $this->worker->create($this->form);
 
-        $portsConf = new Entity\Docker\ServiceVolume();
-        $portsConf->fromArray(['id' => 'ports.conf']);
-        $portsConf->setName('ports.conf')
-            ->setSource('ports.conf')
-            ->setTarget('/etc/apache2/ports.conf')
-            ->setData($this->form->system_file['ports.conf'])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $networkRepo = $this->getUpdateNetworkRepo();
 
-        $vhostConf = new Entity\Docker\ServiceVolume();
-        $vhostConf->fromArray(['id' => 'vhost.conf']);
-        $vhostConf->setName('vhost.conf')
-            ->setSource('vhost.conf')
-            ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
-            ->setData($this->form->vhost_conf)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM);
+        $worker = new Apache($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
-        $build = new Entity\Docker\Service\Build();
-        $build->setContext('build-context')
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'       => array_unique($this->form->system_packages),
-                'APACHE_MODULES_ENABLE' => array_unique($this->form->enabled_modules),
-                'APACHE_MODULES_DISABLE'=> array_unique($this->form->disabled_modules),
-            ]);
-
-        $vhost = [
-            'server_name'   => $this->form->server_name,
-            'server_alias'  => $this->form->server_alias,
-            'document_root' => $this->form->document_root,
-            'fcgi_handler'  => $this->form->fcgi_handler,
-        ];
-
-        $vhostMeta = new Entity\Docker\ServiceMeta();
-        $vhostMeta->setName('vhost')
-            ->setData($vhost);
-
-        $projectFilesMeta = new Entity\Docker\ServiceMeta();
-        $projectFilesMeta->setName('project_files')
-            ->setData($vhost);
-
-        $service = new Entity\Docker\Service();
-        $service->setName($this->form->name)
-            ->setType($this->serviceType)
-            ->setProject($this->project)
-            ->addNetwork($this->publicNetwork)
-            ->addNetwork($this->seededPrivateNetworks['private-network-a'])
-            ->addNetwork($this->seededPrivateNetworks['private-network-b'])
-            ->addLabel('traefik.backend', $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', 'frontend_rule')
-            ->addVolume($dockerfile)
-            ->addVolume($apache2Conf)
-            ->addVolume($portsConf)
-            ->addVolume($vhostConf)
-            ->addMeta($vhostMeta)
-            ->addMeta($projectFilesMeta)
-            ->setBuild($build);
-
-        $form = new Form\Docker\Service\ApacheCreate();
-        $form->project = $this->project;
-        $form->type    = $this->serviceType;
-        $form->name    = 'service-name';
+        $form = clone $this->form;
 
         $form->system_packages  = ['systemPackageA'];
         $form->enabled_modules  = ['enabledModuleA'];
@@ -350,25 +204,14 @@ EOD;
         $form->system_file['Dockerfile']     = 'new dockerfile data';
         $form->system_file['apache2.conf']   = 'new apache2.conf data';
         $form->system_file['ports.conf']     = 'new ports.conf data';
-        $form->vhost_conf             = 'new vhost.conf data';
-        $form->project_files          = [
+
+        $form->vhost_conf    = 'new vhost.conf data';
+        $form->project_files = [
             'type'  => 'local',
             'local' => [ 'source' => '/path/to/glory' ]
         ];
 
-        $this->networkRepo->expects($this->once())
-            ->method('getPrivateNetworks')
-            ->with($this->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $this->networkRepo->expects($this->once())
-            ->method('findByService')
-            ->will($this->returnValue([
-                $this->seededPrivateNetworks['private-network-a'],
-                $this->seededPrivateNetworks['private-network-b'],
-            ]));
-
-        $updatedService = $this->worker->update($service, $form);
+        $updatedService = $worker->update($service, $form);
 
         $updatedBuild = $updatedService->getBuild();
 
