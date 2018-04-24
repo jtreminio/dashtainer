@@ -88,10 +88,10 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
         $pluginsMeta = $service->getType()->getMeta('plugins');
 
-        $avilablePlugins = $pluginsMeta->getData()['available'];
+        $availablePlugins = $pluginsMeta->getData()['available'];
         foreach ($plugins as $plugin) {
-            if (($key = array_search($plugin, $avilablePlugins)) !== false) {
-                unset($avilablePlugins[$key]);
+            if (($key = array_search($plugin, $availablePlugins)) !== false) {
+                unset($availablePlugins[$key]);
             }
         }
 
@@ -103,7 +103,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'design'           => $design,
             'plugins'          => $plugins,
             'availableDesigns' => $availableDesigns,
-            'availablePlugins' => $avilablePlugins,
+            'availablePlugins' => $availablePlugins,
             'userFiles'        => $userFiles,
         ];
     }
