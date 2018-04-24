@@ -36,8 +36,6 @@ class MongoDBTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $this->assertNotNull($service->getMeta('datastore'));
@@ -102,20 +100,14 @@ class MongoDBTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new MongoDB($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
         $form->port_confirm = true;
         $form->port         = 27018;
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $uPortMeta      = $updatedService->getMeta('bind-port');
         $uServicePorts  = $updatedService->getPorts();

@@ -27,17 +27,15 @@ class ElasticsearchTest extends ServiceWorkerBase
         $this->form->system_file = [
             'elasticsearch.yml' => 'elasticsearch.yml contents',
         ];
-        $this->form->datastore   = 'local';
-        $this->form->version     = '1.2';
-        $this->form->heap_size   = '1m';
+        $this->form->datastore = 'local';
+        $this->form->version   = '1.2';
+        $this->form->heap_size = '1m';
 
         $this->worker = new Elasticsearch($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
     }
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $environment = $service->getEnvironments();
@@ -83,20 +81,14 @@ class ElasticsearchTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new Elasticsearch($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
         $form->system_file['elasticsearch.yml'] = 'new elasticsearch.yml data';
         $form->heap_size = '5m';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $uDatastoreMeta       = $updatedService->getMeta('datastore');
         $uServiceDatastoreVol = $updatedService->getVolume('datastore');

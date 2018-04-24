@@ -43,8 +43,6 @@ class PostgreSQLTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $environment = $service->getEnvironments();
@@ -126,13 +124,7 @@ class PostgreSQLTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new PostgreSQL($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
@@ -145,7 +137,7 @@ class PostgreSQLTest extends ServiceWorkerBase
 
         $form->system_file['postgresql.conf'] = 'new configfile data';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $uConfigFileVol = $updatedService->getVolume('postgresql.conf');
         $uPortMeta      = $updatedService->getMeta('bind-port');

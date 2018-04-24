@@ -32,8 +32,6 @@ class BlackfireTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $environments = $service->getEnvironments();
@@ -45,20 +43,14 @@ class BlackfireTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new Blackfire($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
         $form->server_id    = 'new_server_id';
         $form->server_token = 'new_server_token';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $environments = $updatedService->getEnvironments();
 

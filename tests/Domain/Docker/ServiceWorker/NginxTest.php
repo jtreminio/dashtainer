@@ -51,8 +51,6 @@ EOD;
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $labels = $service->getLabels();
@@ -163,13 +161,7 @@ EOD;
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new Nginx($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
@@ -194,7 +186,7 @@ EOD;
             'local' => [ 'source' => '/path/to/glory' ]
         ];
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $updatedBuild = $updatedService->getBuild();
 

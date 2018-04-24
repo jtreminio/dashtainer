@@ -9,9 +9,7 @@ use Dashtainer\Form;
 use Dashtainer\Repository;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
-use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class PhpFpmTest extends ServiceWorkerBase
 {
@@ -106,8 +104,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $build = $service->getBuild();
@@ -148,8 +144,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testCreateAddsXdebug()
     {
-        $this->networkRepoDefaultExpects();
-
         $this->form->xdebug = [
             'install' => 1,
             'ini'     => 'xdebug ini'
@@ -310,15 +304,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
 
         $worker = new PhpFpm(
             $this->serviceRepo,
-            $networkRepo,
+            $this->networkRepo,
             $this->serviceTypeRepo,
             $this->getBlackfireWorkerForNewService()
         );
@@ -367,15 +357,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testUpdateAddsXdebug()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
 
         $worker = new PhpFpm(
             $this->serviceRepo,
-            $networkRepo,
+            $this->networkRepo,
             $this->serviceTypeRepo,
             $this->getBlackfireWorkerForNewService()
         );
@@ -401,15 +387,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testUpdateAddsBlackfire()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
 
         $worker = new PhpFpm(
             $this->serviceRepo,
-            $networkRepo,
+            $this->networkRepo,
             $this->serviceTypeRepo,
             $this->getBlackfireWorkerForNewService()
         );
@@ -436,8 +418,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testUpdateUpdatesBlackfire()
     {
-        $this->networkRepoDefaultExpects();
-
         $this->form->blackfire = [
             'install'      => 1,
             'server_id'    => 'blackfire_server_id',

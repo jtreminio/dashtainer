@@ -44,8 +44,6 @@ class MySQLTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $environment = $service->getEnvironments();
@@ -129,13 +127,7 @@ class MySQLTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new MySQL($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
@@ -149,7 +141,7 @@ class MySQLTest extends ServiceWorkerBase
 
         $form->system_file['config-file.cnf'] = 'new configfile data';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $uConfigFileVol = $updatedService->getVolume('config-file.cnf');
         $uPortMeta      = $updatedService->getMeta('bind-port');

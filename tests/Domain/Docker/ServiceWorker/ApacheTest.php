@@ -21,7 +21,10 @@ class ApacheTest extends ServiceWorkerBase
 
         $moduleMeta = new Entity\Docker\ServiceTypeMeta();
         $moduleMeta->setName('modules')
-            ->setData(['default' => ['default_data'], 'available' => ['available_data']]);
+            ->setData([
+                'default'   => ['default_data'],
+                'available' => ['available_data']
+            ]);
 
         $this->serviceType->addMeta($moduleMeta);
 
@@ -43,7 +46,7 @@ class ApacheTest extends ServiceWorkerBase
                 'source' => '~/www/project',
             ]
         ];
-        $this->form->vhost_conf       = <<<'EOD'
+        $this->form->vhost_conf = <<<'EOD'
 example
 vhost
 config
@@ -59,15 +62,9 @@ EOD;
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $labels = $service->getLabels();
-
-        $this->assertSame($this->form->name, $service->getName());
-        $this->assertSame($this->form->type, $service->getType());
-        $this->assertSame($this->form->project, $service->getProject());
 
         $expectedModulesDisabled = ['mpm_prefork', 'mpm_worker', 'dupe'];
         $build = $service->getBuild();
@@ -133,8 +130,6 @@ EOD;
 
     public function testGetViewParams()
     {
-        $this->networkRepoDefaultExpects();
-
         $userFileA = [
             'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
@@ -182,13 +177,7 @@ EOD;
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new Apache($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
@@ -201,9 +190,9 @@ EOD;
         $form->document_root = '/path/to/glory';
         $form->fcgi_handler  = '';
 
-        $form->system_file['Dockerfile']     = 'new dockerfile data';
-        $form->system_file['apache2.conf']   = 'new apache2.conf data';
-        $form->system_file['ports.conf']     = 'new ports.conf data';
+        $form->system_file['Dockerfile']   = 'new dockerfile data';
+        $form->system_file['apache2.conf'] = 'new apache2.conf data';
+        $form->system_file['ports.conf']   = 'new ports.conf data';
 
         $form->vhost_conf    = 'new vhost.conf data';
         $form->project_files = [
@@ -211,7 +200,7 @@ EOD;
             'local' => [ 'source' => '/path/to/glory' ]
         ];
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $updatedBuild = $updatedService->getBuild();
 

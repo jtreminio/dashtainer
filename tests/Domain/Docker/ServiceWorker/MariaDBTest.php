@@ -45,8 +45,6 @@ class MariaDBTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $environment = $service->getEnvironments();
@@ -136,13 +134,7 @@ class MariaDBTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new MariaDB($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
@@ -157,7 +149,7 @@ class MariaDBTest extends ServiceWorkerBase
         $form->system_file['my.cnf']          = 'new_mycnf data';
         $form->system_file['config-file.cnf'] = 'new configfile data';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $uMyCnfVol      = $updatedService->getVolume('my.cnf');
         $uConfigFileVol = $updatedService->getVolume('config-file.cnf');

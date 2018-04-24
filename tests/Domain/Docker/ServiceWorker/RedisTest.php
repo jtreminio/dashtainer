@@ -36,8 +36,6 @@ class RedisTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntity()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
 
         $this->assertNotNull($service->getMeta('datastore'));
@@ -102,23 +100,17 @@ class RedisTest extends ServiceWorkerBase
 
     public function testUpdate()
     {
-        $this->networkRepoDefaultExpects();
-
         $service = $this->worker->create($this->form);
-
-        $networkRepo = $this->getUpdateNetworkRepo();
-
-        $worker = new Redis($this->serviceRepo, $networkRepo, $this->serviceTypeRepo);
 
         $form = clone $this->form;
 
         $form->port_confirm = true;
         $form->port         = 6380;
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
-        $uPortMeta      = $updatedService->getMeta('bind-port');
-        $uServicePorts  = $updatedService->getPorts();
+        $uPortMeta     = $updatedService->getMeta('bind-port');
+        $uServicePorts = $updatedService->getPorts();
 
         $expectedServicePorts = ["{$form->port}:6379"];
 
