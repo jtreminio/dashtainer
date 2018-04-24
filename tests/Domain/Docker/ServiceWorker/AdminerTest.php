@@ -57,7 +57,7 @@ class AdminerTest extends ServiceWorkerBase
 
         $this->assertEquals('adminer', $service->getImage());
 
-        $expectedTraefikBackendLabel       = 'service-name';
+        $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
         $expectedTraefikFrontendRuleLabel  = 'Host:service-name.projectname.localhost';
         $this->assertEquals($expectedTraefikBackendLabel, $labels['traefik.backend']);

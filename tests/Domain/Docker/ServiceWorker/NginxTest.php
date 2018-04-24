@@ -72,7 +72,7 @@ EOD;
         $this->assertEquals('./service-name', $build->getContext());
         $this->assertEquals('Dockerfile', $build->getDockerfile());
 
-        $expectedTraefikBackendLabel       = 'service-name';
+        $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
         $expectedTraefikFrontendRuleLabel  = 'Host:server_name,server_alias';
 

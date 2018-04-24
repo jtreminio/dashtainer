@@ -50,7 +50,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
 
-        $service->addLabel('traefik.backend', $service->getName())
+        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 

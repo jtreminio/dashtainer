@@ -81,7 +81,7 @@ EOD;
         $this->assertEquals('Dockerfile', $build->getDockerfile());
         $this->assertEquals($expectedModulesDisabled, $build->getArgs()['APACHE_MODULES_DISABLE']);
 
-        $expectedTraefikBackendLabel       = 'service-name';
+        $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
         $expectedTraefikFrontendRuleLabel  = 'Host:server_name,server_alias';
 

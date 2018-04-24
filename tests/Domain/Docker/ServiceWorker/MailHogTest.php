@@ -39,7 +39,7 @@ class MailHogTest extends ServiceWorkerBase
 
         $this->assertEquals('mailhog/mailhog:latest', $service->getImage());
 
-        $expectedTraefikBackendLabel       = 'service-name';
+        $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
         $expectedTraefikFrontendRuleLabel  = 'Host:service-name.localhost';
         $expectedTraefikPortLabel          = '8025';

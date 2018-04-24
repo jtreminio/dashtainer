@@ -40,7 +40,7 @@ class MailHog extends WorkerAbstract implements WorkerInterface
 
         $this->addToPrivateNetworks($service, $form);
 
-        $service->addLabel('traefik.backend', $service->getName())
+        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$service->getName()}.localhost")
             ->addLabel('traefik.port', 8025);

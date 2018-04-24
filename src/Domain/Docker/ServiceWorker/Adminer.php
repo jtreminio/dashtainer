@@ -51,7 +51,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             $service->getProject()->getSlug()
         );
 
-        $service->addLabel('traefik.backend', $service->getName())
+        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', $frontendRule);
 
