@@ -37,7 +37,7 @@ class ServiceWorkerBase extends KernelTestCase
     /** @var Entity\Docker\ServiceType */
     protected $serviceType;
 
-    /** @var MockObject|Repository\Docker\ServiceType */
+    /** @var Mock\RepoDockerServiceType */
     protected $serviceTypeRepo;
 
     protected function setUp()
@@ -51,9 +51,7 @@ class ServiceWorkerBase extends KernelTestCase
             ->setConstructorArgs([$this->em])
             ->getMock();
 
-        $this->serviceTypeRepo = $this->getMockBuilder(Repository\Docker\ServiceType::class)
-            ->setConstructorArgs([$this->em])
-            ->getMock();
+        $this->serviceTypeRepo = new Mock\RepoDockerServiceType($this->em);
 
         $this->project = new Entity\Docker\Project();
         $this->project->setName('project-name');

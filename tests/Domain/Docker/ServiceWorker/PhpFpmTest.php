@@ -6,10 +6,8 @@ use Dashtainer\Domain\Docker\ServiceWorker\PhpFpm;
 use Dashtainer\Domain\Docker\ServiceWorker\Blackfire;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
-
-use PHPUnit\Framework\MockObject\MockObject;
+use Dashtainer\Tests\Mock\RepoDockerService;
 
 class PhpFpmTest extends ServiceWorkerBase
 {
@@ -22,6 +20,19 @@ class PhpFpmTest extends ServiceWorkerBase
     protected function setUp()
     {
         parent::setUp();
+
+        $phpfpmServiceType = new Entity\Docker\ServiceType();
+        $phpfpmServiceType->setName('php-fpm')
+            ->setSlug('php-fpm');
+
+        $blackfireServiceType = new Entity\Docker\ServiceType();
+        $blackfireServiceType->setName('blackfire')
+            ->setSlug('blackfire');
+
+        $this->serviceTypeRepo->addServiceType($phpfpmServiceType);
+        $this->serviceTypeRepo->addServiceType($blackfireServiceType);
+
+        $this->serviceRepo = new RepoDockerService($this->em);
 
         $moduleMeta = new Entity\Docker\ServiceTypeMeta();
         $moduleMeta->setName('php-fpm-startup')
@@ -164,20 +175,13 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testCreateAddsBlackfire()
     {
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
-
         $this->form->blackfire = [
             'install'      => 1,
             'server_id'    => 'blackfire_server_id',
             'server_token' => 'blackfire_server_token',
         ];
 
-        $service = $worker->create($this->form);
+        $service = $this->worker->create($this->form);
         /** @var Entity\Docker\Service $blackfire */
         $blackfire = $service->getChildren()->first();
 
@@ -197,18 +201,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testGetViewParams()
     {
-        $blackfireServiceType = new Entity\Docker\ServiceType();
-        $blackfireServiceType->setName('blackfire-service-type');
-
-        $this->serviceTypeRepo->expects($this->atLeastOnce())
-            ->method('findBySlug')
-            ->with('blackfire')
-            ->will($this->returnValue($blackfireServiceType));
-
-        $this->serviceRepo->expects($this->once())
-            ->method('findChildByType')
-            ->will($this->returnValue(null));
-
         $service = $this->worker->create($this->form);
         $params  = $this->worker->getViewParams($service);
 
@@ -245,18 +237,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testGetViewParamsWithXdebugSelected()
     {
-        $blackfireServiceType = new Entity\Docker\ServiceType();
-        $blackfireServiceType->setName('blackfire-service-type');
-
-        $this->serviceTypeRepo->expects($this->atLeastOnce())
-            ->method('findBySlug')
-            ->with('blackfire')
-            ->will($this->returnValue($blackfireServiceType));
-
-        $this->serviceRepo->expects($this->once())
-            ->method('findChildByType')
-            ->will($this->returnValue(null));
-
         $this->form->xdebug = [
             'install' => 1,
             'ini'     => 'xdebug ini'
@@ -276,26 +256,17 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testGetViewParamsWithBlackfireSelected()
     {
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
-
         $this->form->blackfire = [
             'install'      => 1,
             'server_id'    => 'blackfire_server_id',
             'server_token' => 'blackfire_server_token',
         ];
 
-        $service   = $worker->create($this->form);
+        $service   = $this->worker->create($this->form);
         /** @var Entity\Docker\Service $blackfire */
         $blackfire = $service->getChildren()->first();
 
-        $viewWorker = $this->getPhpFpmWorkerForExistingBlackfireService($blackfire);
-
-        $params = $viewWorker->getViewParams($service);
+        $params = $this->worker->getViewParams($service);
 
         $bfEnv = $blackfire->getEnvironments();
 
@@ -305,13 +276,6 @@ class PhpFpmTest extends ServiceWorkerBase
     public function testUpdate()
     {
         $service = $this->worker->create($this->form);
-
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
 
         $form = clone $this->form;
 
@@ -325,7 +289,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $form->system_file['php.ini']      = 'new php ini data';
         $form->system_file['php-fpm.conf'] = 'new php-fpm.conf data';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $build = $updatedService->getBuild();
         $args  = $build->getArgs();
@@ -359,19 +323,12 @@ class PhpFpmTest extends ServiceWorkerBase
     {
         $service = $this->worker->create($this->form);
 
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
-
         $form = clone $this->form;
 
         $form->xdebug['install'] = 1;
         $form->xdebug['ini']     = 'xdebug ini';
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
 
         $build = $updatedService->getBuild();
         $args  = $build->getArgs();
@@ -389,13 +346,6 @@ class PhpFpmTest extends ServiceWorkerBase
     {
         $service = $this->worker->create($this->form);
 
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
-
         $form = clone $this->form;
 
         $form->blackfire = [
@@ -404,7 +354,7 @@ class PhpFpmTest extends ServiceWorkerBase
             'server_token' => 'blackfire_server_token',
         ];
 
-        $updatedService = $worker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
         /** @var Entity\Docker\Service $blackfire */
         $blackfire = $service->getChildren()->first();
 
@@ -424,19 +374,7 @@ class PhpFpmTest extends ServiceWorkerBase
             'server_token' => 'blackfire_server_token',
         ];
 
-        $worker = new PhpFpm(
-            $this->serviceRepo,
-            $this->networkRepo,
-            $this->serviceTypeRepo,
-            $this->getBlackfireWorkerForNewService()
-        );
-
-        $service = $worker->create($this->form);
-
-        /** @var Entity\Docker\Service $blackfire */
-        $blackfire = $service->getChildren()->first();
-
-        $updateWorker = $this->getPhpFpmWorkerForExistingBlackfireService($blackfire);
+        $service = $this->worker->create($this->form);
 
         $form = clone $this->form;
 
@@ -446,7 +384,7 @@ class PhpFpmTest extends ServiceWorkerBase
             'server_token' => 'new_blackfire_server_token',
         ];
 
-        $updatedService = $updateWorker->update($service, $form);
+        $updatedService = $this->worker->update($service, $form);
         /** @var Entity\Docker\Service $updatedBlackfire */
         $updatedBlackfire = $service->getChildren()->first();
 
@@ -463,96 +401,5 @@ class PhpFpmTest extends ServiceWorkerBase
         $envBlackfire = $updatedBlackfire->getEnvironments();
 
         $this->assertEquals($expectedBfEnv, $envBlackfire);
-    }
-
-    protected function getBlackfireWorkerForNewService() : Blackfire
-    {
-        $blackfireServiceType = new Entity\Docker\ServiceType();
-        $blackfireServiceType->setName('blackfire-service-type');
-
-        $this->serviceTypeRepo->expects($this->any())
-            ->method('findBySlug')
-            ->with('blackfire')
-            ->will($this->returnValue($blackfireServiceType));
-
-        $this->serviceRepo->expects($this->any())
-            ->method('findChildByType')
-            ->will($this->returnValue(null));
-
-        /** @var MockObject|Repository\Docker\Network $blackfireNetworkRepo */
-        $blackfireNetworkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$this->em])
-            ->getMock();
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('findByService')
-            ->will($this->returnValue([]));
-
-        return new Blackfire(
-            $this->serviceRepo,
-            $blackfireNetworkRepo,
-            $this->serviceTypeRepo
-        );
-    }
-
-    protected function getPhpFpmWorkerForExistingBlackfireService(
-        Entity\Docker\Service $blackfire
-    ) : PhpFpm {
-        /** @var MockObject|Repository\Docker\Service $serviceRepo */
-        $serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$this->em])
-            ->getMock();
-
-        $blackfireServiceType = new Entity\Docker\ServiceType();
-        $blackfireServiceType->setName('blackfire-service-type');
-
-        $this->serviceTypeRepo->expects($this->atLeastOnce())
-            ->method('findBySlug')
-            ->with('blackfire')
-            ->will($this->returnValue($blackfireServiceType));
-
-        $serviceRepo->expects($this->atLeastOnce())
-            ->method('findChildByType')
-            ->will($this->returnValue($blackfire));
-
-        /** @var MockObject|Repository\Docker\Network $blackfireNetworkRepo */
-        $blackfireNetworkRepo = $this->getMockBuilder(Repository\Docker\Network::class)
-            ->setConstructorArgs([$this->em])
-            ->getMock();
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('getPublicNetwork')
-            ->will($this->returnValue($this->publicNetwork));
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('getPrivateNetworks')
-            ->with($this->form->project)
-            ->will($this->returnValue($this->seededPrivateNetworks));
-
-        $blackfireNetworkRepo->expects($this->any())
-            ->method('findByService')
-            ->will($this->returnValue([]));
-
-        $blackfireWorker = new Blackfire(
-            $serviceRepo,
-            $blackfireNetworkRepo,
-            $this->serviceTypeRepo
-        );
-
-        return new PhpFpm(
-            $serviceRepo,
-            $blackfireNetworkRepo,
-            $this->serviceTypeRepo,
-            $blackfireWorker
-        );
     }
 }

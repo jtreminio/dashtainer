@@ -6,6 +6,7 @@ use Dashtainer\Domain\Docker\ServiceWorker\Apache;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
+use Dashtainer\Tests\Mock\RepoDockerService;
 
 class ApacheTest extends ServiceWorkerBase
 {
@@ -18,6 +19,14 @@ class ApacheTest extends ServiceWorkerBase
     protected function setUp()
     {
         parent::setUp();
+
+        $phpfpmServiceType = new Entity\Docker\ServiceType();
+        $phpfpmServiceType->setName('php-fpm')
+            ->setSlug('php-fpm');
+
+        $this->serviceTypeRepo->addServiceType($phpfpmServiceType);
+
+        $this->serviceRepo = new RepoDockerService($this->em);
 
         $moduleMeta = new Entity\Docker\ServiceTypeMeta();
         $moduleMeta->setName('modules')
@@ -104,24 +113,19 @@ EOD;
 
     public function testGetCreateParams()
     {
+        $phpFpmService = new Entity\Docker\Service();
+        $phpFpmService->setName('php-fpm');
+
         $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServices    = [
-            new Entity\Docker\Service()
-        ];
+        $phpfpmServiceType->setName('php-fpm')
+            ->setSlug('fcgi');
 
-        $this->serviceTypeRepo->expects($this->once())
-            ->method('findBySlug')
-            ->with('php-fpm')
-            ->will($this->returnValue($phpfpmServiceType));
-
-        $this->serviceRepo->expects($this->once())
-            ->method('findByProjectAndType')
-            ->with($this->project, $phpfpmServiceType)
-            ->will($this->returnValue($phpfpmServices));
+        $phpFpmService->setType($phpfpmServiceType);
+        $this->project->addService($phpFpmService);
 
         $expected = [
             'fcgi_handlers' => [
-                'phpfpm' => $phpfpmServices
+                'phpfpm' => [$phpFpmService]
             ],
         ];
 
@@ -130,6 +134,16 @@ EOD;
 
     public function testGetViewParams()
     {
+        $phpFpmService = new Entity\Docker\Service();
+        $phpFpmService->setName('php-fpm');
+
+        $phpfpmServiceType = new Entity\Docker\ServiceType();
+        $phpfpmServiceType->setName('php-fpm')
+            ->setSlug('fcgi');
+
+        $phpFpmService->setType($phpfpmServiceType);
+        $this->project->addService($phpFpmService);
+
         $userFileA = [
             'filename' => 'user file a.txt',
             'target'   => '/etc/foo/bar',
@@ -137,21 +151,6 @@ EOD;
         ];
 
         $this->form->user_file = [$userFileA];
-
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServices    = [
-            new Entity\Docker\Service()
-        ];
-
-        $this->serviceTypeRepo->expects($this->once())
-            ->method('findBySlug')
-            ->with('php-fpm')
-            ->will($this->returnValue($phpfpmServiceType));
-
-        $this->serviceRepo->expects($this->once())
-            ->method('findByProjectAndType')
-            ->with($this->project, $phpfpmServiceType)
-            ->will($this->returnValue($phpfpmServices));
 
         $service = $this->worker->create($this->form);
         $params  = $this->worker->getViewParams($service);
