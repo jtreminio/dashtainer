@@ -47,9 +47,7 @@ class ServiceWorkerBase extends KernelTestCase
         $this->em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
             ->getMock();
 
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$this->em])
-            ->getMock();
+        $this->serviceRepo = new Mock\RepoDockerService($this->em);
 
         $this->serviceTypeRepo = new Mock\RepoDockerServiceType($this->em);
 

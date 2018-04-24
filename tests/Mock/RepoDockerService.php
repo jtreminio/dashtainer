@@ -38,4 +38,21 @@ class RepoDockerService extends Service
 
         return null;
     }
+
+    public function getProjectBindPorts(Entity\Docker\Project $project) : array
+    {
+        $ports = [];
+
+        foreach ($project->getServices() as $service) {
+            foreach ($service->getMetas() as $meta) {
+                if ($meta->getName() !== 'bind-port') {
+                    continue;
+                }
+
+                $ports []= $meta->getData();
+            }
+        }
+
+        return $ports;
+    }
 }

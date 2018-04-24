@@ -71,14 +71,22 @@ class MariaDBTest extends ServiceWorkerBase
      */
     public function testGetCreateParamsReturnsFirstUnusedBindPort(array $usedPorts, int $openPort)
     {
+        foreach ($usedPorts as $port) {
+            $meta = new Entity\Docker\ServiceMeta();
+            $meta->setName('bind-port')
+                ->setData([$port]);
+
+            $service = new Entity\Docker\Service();
+            $service->addMeta($meta);
+
+            $this->project->addService($service);
+        }
+
+        $this->form->port         = $openPort;
+        $this->form->port_confirm = true;
+
         $service = $this->worker->create($this->form);
-
-        $this->serviceRepo->expects($this->once())
-            ->method('getProjectBindPorts')
-            ->with($this->project)
-            ->will($this->returnValue($usedPorts));
-
-        $params = $this->worker->getViewParams($service);
+        $params  = $this->worker->getViewParams($service);
 
         $this->assertEquals($openPort, $params['bindPort']);
     }
@@ -91,20 +99,12 @@ class MariaDBTest extends ServiceWorkerBase
         ];
 
         yield [
-            [
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3307]),
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3308]),
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3309]),
-            ],
+            [3307, 3308, 3309],
             3310
         ];
 
         yield [
-            [
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3307]),
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3309]),
-                (new Entity\Docker\ServiceMeta())->setName('bind-port')->setData([3311]),
-            ],
+            [3307, 3309, 3311],
             3308
         ];
     }
