@@ -12,9 +12,8 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         return 'beanstalkd';
     }
 
-    public function getCreateForm(
-        Entity\Docker\ServiceType $serviceType = null
-    ) : Form\Docker\Service\CreateAbstract {
+    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    {
         return new Form\Docker\Service\BeanstalkdCreate();
     }
 

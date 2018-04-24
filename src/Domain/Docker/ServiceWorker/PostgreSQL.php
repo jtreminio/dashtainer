@@ -12,9 +12,8 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         return 'postgresql';
     }
 
-    public function getCreateForm(
-        Entity\Docker\ServiceType $serviceType = null
-    ) : Form\Docker\Service\CreateAbstract {
+    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    {
         return new Form\Docker\Service\PostgreSQLCreate();
     }
 

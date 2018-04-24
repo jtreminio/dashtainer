@@ -9,9 +9,7 @@ interface WorkerInterface
 {
     public function getServiceTypeSlug() : string;
 
-    public function getCreateForm(
-        Entity\Docker\ServiceType $serviceType = null
-    ) : Form\Docker\Service\CreateAbstract;
+    public function getCreateForm() : Form\Docker\Service\CreateAbstract;
 
     public function create($form) : Entity\Docker\Service;
 
