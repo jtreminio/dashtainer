@@ -189,18 +189,18 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $phpPackagesSelected = $service->getBuild()->getArgs()['PHP_PACKAGES'];
 
-        $availablePhpPackages = [];
+        $phpPackagesAvailable = [];
         if ($phpVersionedPackages = $service->getType()->getMeta("packages-${version}")) {
-            $availablePhpPackages += $phpVersionedPackages->getData()['default'];
-            $availablePhpPackages += $phpVersionedPackages->getData()['available'];
+            $phpPackagesAvailable += $phpVersionedPackages->getData()['default'];
+            $phpPackagesAvailable += $phpVersionedPackages->getData()['available'];
         }
 
         if ($phpGeneralPackages = $service->getType()->getMeta('packages-general')) {
-            $availablePhpPackages += $phpGeneralPackages->getData()['default'];
-            $availablePhpPackages += $phpGeneralPackages->getData()['available'];
+            $phpPackagesAvailable += $phpGeneralPackages->getData()['default'];
+            $phpPackagesAvailable += $phpGeneralPackages->getData()['available'];
         }
 
-        $availablePhpPackages = array_diff($availablePhpPackages, $phpPackagesSelected);
+        $phpPackagesAvailable = array_diff($phpPackagesAvailable, $phpPackagesSelected);
 
         $pearPackagesSelected   = $service->getBuild()->getArgs()['PEAR_PACKAGES'];
         $peclPackagesSelected   = $service->getBuild()->getArgs()['PECL_PACKAGES'];
@@ -247,7 +247,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             'version'                => $version,
             'projectFiles'           => $this->projectFilesViewParams($service),
             'phpPackagesSelected'    => $phpPackagesSelected,
-            'availablePhpPackages'   => $availablePhpPackages,
+            'phpPackagesAvailable'   => $phpPackagesAvailable,
             'pearPackagesSelected'   => $pearPackagesSelected,
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
