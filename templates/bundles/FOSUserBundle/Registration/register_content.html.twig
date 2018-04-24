@@ -5,39 +5,39 @@
       action="{{ path('fos_user_registration_register') }}" method="post">
 
     <div class="card-body px-6 pt-6 pb-0">
-        <div class="card-title">Create new account</div>
+        <div class="card-title">{{ 'register.create'|trans }}</div>
         {{ form_widget(form._token) }}
 
         <div class="form-group">
-            {{ form_label(form.email, 'Email address', {
+            {{ form_label(form.email, 'register.email_address', {
                 'label_attr': {'class': 'form-label'}
             }) }}
 
             {{ form_widget(form.email, {'attr': {
                 'class': 'form-control',
-                'placeholder': 'Enter email',
+                'placeholder': 'register.enter_email',
             }}) }}
         </div>
 
         <div class="form-group">
-            {{ form_label(form.plainPassword.first, 'Password', {
+            {{ form_label(form.plainPassword.first, 'register.password', {
                 'label_attr': {'class': 'form-label'}
             }) }}
 
             {{ form_widget(form.plainPassword.first, {'attr': {
                 'class': 'form-control',
-                'placeholder': 'Enter password',
+                'placeholder': 'register.enter_password',
             }}) }}
         </div>
 
         <div class="form-group">
-            {{ form_label(form.plainPassword.second, 'Confirm Password', {
+            {{ form_label(form.plainPassword.second, 'register.confirm_password', {
                 'label_attr': {'class': 'form-label'}
             }) }}
 
             {{ form_widget(form.plainPassword.second, {'attr': {
                 'class': 'form-control',
-                'placeholder': 'Confirm password',
+                'placeholder': 'register.confirm_password',
             }}) }}
         </div>
     </div>
@@ -47,16 +47,26 @@
             {% for error in form.vars.errors %}
                 * {{ error.message }}<br />
             {% endfor %}
+            {% for error in form.email.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+            {% for error in form.plainPassword.first.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
+            {% for error in form.plainPassword.second.vars.errors %}
+                * {{ error.message }}<br />
+            {% endfor %}
         </div>
     {% endif %}
 
     <div class="card-body pt-0 border-top-0">
         <div class="form-footer">
-            <button type="submit" class="btn btn-primary btn-block">Create new account</button>
+            <button type="submit" class="btn btn-primary btn-block">{{ 'register.create'|trans }}</button>
         </div>
     </div>
 </form>
 
 <div class="text-center text-muted">
-    Already have account? <a href="{{ path('fos_user_security_login') }}">Sign in</a>
+    {{ 'register.already_have'|trans }}
+    <a href="{{ path('fos_user_security_login') }}">{{ 'register.sign_in'|trans }}</a>
 </div>

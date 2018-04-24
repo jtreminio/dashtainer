@@ -1,0 +1,9 @@
+register:
+    create: Create new account
+    email_address: Email address
+    enter_email: Enter email
+    password: Password
+    enter_password: Enter password
+    confirm_password: Confirm Password
+    already_have: Already have an account?
+    sign_in: Sign in
