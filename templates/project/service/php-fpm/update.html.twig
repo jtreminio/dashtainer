@@ -32,7 +32,7 @@
                     {% for package in phpPackagesSelected %}
                         <option value="{{ package }}" selected>{{ package }}</option>
                     {% endfor %}
-                    {% for package in availablePhpPackages %}
+                    {% for package in phpPackagesAvailable %}
                         <option value="{{ package }}">{{ package }}</option>
                     {% endfor %}
                 </select>
