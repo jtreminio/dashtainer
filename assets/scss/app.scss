@@ -60,6 +60,10 @@
     cursor: text;
     position: relative;
 
+    &.short {
+        height: 25em;
+    }
+
     &:after {
         content: "(edit me)";
         position: absolute;

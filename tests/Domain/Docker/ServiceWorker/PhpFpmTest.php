@@ -34,9 +34,13 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $this->serviceRepo = new RepoDockerService($this->em);
 
-        $moduleMeta = new Entity\Docker\ServiceTypeMeta();
-        $moduleMeta->setName('php-fpm-startup')
-            ->setData(['php-fpm-startup data']);
+        $fpmStartupBinMeta = new Entity\Docker\ServiceTypeMeta();
+        $fpmStartupBinMeta->setName('php-fpm-startup')
+            ->setData(['php-fpm-startup bin data']);
+
+        $xdebugBinMeta = new Entity\Docker\ServiceTypeMeta();
+        $xdebugBinMeta->setName('xdebug-bin')
+            ->setData(['xdebug bin data']);
 
         $phpPackagesMeta = new Entity\Docker\ServiceTypeMeta();
         $phpPackagesMeta->setName('packages-7.2')
@@ -56,10 +60,16 @@ class PhpFpmTest extends ServiceWorkerBase
         $xdebugIniMeta->setName('ini-xdebug')
             ->setData(['ini-xdebug meta data']);
 
-        $this->serviceType->addMeta($moduleMeta)
+        $xdebugCliIniMeta = new Entity\Docker\ServiceTypeMeta();
+        $xdebugCliIniMeta->setName('ini-xdebug-cli')
+            ->setData(['ini-xdebug-cli meta data']);
+
+        $this->serviceType->addMeta($fpmStartupBinMeta)
+            ->addMeta($xdebugBinMeta)
             ->addMeta($phpPackagesMeta)
             ->addMeta($phpGeneralPackagesMeta)
-            ->addMeta($xdebugIniMeta);
+            ->addMeta($xdebugIniMeta)
+            ->addMeta($xdebugCliIniMeta);
 
         $this->form = new Form\Docker\Service\PhpFpmCreate();
         $this->form->project = $this->project;
@@ -73,7 +83,11 @@ class PhpFpmTest extends ServiceWorkerBase
         $this->form->system_packages = ['system-packageA', 'system-packageB', 'system-packageA'];
 
         $this->form->composer  = ['install' => 1];
-        $this->form->xdebug    = ['install' => 0, 'ini' => []];
+        $this->form->xdebug    = [
+            'install' => 0,
+            'ini'     => '',
+            'cli_ini' => '',
+        ];
         $this->form->blackfire = [
             'install'      => 0,
             'server_id'    => '',
@@ -157,7 +171,8 @@ class PhpFpmTest extends ServiceWorkerBase
     {
         $this->form->xdebug = [
             'install' => 1,
-            'ini'     => 'xdebug ini'
+            'ini'     => 'xdebug ini',
+            'cli_ini' => 'xdebug cli ini',
         ];
 
         $service = $this->worker->create($this->form);
@@ -227,7 +242,11 @@ class PhpFpmTest extends ServiceWorkerBase
         );
 
         $expectedComposer  = ['install' => 1];
-        $expectedXdebug    = ['install' => false, 'ini' => 'ini-xdebug meta data'];
+        $expectedXdebug    = [
+            'install' => false,
+            'ini'     => 'ini-xdebug meta data',
+            'cli_ini' => 'ini-xdebug-cli meta data',
+        ];
         $expectedBlackfire = ['install' => 0, 'server_id' => '', 'server_token' => ''];
 
         $this->assertEquals($expectedComposer, $params['composer']);
@@ -239,7 +258,8 @@ class PhpFpmTest extends ServiceWorkerBase
     {
         $this->form->xdebug = [
             'install' => 1,
-            'ini'     => 'xdebug ini'
+            'ini'     => 'xdebug ini',
+            'cli_ini' => 'xdebug cli ini',
         ];
 
         $service = $this->worker->create($this->form);
@@ -249,7 +269,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $this->assertEquals($expectedPhpPackagesSelected, array_values($params['phpPackagesSelected']));
 
-        $expectedXdebug = ['install' => 1, 'ini' => 'xdebug ini'];
+        $expectedXdebug = [
+            'install' => 1,
+            'ini'     => 'xdebug ini',
+            'cli_ini' => 'xdebug cli ini',
+        ];
 
         $this->assertEquals($expectedXdebug, $params['xdebug']);
     }
@@ -325,8 +349,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $form = clone $this->form;
 
-        $form->xdebug['install'] = 1;
-        $form->xdebug['ini']     = 'xdebug ini';
+        $form->xdebug = [
+            'install' => 1,
+            'ini'     => 'xdebug ini',
+            'cli_ini' => 'xdebug cli ini',
+        ];
 
         $updatedService = $this->worker->update($service, $form);
 
@@ -339,7 +366,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $xdebugCliIniVol = $updatedService->getVolume('xdebug-cli.ini');
 
         $this->assertEquals($form->xdebug['ini'], $xdebugIniVol->getData());
-        $this->assertEquals($form->xdebug['ini'], $xdebugCliIniVol->getData());
+        $this->assertEquals($form->xdebug['cli_ini'], $xdebugCliIniVol->getData());
     }
 
     public function testUpdateAddsBlackfire()

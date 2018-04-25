@@ -61,6 +61,12 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
                 ->atPath('xdebug[ini]')
                 ->addViolation();
         }
+
+        if (empty(trim($this->xdebug['cli_ini'] ?? ''))) {
+            $context->buildViolation('Xdebug CLI INI cannot be empty')
+                ->atPath('xdebug[cli_ini]')
+                ->addViolation();
+        }
     }
 
     protected function validateBlackfire(ExecutionContextInterface $context)

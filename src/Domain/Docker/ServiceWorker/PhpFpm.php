@@ -129,14 +129,25 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
             ->setService($service);
 
+        $xdebugBinMeta = $service->getType()->getMeta('xdebug-bin');
+
+        $xdebugBin = new Entity\Docker\ServiceVolume();
+        $xdebugBin->setName('xdebug')
+            ->setSource("\$PWD/{$service->getSlug()}/xdebug")
+            ->setData($xdebugBinMeta->getData()[0])
+            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
+            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
+            ->setService($service);
+
         $service->addVolume($dockerfile)
             ->addVolume($phpIni)
             ->addVolume($phpCliIni)
             ->addVolume($fpmConf)
-            ->addVolume($fpmStartup);
+            ->addVolume($fpmStartup)
+            ->addVolume($xdebugBin);
 
         $this->serviceRepo->save(
-            $dockerfile, $phpIni, $phpCliIni, $fpmConf, $fpmStartup, $service
+            $dockerfile, $phpIni, $phpCliIni, $fpmConf, $fpmStartup, $xdebugBin, $service
         );
 
         $this->projectFilesCreate($service, $form);
@@ -156,7 +167,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $xdebugCliIni->setName('xdebug-cli.ini')
                 ->setSource("\$PWD/{$service->getSlug()}/xdebug-cli.ini")
                 ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_xdebug.ini")
-                ->setData($form->xdebug['ini'])
+                ->setData($form->xdebug['cli_ini'])
                 ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
                 ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
                 ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
@@ -219,9 +230,16 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $xdebugIni = $service->getType()->getMeta('ini-xdebug')->getData()[0];
         }
 
+        if ($xdebugCliVol = $service->getVolume('xdebug-cli.ini')) {
+            $xdebugCliIni = $xdebugCliVol->getData();
+        } else {
+            $xdebugCliIni = $service->getType()->getMeta('ini-xdebug-cli')->getData()[0];
+        }
+
         $xdebug = [
             'install' => in_array('php-xdebug', $phpPackagesSelected),
             'ini'     => $xdebugIni,
+            'cli_ini' => $xdebugCliIni,
         ];
 
         $blackfire = [
@@ -364,7 +382,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             }
 
             $xdebugIni->setData($form->xdebug['ini']);
-            $xdebugCliIni->setData($form->xdebug['ini']);
+            $xdebugCliIni->setData($form->xdebug['cli_ini']);
 
             $this->serviceRepo->save($xdebugIni, $xdebugCliIni);
         }

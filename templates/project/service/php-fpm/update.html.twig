@@ -262,15 +262,35 @@
                             </div>
                         </div>
 
-                        <div class="row">
+                        <div class="row mb-5">
                             <div class="col">
-                                <pre class="language-ini" data-code-highlight><code
+                                <h5>PHP-FPM INI</h5>
+                                <pre class="language-ini short" data-code-highlight><code
                                         contenteditable autocorrect="off" autocapitalize="off"
                                         spellcheck="false"
                                         id="xdebug-ini">{{ xdebug.ini }}</code></pre>
                                 <input type="hidden" value="" name="xdebug[ini]"
                                        data-error-container="additional-tools"
                                        data-get-value-source="xdebug-ini" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col">
+                                <h5>CLI INI</h5>
+
+                                <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
+                                    For example, you can use the following to debug your programs via
+                                    CLI:</p>
+                                <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
+
+                                <pre class="language-ini short" data-code-highlight><code
+                                        contenteditable autocorrect="off" autocapitalize="off"
+                                        spellcheck="false"
+                                        id="xdebug-cli_ini">{{ xdebug.cli_ini }}</code></pre>
+                                <input type="hidden" value="" name="xdebug[cli_ini]"
+                                       data-error-container="additional-tools"
+                                       data-get-value-source="xdebug-cli_ini" />
                             </div>
                         </div>
                     </div>
