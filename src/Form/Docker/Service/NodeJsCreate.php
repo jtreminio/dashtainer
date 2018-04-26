@@ -8,24 +8,25 @@ use Dashtainer\Validator\Constraints as DashAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class NginxCreate extends CreateAbstract implements Util\HydratorInterface
+class NodeJsCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
     use DashAssert\ProjectFilesTrait;
-    use DashAssert\SystemFileTrait;
-    use DashAssert\UserFileTrait;
 
-    public $system_packages = [];
+    /**
+     * @DashAssert\NonBlankString(message = "Version must be chosen")
+     */
+    public $version;
 
-    public $server_name;
+    /**
+     * @DashAssert\NonBlankString(message = "Port must be chosen")
+     */
+    public $port;
 
-    public $server_alias = [];
-
-    public $document_root;
-
-    public $handler;
-
-    public $vhost_conf;
+    /**
+     * @DashAssert\NonBlankString(message = "Command must be entered")
+     */
+    public $command;
 
     /**
      * @Assert\Callback
@@ -37,7 +38,5 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
         parent::validate($context, $payload);
 
         $this->validateProjectFiles($context);
-        $this->validateSystemFile($context);
-        $this->validateUserFile($context);
     }
 }

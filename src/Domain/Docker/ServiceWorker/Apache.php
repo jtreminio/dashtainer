@@ -32,9 +32,9 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $build->setContext("./{$service->getSlug()}")
             ->setDockerfile('Dockerfile')
             ->setArgs([
-                'SYSTEM_PACKAGES'       => array_unique($form->system_packages),
-                'APACHE_MODULES_ENABLE' => array_unique($form->enabled_modules),
-                'APACHE_MODULES_DISABLE'=> array_unique($form->disabled_modules),
+                'SYSTEM_PACKAGES'        => array_unique($form->system_packages),
+                'APACHE_MODULES_ENABLE'  => array_unique($form->enabled_modules),
+                'APACHE_MODULES_DISABLE' => array_unique($form->disabled_modules),
             ]);
 
         $service->setBuild($build);
@@ -60,7 +60,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
             'document_root' => $form->document_root,
-            'fcgi_handler'  => $form->fcgi_handler,
+            'handler'       => $form->handler,
         ];
 
         $vhostMeta = new Entity\Docker\ServiceMeta();
@@ -83,17 +83,8 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
-
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
-            $project,
-            $phpFpmType
-        );
-
         return [
-            'fcgi_handlers' => [
-                'phpfpm' => $phpFpmServices,
-            ],
+            'handlers' => $this->getHandlersForView($project),
         ];
     }
 
@@ -121,13 +112,6 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $vhostMeta = $service->getMeta('vhost');
 
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
-
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
-            $service->getProject(),
-            $phpFpmType
-        );
-
         return [
             'projectFiles'           => $this->projectFilesViewParams($service),
             'apacheModulesEnable'    => $apacheModulesEnable,
@@ -144,12 +128,10 @@ class Apache extends WorkerAbstract implements WorkerInterface
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
-                'fcgi_handler'  => $vhostMeta->getData()['fcgi_handler'],
+                'handler'       => $vhostMeta->getData()['handler'],
             ],
             'vhost_conf'             => $vhostConf,
-            'fcgi_handlers'          => [
-                'phpfpm' => $phpFpmServices,
-            ],
+            'handlers'               => $this->getHandlersForView($service->getProject()),
         ];
     }
 
@@ -186,7 +168,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
             'document_root' => $form->document_root,
-            'fcgi_handler'  => $form->fcgi_handler,
+            'handler'       => $form->handler,
         ];
 
         $vhostMeta = $service->getMeta('vhost');
@@ -277,5 +259,38 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $vhostConf->setData($form->vhost_conf);
 
         $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
+    }
+
+    protected function getHandlersForView(Entity\Docker\Project $project) : array
+    {
+        $phpFpmType     = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+            $project,
+            $phpFpmType
+        );
+
+        $phpfpm = [];
+        foreach ($phpFpmServices as $service) {
+            $phpfpm []= "{$service->getName()}:9000";
+        }
+
+        $nodeJsType     = $this->serviceTypeRepo->findBySlug('node-js');
+        $nodeJsServices = $this->serviceRepo->findByProjectAndType(
+            $project,
+            $nodeJsType
+        );
+
+        $nodejs = [];
+        foreach ($nodeJsServices as $service) {
+            $portMeta = $service->getMeta('port');
+            $port = $portMeta->getData()[0];
+
+            $nodejs []= "{$service->getName()}:{$port}";
+        }
+
+        return [
+            'PHP-FPM' => $phpfpm,
+            'Node.js' => $nodejs,
+        ];
     }
 }

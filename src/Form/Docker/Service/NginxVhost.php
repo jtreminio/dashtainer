@@ -17,7 +17,7 @@ class NginxVhost implements Util\HydratorInterface
 
     public $document_root;
 
-    public $fcgi_handler;
+    public $handler;
 
     /**
      * @Assert\Callback

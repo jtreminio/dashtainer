@@ -24,7 +24,12 @@ class NginxTest extends ServiceWorkerBase
         $phpfpmServiceType->setName('php-fpm')
             ->setSlug('php-fpm');
 
+        $nodeJsServiceType = new Entity\Docker\ServiceType();
+        $nodeJsServiceType->setName('node-js')
+            ->setSlug('node-js');
+
         $this->serviceTypeRepo->addServiceType($phpfpmServiceType);
+        $this->serviceTypeRepo->addServiceType($nodeJsServiceType);
 
         $this->serviceRepo = new RepoDockerService($this->em);
 
@@ -36,7 +41,7 @@ class NginxTest extends ServiceWorkerBase
         $this->form->server_name   = 'server_name';
         $this->form->server_alias  = ['server_alias'];
         $this->form->document_root = '~/www/project';
-        $this->form->fcgi_handler  = 'php-fpm-7.2';
+        $this->form->handler       = 'php-fpm-7.2';
         $this->form->project_files = [
             'type'  => 'local',
             'local' => [
@@ -90,7 +95,7 @@ EOD;
             'server_name'   => $this->form->server_name,
             'server_alias'  => $this->form->server_alias,
             'document_root' => $this->form->document_root,
-            'fcgi_handler'  => $this->form->fcgi_handler,
+            'handler'       => $this->form->handler,
         ];
         $vhostMeta = $service->getMeta('vhost');
         $this->assertEquals($expectedVhostMeta, $vhostMeta->getData());
@@ -117,8 +122,9 @@ EOD;
         $this->project->addService($phpFpmService);
 
         $expected = [
-            'fcgi_handlers' => [
-                'phpfpm' => [$phpFpmService]
+            'handlers' => [
+                'PHP-FPM' => [$phpFpmService->getSlug() . ':9000'],
+                'Node.js' => [],
             ],
         ];
 
@@ -132,7 +138,7 @@ EOD;
 
         $phpfpmServiceType = new Entity\Docker\ServiceType();
         $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('fcgi');
+            ->setSlug('php-fpm');
 
         $phpFpmService->setType($phpfpmServiceType);
         $this->project->addService($phpFpmService);
@@ -173,7 +179,7 @@ EOD;
         $form->server_name   = 'updatedServerName';
         $form->server_alias  = ['aliasA', 'aliasB'];
         $form->document_root = '/path/to/glory';
-        $form->fcgi_handler  = '';
+        $form->handler       = '';
 
         $form->system_file['Dockerfile'] = 'new dockerfile data';
         $form->system_file['nginx.conf'] = 'new nginx.conf data';

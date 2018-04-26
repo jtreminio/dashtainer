@@ -58,7 +58,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
             'document_root' => $form->document_root,
-            'fcgi_handler'  => $form->fcgi_handler,
+            'handler'       => $form->handler,
         ];
 
         $vhostMeta = new Entity\Docker\ServiceMeta();
@@ -143,17 +143,8 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        $phpFpmType = $this->serviceTypeRepo->findBySlug('php-fpm');
-
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
-            $project,
-            $phpFpmType
-        );
-
         return [
-            'fcgi_handlers' => [
-                'phpfpm' => $phpFpmServices,
-            ],
+            'handlers' => $this->getHandlersForView($project),
         ];
     }
 
@@ -193,12 +184,10 @@ class Nginx extends WorkerAbstract implements WorkerInterface
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
-                'fcgi_handler'  => $vhostMeta->getData()['fcgi_handler'],
+                'handler'       => $vhostMeta->getData()['handler'],
             ],
             'vhost_conf'             => $vhostConf,
-            'fcgi_handlers'          => [
-                'phpfpm' => $phpFpmServices,
-            ],
+            'handlers'               => $this->getHandlersForView($service->getProject()),
         ];
     }
 
@@ -233,7 +222,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
             'document_root' => $form->document_root,
-            'fcgi_handler'  => $form->fcgi_handler,
+            'handler'       => $form->handler,
         ];
 
         $vhostMeta = $service->getMeta('vhost');
@@ -265,5 +254,38 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         $this->userFilesUpdate($service, $form);
 
         return $service;
+    }
+
+    protected function getHandlersForView(Entity\Docker\Project $project) : array
+    {
+        $phpFpmType     = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+            $project,
+            $phpFpmType
+        );
+
+        $phpfpm = [];
+        foreach ($phpFpmServices as $service) {
+            $phpfpm []= "{$service->getName()}:9000";
+        }
+
+        $nodeJsType     = $this->serviceTypeRepo->findBySlug('node-js');
+        $nodeJsServices = $this->serviceRepo->findByProjectAndType(
+            $project,
+            $nodeJsType
+        );
+
+        $nodejs = [];
+        foreach ($nodeJsServices as $service) {
+            $portMeta = $service->getMeta('port');
+            $port = $portMeta->getData()[0];
+
+            $nodejs []= "{$service->getName()}:{$port}";
+        }
+
+        return [
+            'PHP-FPM' => $phpfpm,
+            'Node.js' => $nodejs,
+        ];
     }
 }

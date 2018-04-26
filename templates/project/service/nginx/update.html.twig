@@ -91,30 +91,30 @@
                 </small>
             </div>
 
-            {% set has_fcgi_handlers = false %}
+            {% set has_handlers = false %}
             <div class="col-12 col-xl form-group">
-                <label class="form-label" for="fcgi_handler">FCGI Handler</label>
-                <select class="form-control" id="fcgi_handler"
-                        name="fcgi_handler"
+                <label class="form-label" for="handler">Handler</label>
+                <select class="form-control" id="handler"
+                        name="handler"
                         data-selectize-tags>
-                    {% if fcgi_handlers.phpfpm is not empty %}
-                        {% set has_fcgi_handlers = true %}
-                        <optgroup label="PHP-FPM">
-                            {% for handler in fcgi_handlers.phpfpm %}
-                                <option value="{{ handler.name }}:9000"
-                                        {{ vhost.fcgi_handler == handler.name ? 'selected' }}>
-                                    {{ handler.name }}:9000</option>
+                    {% for group, handlerServices in handlers %}
+                        {% set has_handlers = true %}
+                        <optgroup label="{{ group }}">
+                            {% for handler in handlerServices %}
+                                <option value="{{ handler }}"
+                                        {{ vhost.handler == handler ? 'selected' }}>
+                                    {{ handler }}</option>
                             {% endfor %}
                         </optgroup>
-                    {% endif %}
+                    {% endfor %}
                 </select>
                 <small class="text-muted">
-                    {% if not has_fcgi_handlers %}
+                    {% if not has_handlers %}
                         No handlers found.
                         <a href="{{ path('project.view.get', {
                             'projectId': project.id,
                         }) }}">Create a handler service first</a>,
-                        like PHP-FPM.
+                        like PHP-FPM or Node.js
                     {% endif %}
                 </small>
             </div>
@@ -159,6 +159,12 @@
                                     'projectId': project.id,
                                     'type': 'wordpress',
                                 }) }}" data-code-from-remote="#vhost_conf-code">Wordpress</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item"
+                               href="{{ path('project.service.nginx.vhost.post', {
+                                    'projectId': project.id,
+                                    'type': 'basic_nodejs',
+                                }) }}" data-code-from-remote="#vhost_conf-code">Basic Node.js</a>
                         </div>
                     </li>
                 </ul>

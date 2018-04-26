@@ -309,7 +309,7 @@ class Service extends Controller
 
         $serviceType = $service->getType();
         $template    = sprintf('@Dashtainer/project/service/%s/view.html.twig',
-            strtolower($serviceType->getName())
+            strtolower($serviceType->getSlug())
         );
 
         $params = $this->dServiceDomain->getViewParams($service);
@@ -350,7 +350,7 @@ class Service extends Controller
 
         $serviceType = $service->getType();
         $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
-            strtolower($serviceType->getName())
+            strtolower($serviceType->getSlug())
         );
 
         $params = $this->dServiceDomain->getViewParams($service);

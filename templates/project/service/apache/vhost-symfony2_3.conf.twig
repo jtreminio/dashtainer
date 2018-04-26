@@ -4,7 +4,7 @@
     DocumentRoot {{ form.document_root }}
 
     <FilesMatch "\.php$">
-        SetHandler proxy:fcgi://{{ form.fcgi_handler }}
+        SetHandler proxy:fcgi://{{ form.handler }}
         SetEnv APP_ENV dev
     </FilesMatch>
 

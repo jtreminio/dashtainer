@@ -3,16 +3,17 @@
     ServerAlias {{ form.server_alias|join(' ') }}
     DocumentRoot {{ form.document_root }}
 
-    <FilesMatch "\.php$">
-        SetHandler proxy:fcgi://{{ form.handler }}
-    </FilesMatch>
-
     <Directory "{{ form.document_root }}">
         Options Indexes FollowSymlinks MultiViews
         AllowOverride All
         Require all granted
-        DirectoryIndex index.php index.html
     </Directory>
+
+    ProxyPreserveHost On
+
+    # path to static (image/css/etc) files
+    ProxyPass /assets !
+    ProxyPass / http://{{ form.handler }}/
 
     # keep this, it is symlinked to /dev/stderr
     ErrorLog "/var/log/apache2/vhost-error.log"

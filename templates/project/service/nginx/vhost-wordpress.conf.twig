@@ -16,7 +16,7 @@ server {
     location ~ ^/index\.php(/|$) {
         set $path_info $fastcgi_path_info;
 
-        fastcgi_pass {{ form.fcgi_handler }};
+        fastcgi_pass {{ form.handler }};
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
 
         include fastcgi_params;

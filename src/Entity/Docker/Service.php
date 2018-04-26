@@ -249,6 +249,12 @@ class Service implements
      */
     protected $volumes;
 
+    /**
+     * @ORM\Column(name="working_dir", type="string", length=256, nullable=true)
+     * @see https://docs.docker.com/compose/compose-file/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir
+     */
+    protected $working_dir;
+
     public function __construct()
     {
         $this->children = new Collections\ArrayCollection();
@@ -1046,5 +1052,21 @@ class Service implements
     public function getVolumes()
     {
         return $this->volumes;
+    }
+
+    public function getWorkingDir() : ?string
+    {
+        return $this->working_dir;
+    }
+
+    /**
+     * @param string $working_dir
+     * @return $this
+     */
+    public function setWorkingDir(string $working_dir)
+    {
+        $this->working_dir = $working_dir;
+
+        return $this;
     }
 }

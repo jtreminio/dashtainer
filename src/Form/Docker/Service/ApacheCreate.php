@@ -27,7 +27,7 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $document_root;
 
-    public $fcgi_handler;
+    public $handler;
 
     public $vhost_conf;
 

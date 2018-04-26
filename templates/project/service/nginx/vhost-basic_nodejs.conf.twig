@@ -1,0 +1,27 @@
+server {
+    listen *:80 default_server;
+
+    server_name {{ form.server_name }} {{ form.server_alias|join(' ') }};
+    root {{ form.document_root }};
+
+    sendfile off;
+    autoindex off;
+    client_max_body_size 1m;
+
+    location / {
+        proxy_pass http://{{ form.handler }};
+        proxy_ignore_headers X-Accel-Expires Expires Cache-Control;
+        proxy_ignore_headers Set-Cookie;
+        proxy_hide_header Set-Cookie;
+        proxy_hide_header X-powered-by;
+    }
+
+    # path to static (image/css/etc) files
+    location /assets {
+        access_log off;
+        expires max;
+    }
+
+    access_log /var/log/nginx/_.access.log;
+    error_log /var/log/nginx/_.error.log;
+}
