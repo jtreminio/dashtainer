@@ -27,6 +27,14 @@ class Version1_0_4 extends FixtureMigrationAbstract
             ':data' => json_encode($data['apache_modules']),
             ':name' => 'modules',
         ]);
+
+        $this->addSql('
+            UPDATE docker_service_type dst
+            SET dst.versions = :data
+            WHERE dst.name = "Elasticsearch"
+        ', [
+            ':data' => '6.2.4,6.1.4,6.0.1',
+        ]);
     }
 
     public function down(Schema $schema)
