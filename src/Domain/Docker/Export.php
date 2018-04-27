@@ -394,6 +394,10 @@ class Export
                 }
             }
 
+            if ($ulimits->getMemlock()) {
+                $current['ulimits']['memlock'] = $ulimits->getMemlock();
+            }
+
             if (!empty($service->getUsernsMode())) {
                 $current['userns_mode'] = $service->getUsernsMode();
             }
