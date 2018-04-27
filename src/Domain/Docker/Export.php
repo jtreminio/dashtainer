@@ -94,7 +94,10 @@ class Export
             'version' => '3.2',
         ];
 
-        $environments = [];
+        $environments = [
+            "COMPOSE_PROJECT_NAME={$project->getSlug()}",
+        ];
+
         foreach ($project->getEnvironments() as $k => $v) {
             if (empty($v)) {
                 $environments []= $k;
@@ -105,9 +108,7 @@ class Export
             $environments []= "{$k}={$v}";
         }
 
-        if (!empty($environments)) {
-            $this->archive->addFile("{$this->baseDir}.env", implode("\n", $environments));
-        }
+        $this->archive->addFile("{$this->baseDir}.env", implode("\n", $environments));
 
         return $config;
     }
