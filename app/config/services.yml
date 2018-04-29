@@ -42,6 +42,9 @@ services:
         arguments:
             - !tagged dashtainer.docker.service_worker
 
+    Dashtainer\Processor\Trim:
+        tags: ['container.env_provider']
+
     Dashtainer\Controller\:
         resource: '../../src/Controller'
         public: true

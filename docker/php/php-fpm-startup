@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \"\(.*\)$,\1,'| sed -u 's,"$,,' 1>&1

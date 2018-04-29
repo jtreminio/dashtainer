@@ -1,3 +1,12 @@
 #!/bin/bash
 
-yarn run encore dev --watch
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+docker container run -it --rm \
+    -v ${DIR}/../:/var/www \
+    -v ${DIR}/../var/cache/npm-cache:/.npm \
+    -v ${DIR}/../var/cache/yarn-cache:/.cache/yarn \
+    -v ${DIR}/../var/cache/yarn:/.yarn \
+    -w /var/www \
+    -u "$(id -u $USER):$(id -g $USER)" \
+    node:9 yarn run encore dev --watch
