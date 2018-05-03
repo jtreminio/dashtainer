@@ -22,7 +22,7 @@ abstract class CommandAbstract extends Command
     {
         $options['-e'] = $this->getEnv();
         $options['-q'] = null;
-        $options       = array_merge($options, ['command' => $command]);
+        $options       = array_merge(['command' => $command], $options);
 
         $this->getApplication()->setAutoExit(false);
 
