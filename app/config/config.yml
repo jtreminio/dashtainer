@@ -52,6 +52,8 @@ doctrine:
             uuid: Ramsey\Uuid\Doctrine\UuidType
             uuid_binary: Ramsey\Uuid\Doctrine\UuidBinaryType
             varbinary: Dashtainer\Types\VarBinary
+            enc: Dashtainer\Types\Enc
+            enc_blob: Dashtainer\Types\EncBlob
         mapping_types:
             uuid_binary: binary
 

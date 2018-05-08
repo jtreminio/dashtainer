@@ -43,10 +43,10 @@ class Version1_0_5 extends FixtureMigrationAbstract
                 ADD owner_id VARCHAR(8) DEFAULT NULL AFTER project_id;
         ');
 
-        $this->addSql('
+        $this->addSql("
             ALTER TABLE docker_secret
-              ADD contents LONGTEXT DEFAULT NULL AFTER file;
-        ');
+                ADD contents LONGBLOB DEFAULT NULL COMMENT '(DC2Type:enc_blob)' AFTER file;
+        ");
 
         $this->addSql('
             ALTER TABLE docker_secret

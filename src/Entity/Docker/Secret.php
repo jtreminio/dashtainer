@@ -55,7 +55,7 @@ class Secret implements
     /**
      * Only used if $file is set
      *
-     * @ORM\Column(name="contents", type="text", nullable=true)
+     * @ORM\Column(name="contents", type="enc_blob", nullable=true)
      */
     protected $contents;
 

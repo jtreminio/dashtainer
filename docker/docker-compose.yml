@@ -17,6 +17,8 @@ secrets:
     file: ./secrets/db_user
   db_password:
     file: ./secrets/db_password
+  sf_secret_key:
+    file: ./secrets/sf_secret_key
 volumes:
   dashtainer-db-datastore:
 services:
@@ -79,6 +81,7 @@ services:
       - db_port
       - db_user
       - db_password
+      - sf_secret_key
     networks:
       - app-internal
     volumes:

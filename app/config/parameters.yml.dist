@@ -9,3 +9,4 @@ parameters:
     mailer_user: null
     mailer_password: null
     secret: 4a26620b4a7a55c5c48499eeecf992d6b20f19ac
+    enc_key: '%env(trim:file:SF_SECRET_KEY_FILE)%'
