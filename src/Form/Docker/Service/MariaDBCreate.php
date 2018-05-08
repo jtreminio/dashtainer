@@ -39,7 +39,7 @@ class MariaDBCreate extends CreateAbstract implements Util\HydratorInterface
     public $mysql_database;
 
     /**
-     * @DashAssert\NonBlankString(message = "Please enter a MySQL user")
+     * @DashAssert\NonBlankString(message = "Please enter a MariaDB user")
      * @DashAssert\Hostname
      */
     public $mysql_user;

@@ -33,13 +33,18 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $service->setImage("postgres:{$version}")
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
 
+        $sec  = '/run/secrets';
+        $slug = $service->getSlug();
+
         $service->setEnvironments([
-            'POSTGRES_DB'       => $form->postgres_db,
-            'POSTGRES_USER'     => $form->postgres_user,
-            'POSTGRES_PASSWORD' => $form->postgres_password,
+            'POSTGRES_DB_FILE'       => "{$sec}/{$slug}-postgres_db",
+            'POSTGRES_USER_FILE'     => "{$sec}/{$slug}-postgres_user",
+            'POSTGRES_PASSWORD_FILE' => "{$sec}/{$slug}-postgres_password",
         ]);
 
         $this->serviceRepo->save($service);
+
+        $this->createSecrets($service, $form);
 
         $this->addToPrivateNetworks($service, $form);
 
@@ -102,11 +107,11 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             ?? $this->getOpenBindPort($service->getProject());
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
-        $env = $service->getEnvironments();
+        $secrets = $this->getSecrets($service);
 
-        $postgres_db       = $env['POSTGRES_DB'];
-        $postgres_user     = $env['POSTGRES_USER'];
-        $postgres_password = $env['POSTGRES_PASSWORD'];
+        $postgres_db       = $secrets['postgres_db']->getProjectSecret()->getContents();
+        $postgres_user     = $secrets['postgres_user']->getProjectSecret()->getContents();
+        $postgres_password = $secrets['postgres_password']->getProjectSecret()->getContents();
 
         $configFileConf = $service->getVolume('postgresql.conf');
 
@@ -117,8 +122,8 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         return [
             'version'           => $version,
             'datastore'         => $datastore,
-            'bindPort'           => $bindPort,
-            'portConfirm'        => $portConfirm,
+            'bindPort'          => $bindPort,
+            'portConfirm'       => $portConfirm,
             'postgres_db'       => $postgres_db,
             'postgres_user'     => $postgres_user,
             'postgres_password' => $postgres_password,
@@ -138,12 +143,6 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
-        $service->setEnvironments([
-            'POSTGRES_DB'       => $form->postgres_db,
-            'POSTGRES_USER'     => $form->postgres_user,
-            'POSTGRES_PASSWORD' => $form->postgres_password,
-        ]);
-
         $this->addToPrivateNetworks($service, $form);
 
         $portMetaData = $form->port_confirm ? [$form->port] : [];
@@ -162,6 +161,8 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($configFileConf);
 
         $this->updateDatastore($service, $form);
+
+        $this->updateSecrets($service, $form);
 
         $this->userFilesUpdate($service, $form);
 
@@ -188,5 +189,127 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         }
 
         return 5432;
+    }
+
+    protected function createSecrets(
+        Entity\Docker\Service $service,
+        Form\Docker\Service\PostgreSQLCreate $form
+    ) {
+        $sec  = '/run/secrets';
+        $slug = $service->getSlug();
+
+        // postgres_host
+
+        $host = new Entity\Docker\Secret();
+        $host->setName("{$slug}-postgres_host")
+            ->setFile("./secrets/{$slug}-postgres_host")
+            ->setContents($slug)
+            ->setProject($service->getProject())
+            ->setOwner($service);
+
+        $hostSS = new Entity\Docker\ServiceSecret();
+        $hostSS->setProjectSecret($host)
+            ->setService($service)
+            ->setTarget("{$sec}/{$slug}-postgres_host");
+
+        $host->addServiceSecret($hostSS);
+
+        // postgres_db
+
+        $database = new Entity\Docker\Secret();
+        $database->setName("{$slug}-postgres_db")
+            ->setFile("./secrets/{$slug}-postgres_db")
+            ->setContents($form->postgres_db)
+            ->setProject($service->getProject())
+            ->setOwner($service);
+
+        $databaseSS = new Entity\Docker\ServiceSecret();
+        $databaseSS->setProjectSecret($database)
+            ->setService($service)
+            ->setTarget("{$sec}/{$slug}-postgres_db");
+
+        $database->addServiceSecret($databaseSS);
+
+        // postgres_user
+
+        $user = new Entity\Docker\Secret();
+        $user->setName("{$slug}-postgres_user")
+            ->setFile("./secrets/{$slug}-postgres_user")
+            ->setContents($form->postgres_user)
+            ->setProject($service->getProject())
+            ->setOwner($service);
+
+        $userSS = new Entity\Docker\ServiceSecret();
+        $userSS->setProjectSecret($user)
+            ->setService($service)
+            ->setTarget("{$sec}/{$slug}-postgres_user");
+
+        $user->addServiceSecret($userSS);
+
+        // postgres_password
+
+        $password = new Entity\Docker\Secret();
+        $password->setName("{$slug}-postgres_password")
+            ->setFile("./secrets/{$slug}-postgres_password")
+            ->setContents($form->postgres_password)
+            ->setProject($service->getProject())
+            ->setOwner($service);
+
+        $passwordSS = new Entity\Docker\ServiceSecret();
+        $passwordSS->setProjectSecret($password)
+            ->setService($service)
+            ->setTarget("{$sec}/{$slug}-postgres_password");
+
+        $password->addServiceSecret($passwordSS);
+
+        $service->addSecret($hostSS)
+            ->addSecret($databaseSS)
+            ->addSecret($userSS)
+            ->addSecret($passwordSS);
+
+        $this->serviceRepo->save(
+            $host, $hostSS,
+            $database, $databaseSS,
+            $user, $userSS,
+            $password, $passwordSS,
+            $service
+        );
+    }
+
+    protected function updateSecrets(
+        Entity\Docker\Service $service,
+        Form\Docker\Service\PostgreSQLCreate $form
+    ) {
+        $secrets = $this->getSecrets($service);
+
+        $postgres_db       = $secrets['postgres_db']->getProjectSecret();
+        $postgres_user     = $secrets['postgres_user']->getProjectSecret();
+        $postgres_password = $secrets['postgres_password']->getProjectSecret();
+
+        $postgres_db->setContents($form->postgres_db);
+        $postgres_user->setContents($form->postgres_user);
+        $postgres_password->setContents($form->postgres_password);
+
+        $this->serviceRepo->save(
+            $postgres_db,
+            $postgres_user,
+            $postgres_password
+        );
+    }
+
+    /**
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\ServiceSecret[]
+     */
+    protected function getSecrets(Entity\Docker\Service $service) : array
+    {
+        $slug = $service->getSlug();
+
+        return [
+            'postgres_host'     => $service->getSecret("{$slug}-postgres_host"),
+            'postgres_db'       => $service->getSecret("{$slug}-postgres_db"),
+            'postgres_user'     => $service->getSecret("{$slug}-postgres_user"),
+            'postgres_password' => $service->getSecret("{$slug}-postgres_password"),
+        ];
     }
 }

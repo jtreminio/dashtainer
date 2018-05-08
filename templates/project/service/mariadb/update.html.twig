@@ -6,6 +6,20 @@
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Service Name</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="name" placeholder=""
+                           value="{{ service.name }}" disabled />
+                </div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -138,10 +152,15 @@
         <div class="row">
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="mysql_root_password">Root Password</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_root_password" name="mysql_root_password" placeholder=""
-                       value="{{ mysql_root_password }}" required
-                       data-error-container="mysql_root_password" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_root_password" name="mysql_root_password" placeholder=""
+                           value="{{ mysql_root_password }}" required
+                           data-error-container="mysql_root_password" />
+                </div>
                 <div class="invalid-feedback"
                      data-error-container-name="mysql_root_password"></div>
                 <small class="text-muted">
@@ -151,11 +170,17 @@
 
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="mysql_database">Database</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_database" name="mysql_database" placeholder=""
-                       value="{{ mysql_database }}" required
-                       data-error-container="mysql_database" />
-                <div class="invalid-feedback" data-error-container-name="mysql_database"></div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_database" name="mysql_database" placeholder=""
+                           value="{{ mysql_database }}" required
+                           data-error-container="mysql_database" />
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_database"></div>
                 <small class="text-muted">
                     Database to create on init.
                 </small>
@@ -165,10 +190,15 @@
         <div class="row">
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="mysql_user">User</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_user" name="mysql_user" placeholder=""
-                       value="{{ mysql_user }}" required
-                       data-error-container="mysql_user" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_user" name="mysql_user" placeholder=""
+                           value="{{ mysql_user }}" required
+                           data-error-container="mysql_user" />
+                </div>
                 <div class="invalid-feedback"
                      data-error-container-name="mysql_user"></div>
                 <small class="text-muted">
@@ -178,11 +208,17 @@
 
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="mysql_password">User Password</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
                 <input type="text" class="form-control" maxlength="64"
                        id="mysql_password" name="mysql_password" placeholder=""
                        value="{{ mysql_password }}" required
                        data-error-container="mysql_password" />
-                <div class="invalid-feedback" data-error-container-name="mysql_password"></div>
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_password"></div>
                 <small class="text-muted">
                     Password for User.
                 </small>

@@ -201,9 +201,7 @@ class Service implements
     protected $restart;
 
     /**
-     * @ORM\ManyToMany(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="services")
-     * @ORM\JoinTable(name="docker_services_secrets")
-     * @see https://docs.docker.com/compose/compose-file/#secrets
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceSecret", mappedBy="service")
      */
     protected $secrets;
 
@@ -839,23 +837,36 @@ class Service implements
     }
 
     /**
-     * @param Secret $secret
+     * @param ServiceSecret $secret
      * @return $this
      */
-    public function addSecret(Secret $secret)
+    public function addSecret(ServiceSecret $secret)
     {
         $this->secrets[] = $secret;
 
         return $this;
     }
 
-    public function removeSecret(Secret $secret)
+    public function removeSecret(ServiceSecret $secret)
     {
         $this->secrets->removeElement($secret);
     }
 
+    public function getSecret(string $name) : ?ServiceSecret
+    {
+        foreach ($this->getSecrets() as $serviceSecret) {
+            $secret = $serviceSecret->getProjectSecret();
+
+            if ($secret->getName() === $name) {
+                return $serviceSecret;
+            }
+        }
+
+        return null;
+    }
+
     /**
-     * @return Secret[]|Collections\ArrayCollection
+     * @return ServiceSecret[]|Collections\ArrayCollection
      */
     public function getSecrets()
     {

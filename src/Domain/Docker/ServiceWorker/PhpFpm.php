@@ -14,10 +14,11 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
     public function __construct(
         Repository\Docker\Service $serviceRepo,
         Repository\Docker\Network $networkRepo,
+        Repository\Docker\Secret $secretRepo,
         Repository\Docker\ServiceType $serviceTypeRepo,
         Blackfire $blackfireWorker
     ) {
-        parent::__construct($serviceRepo, $networkRepo, $serviceTypeRepo);
+        parent::__construct($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
 
         $this->blackfireWorker = $blackfireWorker;
     }

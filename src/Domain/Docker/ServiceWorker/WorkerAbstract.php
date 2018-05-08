@@ -13,6 +13,9 @@ abstract class WorkerAbstract implements WorkerInterface
     /** @var Repository\Docker\Network */
     protected $networkRepo;
 
+    /** @var Repository\Docker\Secret */
+    protected $secretRepo;
+
     /** @var Repository\Docker\Service */
     protected $serviceRepo;
 
@@ -22,11 +25,45 @@ abstract class WorkerAbstract implements WorkerInterface
     public function __construct(
         Repository\Docker\Service $serviceRepo,
         Repository\Docker\Network $networkRepo,
+        Repository\Docker\Secret $secretRepo,
         Repository\Docker\ServiceType $serviceTypeRepo
     ) {
         $this->serviceRepo     = $serviceRepo;
         $this->networkRepo     = $networkRepo;
+        $this->secretRepo      = $secretRepo;
         $this->serviceTypeRepo = $serviceTypeRepo;
+    }
+
+    protected function generateSecretsNames(Form\Docker\Service\MariaDBCreate $form)
+    {
+        $existingSecrets = $this->secretRepo->findAllByProject($form->project);
+
+        $existingNames = [];
+        foreach ($existingSecrets as $existing) {
+            $existingNames []= $existing->getName();
+        }
+
+        if (empty($existingNames)) {
+            return;
+        }
+
+        foreach ($form->secret as $key => $values) {
+            $name = $values['name'];
+
+            if (!in_array($name, $existingNames)) {
+                continue;
+            }
+
+            for ($i = 1; $i < count($existingNames); $i++) {
+                if (in_array($name . $i, $existingNames)) {
+                    continue;
+                }
+
+                $form->secret[$key]['name'] = $name . $i;
+
+                break;
+            }
+        }
     }
 
     public function delete(Entity\Docker\Service $service)

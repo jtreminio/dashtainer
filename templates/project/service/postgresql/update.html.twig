@@ -6,6 +6,20 @@
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label" for="name">Service Name</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="name" placeholder=""
+                           value="{{ service.name }}" disabled />
+                </div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -122,13 +136,19 @@
         <h4 class="mb-3">Database Credentials</h4>
 
         <div class="row">
-            <div class="col form-group">
+            <div class="col-12 col-xl form-group">
                 <label class="form-label" for="postgres_db">Database</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="postgres_db" name="postgres_db" placeholder=""
-                       value="{{ postgres_db }}" required
-                       data-error-container="postgres_db" />
-                <div class="invalid-feedback" data-error-container-name="postgres_db"></div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="postgres_db" name="postgres_db" placeholder=""
+                           value="{{ postgres_db }}" required
+                           data-error-container="postgres_db" />
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="postgres_db"></div>
                 <small class="text-muted">
                     Database to create on init.
                 </small>
@@ -138,10 +158,15 @@
         <div class="row">
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="postgres_user">User</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="postgres_user" name="postgres_user" placeholder=""
-                       value="{{ postgres_user }}" required
-                       data-error-container="postgres_user" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="postgres_user" name="postgres_user" placeholder=""
+                           value="{{ postgres_user }}" required
+                           data-error-container="postgres_user" />
+                </div>
                 <div class="invalid-feedback"
                      data-error-container-name="postgres_user"></div>
                 <small class="text-muted">
@@ -151,11 +176,17 @@
 
             <div class="col-12 col-xl form-group">
                 <label class="form-label" for="postgres_password">User Password</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="postgres_password" name="postgres_password" placeholder=""
-                       value="{{ postgres_password }}" required
-                       data-error-container="postgres_password" />
-                <div class="invalid-feedback" data-error-container-name="postgres_password"></div>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="postgres_password" name="postgres_password" placeholder=""
+                           value="{{ postgres_password }}" required
+                           data-error-container="postgres_password" />
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="postgres_password"></div>
                 <small class="text-muted">
                     Password for User.
                 </small>

@@ -1,5 +1,9 @@
 {% extends '@Dashtainer/template.html.twig' %}
 
+{% set availableAsSecret = '<i class="fa fa-key" aria-hidden="true"
+   data-toggle="tooltip" data-html="true"
+   title="This is available as a Docker Secret to other services."></i>' %}
+
 {% block content %}
 <div class="row">
     <div class="col">

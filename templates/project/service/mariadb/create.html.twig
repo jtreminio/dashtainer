@@ -9,11 +9,16 @@
         <div class="row">
             <div class="form-group col">
                 <label class="form-label" for="name">Service Name</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="name" name="name" placeholder=""
-                       value="{{ serviceName }}" required data-mask-type="dns"
-                       data-update-text="service-name-tag,datastore-local-span"
-                       data-error-container="name" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="name" name="name" placeholder=""
+                           value="{{ serviceName }}" required data-mask-type="dns"
+                           data-update-text="service-name-tag,datastore-local-span"
+                           data-error-container="name" />
+                </div>
                 <div class="invalid-feedback" data-error-container-name="name"></div>
             </div>
         </div>
@@ -29,6 +34,8 @@
         <hr class="my-6" />
 
         {% include '@Dashtainer/project/service/snippets/networks_create.html.twig' %}
+
+        <hr class="my-6" />
 
         <div class="row">
             <div class="col-6">
@@ -82,7 +89,7 @@
                                data-toggle="radio-tab" data-target="#datastore-docker-tab"
                                data-error-container="datastore" />
                         <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-anchor"></i> Docker</span>
+                            <i class="fe fe-anchor"></i> Docker Volume</span>
                     </label>
 
                     <label class="selectgroup-item">
@@ -146,14 +153,29 @@
 
         <h4 class="mb-3">Database Credentials</h4>
 
+        <div class="row form-group">
+            <div class="col">
+                <small class="text-muted">
+                    Credentials will be available as Docker Secrets. Other services may then import
+                    and use them without having to hardcode the actual value.<br />
+                    If you do not plan to use Docker Secrets, you can leave the Secret Name fields
+                    as their default values.
+                </small>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-12 col-xl form-group">
-                <label class="form-label"
-                       for="mysql_root_password">Root Password</label>
-                <input type="text" class="form-control" maxlength="64"
+                <label class="form-label" for="mysql_root_password">Root Password</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
                        id="mysql_root_password" name="mysql_root_password" placeholder=""
                        value="" required
                        data-error-container="mysql_root_password" />
+                </div>
                 <div class="invalid-feedback"
                      data-error-container-name="mysql_root_password"></div>
                 <small class="text-muted">
@@ -162,13 +184,18 @@
             </div>
 
             <div class="col-12 col-xl form-group">
-                <label class="form-label"
-                       for="mysql_database">Database</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_database" name="mysql_database" placeholder=""
-                       value="" required
-                       data-error-container="mysql_database" />
-                <div class="invalid-feedback" data-error-container-name="mysql_database"></div>
+                <label class="form-label" for="mysql_database">Database</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_database" name="mysql_database" placeholder=""
+                           value="" required
+                           data-error-container="mysql_database" />
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_database"></div>
                 <small class="text-muted">
                     Database to create on init.
                 </small>
@@ -177,12 +204,16 @@
 
         <div class="row">
             <div class="col-12 col-xl form-group">
-                <label class="form-label"
-                       for="mysql_user">User</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_user" name="mysql_user" placeholder=""
-                       value="" required
-                       data-error-container="mysql_user" />
+                <label class="form-label" for="mysql_user">User</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_user" name="mysql_user" placeholder=""
+                           value="" required
+                           data-error-container="mysql_user" />
+                </div>
                 <div class="invalid-feedback"
                      data-error-container-name="mysql_user"></div>
                 <small class="text-muted">
@@ -191,13 +222,18 @@
             </div>
 
             <div class="col-12 col-xl form-group">
-                <label class="form-label"
-                       for="mysql_password">User Password</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="mysql_password" name="mysql_password" placeholder=""
-                       value="" required
-                       data-error-container="mysql_password" />
-                <div class="invalid-feedback" data-error-container-name="mysql_password"></div>
+                <label class="form-label" for="mysql_password">User Password</label>
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="mysql_password" name="mysql_password" placeholder=""
+                           value="" required
+                           data-error-container="mysql_password" />
+                </div>
+                <div class="invalid-feedback"
+                     data-error-container-name="mysql_password"></div>
                 <small class="text-muted">
                     Password for User.
                 </small>
