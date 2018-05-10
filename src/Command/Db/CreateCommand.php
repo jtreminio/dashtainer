@@ -23,7 +23,9 @@ class CreateCommand extends Command\CommandAbstract
         $this->runConsole('doctrine:database:create');
 
         if ($sqlFile = $input->getOption('file')) {
-            $this->runConsole('doctrine:database:import', ['file' => $sqlFile]);
+            $this->runConsole('doctrine:database:import', [
+                'file' => $this->getDumpFile($sqlFile, $output)
+            ]);
         } else {
             $this->runConsole('doctrine:schema:create');
         }
@@ -33,5 +35,20 @@ class CreateCommand extends Command\CommandAbstract
         $this->io->success('Database installed successfully and migrations run.');
 
         return 0;
+    }
+
+    protected function getDumpFile(string $filePath, OutputInterface $output) : string
+    {
+        if (mime_content_type($filePath) === 'application/x-gzip') {
+            $tmpfname = tempnam('/tmp', 'sqldump');
+
+            exec("tar -xzOf '{$filePath}' > {$tmpfname}");
+
+            $filePath = $tmpfname;
+        }
+
+        $output->writeln("<info>Importing {$filePath}</info>");
+
+        return $filePath;
     }
 }

@@ -4,4 +4,4 @@ docker container exec -it \
     -w /var/www \
     -u "$(id -u $USER):$(id -g $USER)" \
     dash_php_1 ./bin/console dashtainer:db:create \
-    --file /var/www/assets/files/dashtainer.sql
+    --file /var/www/assets/files/db-v1.0.4.sql.tar.gz
