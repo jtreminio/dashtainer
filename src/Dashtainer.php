@@ -14,8 +14,11 @@ class Dashtainer extends Bundle
         $manager   = $container->get('doctrine')
             ->getManager();
 
-        if (!DBAL\Types\Type::hasType('enc')) {
+        if (!Types\Enc::getKey()) {
             Types\Enc::setKey($container->getParameter('enc_key'));
+        }
+
+        if (!DBAL\Types\Type::hasType('enc')) {
             DBAL\Types\Type::addType('enc', Types\Enc::class);
 
             /** @var DBAL\Connection $conn */
@@ -24,7 +27,6 @@ class Dashtainer extends Bundle
         }
 
         if (!DBAL\Types\Type::hasType('enc_blob')) {
-            Types\EncBlob::setKey($container->getParameter('enc_key'));
             DBAL\Types\Type::addType('enc_blob', Types\EncBlob::class);
 
             /** @var DBAL\Connection $conn */
