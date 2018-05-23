@@ -59,7 +59,9 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [];
+        return [
+            'secrets' => $this->getCreateSecrets($project),
+        ];
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -95,5 +97,12 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $this->updateDatastore($service, $form);
 
         return $service;
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

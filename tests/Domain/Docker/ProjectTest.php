@@ -66,15 +66,21 @@ class ProjectTest extends KernelTestCase
             ->setProject($project);
         $project->addNetwork($networkB);
 
-        $secretA = new Entity\Docker\Secret();
-        $secretA->setName('secret-a')
+        $projectSecretA = new Entity\Docker\Secret();
+        $projectSecretA->setName('secret-a')
             ->setProject($project);
-        $project->addSecret($secretA);
+        $project->addSecret($projectSecretA);
 
-        $secretB = new Entity\Docker\Secret();
-        $secretB->setName('secret-b')
+        $serviceSecretA = new Entity\Docker\ServiceSecret();
+        $serviceSecretA->setProjectSecret($projectSecretA);
+
+        $projectSecretB = new Entity\Docker\Secret();
+        $projectSecretB->setName('secret-b')
             ->setProject($project);
-        $project->addSecret($secretB);
+        $project->addSecret($projectSecretB);
+
+        $serviceSecretB = new Entity\Docker\ServiceSecret();
+        $serviceSecretB->setProjectSecret($projectSecretB);
 
         $volumeA = new Entity\Docker\Volume();
         $volumeA->setName('volume-a')
@@ -120,8 +126,10 @@ class ProjectTest extends KernelTestCase
         $networkA->addService($serviceA);
         $serviceA->addNetwork($networkA);
 
-        $secretA->addService($serviceA);
-        $serviceA->addSecret($secretA);
+        $serviceSecretA->setService($serviceA)
+            ->setProjectSecret($projectSecretA);
+        $projectSecretA->setOwner($serviceA);
+        $serviceA->addSecret($serviceSecretA);
 
         // Service B
 
@@ -156,8 +164,10 @@ class ProjectTest extends KernelTestCase
         $networkB->addService($serviceB);
         $serviceB->addNetwork($networkB);
 
-        $secretB->addService($serviceB);
-        $serviceB->addSecret($secretB);
+        $serviceSecretB->setService($serviceB)
+            ->setProjectSecret($projectSecretB);
+        $projectSecretB->setOwner($serviceB);
+        $serviceB->addSecret($serviceSecretB);
 
         $this->project->delete($project);
 
@@ -169,16 +179,19 @@ class ProjectTest extends KernelTestCase
         $this->assertEmpty($networkA->getServices());
         $this->assertEmpty($networkB->getServices());
 
-        $this->assertEmpty($secretA->getServices());
-        $this->assertEmpty($secretB->getServices());
+        $this->assertEmpty($projectSecretA->getServiceSecrets());
+        $this->assertEmpty($projectSecretB->getServiceSecrets());
 
         $this->assertEmpty($volumeA->getServiceVolumes());
         $this->assertEmpty($volumeB->getServiceVolumes());
 
         $this->assertEmpty($serviceA->getVolumes());
         $this->assertEmpty($serviceA->getMetas());
+        $this->assertEmpty($serviceA->getSecrets());
 
         $this->assertEmpty($serviceB->getVolumes());
         $this->assertEmpty($serviceB->getMetas());
+        $this->assertEmpty($serviceB->getSecrets());
+
     }
 }

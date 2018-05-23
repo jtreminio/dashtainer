@@ -60,7 +60,7 @@ class Secret implements
     protected $contents;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Service")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Service", fetch="EAGER")
      * @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
      */
     protected $owner;

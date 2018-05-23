@@ -6,6 +6,7 @@ use Dashtainer\Entity;
 use Dashtainer\Repository;
 
 use Doctrine\ORM;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\Common\Persistence;
 
 class Secret implements Repository\ObjectPersistInterface
@@ -96,53 +97,164 @@ class Secret implements Repository\ObjectPersistInterface
         return $this->repo->findBy(['project' => $project]);
     }
 
-    public function findByProject(
+    /**
+     * Secrets owned by Service
+     *
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\ServiceSecret[]
+     */
+    public function findOwned(Entity\Docker\Service $service) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('ss')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('Dashtainer:Docker\Secret', 's', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('s.owner = :service')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Secrets owned by Service and marked as internal
+     *
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\ServiceSecret[]
+     */
+    public function findInternal(Entity\Docker\Service $service) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('ss')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('Dashtainer:Docker\Secret', 's', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('s.owner = :service')
+            ->andWhere('ss.service = :service')
+            ->andWhere('ss.is_internal = 1')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Secrets owned by Service and marked as not internal
+     *
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\ServiceSecret[]
+     */
+    public function findNotInternal(Entity\Docker\Service $service) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('ss')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('Dashtainer:Docker\Secret', 's', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('s.owner = :service')
+            ->andWhere('ss.service = :service')
+            ->andWhere('ss.is_internal = 0')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Secrets granted to but not owned by Service
+     *
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\ServiceSecret[]
+     */
+    public function findGranted(Entity\Docker\Service $service) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('ss')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('Dashtainer:Docker\Secret', 's', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('ss.service = :service')
+            ->andWhere('s.owner <> :service')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Secrets not granted to Service
+     *
+     * @param Entity\Docker\Project $project
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\Secret[]
+     */
+    public function findNotGranted(
         Entity\Docker\Project $project,
-        string $id
-    ) : ?Entity\Docker\Secret {
-        return $this->findOneBy([
-            'id'      => $id,
+        Entity\Docker\Service $service
+    ) : array {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s.id')
+            ->from('Dashtainer:Docker\Secret', 's')
+            ->join('Dashtainer:Docker\ServiceSecret', 'ss', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('ss.service = :service')
+            ->andWhere('s.owner <> :service')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        $granted = [];
+        foreach ($qb->getQuery()->getArrayResult() as $item) {
+            $granted []= $item['id'];
+        }
+
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Secret', 's')
+            ->where('s.project = :project')
+            ->andWhere('s.owner <> :service');
+
+        $parameters = [
             'project' => $project,
-        ]);
+            'service' => $service,
+        ];
+
+        if ($granted) {
+            $qb->andWhere('s.id NOT IN (:granted)');
+
+            $parameters = [
+                'project' => $project,
+                'service' => $service,
+                'granted' => $granted,
+            ];
+        }
+
+        $qb->setParameters($parameters);
+
+        $notGranted = $qb->getQuery()->getResult();
+
+        return $notGranted;
     }
 
     /**
      * @param Entity\Docker\Service $service
-     * @return Entity\Docker\Secret[]
      */
-    public function findByService(Entity\Docker\Service $service) : array
+    public function deleteGrantedNotOwned(Entity\Docker\Service $service)
     {
         $qb = $this->em->createQueryBuilder()
-            ->select('s')
-            ->from('Dashtainer:Docker\Secret', 's')
-            ->where(':service MEMBER OF s.services')
-            ->andWhere('s.project = :project');
+            ->select('ss')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('Dashtainer:Docker\Secret', 's', Expr\Join::WITH, 'ss.project_secret = s')
+            ->where('ss.service = :service')
+            ->andWhere('s.owner <> :service')
+            ->setParameters([
+                'service' => $service,
+            ]);
 
-        $qb->setParameters([
-            'service' => $service,
-            'project' => $service->getProject(),
-        ]);
+        foreach ($qb->getQuery()->getResult() as $item) {
+            $this->em->remove($item);
+        }
 
-        return $qb->getQuery()->getResult();
-    }
-
-    /**
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\Secret[]
-     */
-    public function findByNotService(Entity\Docker\Service $service) : array
-    {
-        $qb = $this->em->createQueryBuilder()
-            ->select('s')
-            ->from('Dashtainer:Docker\Secret', 's')
-            ->where(':service NOT MEMBER OF s.services')
-            ->andWhere('s.project = :project');
-
-        $qb->setParameters([
-            'service' => $service,
-            'project' => $service->getProject(),
-        ]);
-
-        return $qb->getQuery()->getResult();
+        $this->em->flush();
     }
 }

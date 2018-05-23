@@ -116,13 +116,15 @@ class PhpFpmTest extends ServiceWorkerBase
         $blackfireWorker = new Blackfire(
             $this->serviceRepo,
             $this->networkRepo,
-            $this->serviceTypeRepo
+            $this->serviceTypeRepo,
+            $this->secretDomain
         );
 
         $this->worker = new PhpFpm(
             $this->serviceRepo,
             $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->secretDomain,
             $blackfireWorker
         );
     }

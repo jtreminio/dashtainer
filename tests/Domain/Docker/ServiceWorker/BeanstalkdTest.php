@@ -29,7 +29,12 @@ class BeanstalkdTest extends ServiceWorkerBase
         ];
         $this->form->datastore   = 'local';
 
-        $this->worker = new Beanstalkd($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Beanstalkd(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -41,11 +46,6 @@ class BeanstalkdTest extends ServiceWorkerBase
         $this->assertEquals('Dockerfile', $build->getDockerfile());
 
         $this->assertNotNull($service->getVolume('Dockerfile'));
-    }
-
-    public function testGetCreateParams()
-    {
-        $this->assertEquals([], $this->worker->getCreateParams($this->project));
     }
 
     public function testGetViewParams()

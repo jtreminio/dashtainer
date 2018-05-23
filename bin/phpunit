@@ -3,4 +3,4 @@
 docker container exec -it \
     -w /var/www \
     -u "$(id -u $USER):$(id -g $USER)" \
-    dash_php_1 ./vendor/bin/phpunit
+    dash_php_1 ./vendor/bin/phpunit "$@"

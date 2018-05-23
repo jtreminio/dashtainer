@@ -71,7 +71,12 @@ EOD;
             'ports.conf'   => 'ports.conf contents',
         ];
 
-        $this->worker = new Apache($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Apache(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -135,7 +140,9 @@ EOD;
             ],
         ];
 
-        $this->assertEquals($expected, $this->worker->getCreateParams($this->project));
+        $result = $this->worker->getCreateParams($this->project);
+
+        $this->assertEquals($expected['handlers'], $result['handlers']);
     }
 
     public function testGetViewParams()

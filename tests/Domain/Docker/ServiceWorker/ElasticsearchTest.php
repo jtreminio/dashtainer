@@ -31,7 +31,12 @@ class ElasticsearchTest extends ServiceWorkerBase
         $this->form->version   = '1.2';
         $this->form->heap_size = '1m';
 
-        $this->worker = new Elasticsearch($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Elasticsearch(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -58,11 +63,6 @@ class ElasticsearchTest extends ServiceWorkerBase
 
         $this->assertEquals('$PWD/service-name/datadir', $datastoreVolume->getSource());
         $this->assertEquals($this->form->system_file['elasticsearch.yml'], $esVolume->getData());
-    }
-
-    public function testGetCreateParams()
-    {
-        $this->assertEquals([], $this->worker->getCreateParams($this->project));
     }
 
     public function testGetViewParams()

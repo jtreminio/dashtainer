@@ -27,7 +27,12 @@ class BlackfireTest extends ServiceWorkerBase
         $this->form->server_id    = 'server_id';
         $this->form->server_token = 'server_token';
 
-        $this->worker = new Blackfire($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Blackfire(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()

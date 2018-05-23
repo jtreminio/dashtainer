@@ -2181,6 +2181,10 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
+floatthead@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/floatthead/-/floatthead-2.1.2.tgz#23be05e69760f19028937667aee7e3b99ad86fed"
+
 font-awesome@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/font-awesome/-/font-awesome-4.7.0.tgz#8fa8cf0411a1a31afd07b06d2902bb9fc815a133"

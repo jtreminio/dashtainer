@@ -42,7 +42,12 @@ class AdminerTest extends ServiceWorkerBase
 
         $this->form->design = 'form-design';
 
-        $this->worker = new Adminer($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Adminer(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -69,11 +74,6 @@ class AdminerTest extends ServiceWorkerBase
             $expectedTraefikFrontendRuleLabel,
             $labels['traefik.frontend.rule']
         );
-    }
-
-    public function testGetCreateParams()
-    {
-        $this->assertEquals([], $this->worker->getCreateParams($this->project));
     }
 
     public function testGetViewParams()

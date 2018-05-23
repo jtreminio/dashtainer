@@ -2,9 +2,9 @@
 
 namespace Dashtainer\Migrations;
 
+use Dashtainer\Domain\Docker as Domain;
 use Dashtainer\Domain\Docker\ServiceWorker as Worker;
 use Dashtainer\Form\Docker\Service as Form;
-use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker as Repository;
 
 use Doctrine\DBAL\Schema\Schema;
@@ -16,14 +16,12 @@ class Version1_0_6 extends FixtureMigrationAbstract
     {
         $em = $this->container->get('doctrine.orm.entity_manager');
 
-        $serviceRepo     = new Repository\Service($em);
-        $networkRepo     = new Repository\Network($em);
-        $secretRepo      = new Repository\Secret($em);
         $serviceTypeRepo = new Repository\ServiceType($em);
+        $secretDomain    = new Domain\Secret(new Repository\Secret($em));
 
-        $this->migrateMariaDB($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
-        $this->migrateMySQL($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
-        $this->migratePostgreSQL($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
+        $this->migrateMariaDB($serviceTypeRepo, $secretDomain);
+        $this->migrateMySQL($serviceTypeRepo, $secretDomain);
+        $this->migratePostgreSQL($serviceTypeRepo, $secretDomain);
     }
 
     public function down(Schema $schema)
@@ -35,15 +33,10 @@ class Version1_0_6 extends FixtureMigrationAbstract
     }
 
     protected function migrateMariaDB(
-        Repository\Service $serviceRepo,
-        Repository\Network $networkRepo,
-        Repository\Secret $secretRepo,
-        Repository\ServiceType $serviceTypeRepo
+        Repository\ServiceType $serviceTypeRepo,
+        Domain\Secret $secretDomain
     ) {
-        $mariaDbType   = $serviceTypeRepo->findBySlug('mariadb');
-        $mariaDbWorker = new Worker\MariaDB($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
-        $refMethod = new \ReflectionMethod(Worker\MariaDB::class, 'createSecrets');
-        $refMethod->setAccessible(true);
+        $mariaDbType = $serviceTypeRepo->findBySlug('mariadb');
 
         foreach ($mariaDbType->getServices() as $service) {
             $env = $service->getEnvironments();
@@ -63,22 +56,26 @@ class Version1_0_6 extends FixtureMigrationAbstract
 
             $service->setEnvironments($env);
 
-            $refMethod->invoke($mariaDbWorker, $service, $form);
+            $slug = $service->getSlug();
+            $internalSecrets = [
+                "{$slug}-mysql_host"          => $slug,
+                "{$slug}-mysql_root_password" => $form->mysql_root_password,
+                "{$slug}-mysql_database"      => $form->mysql_database,
+                "{$slug}-mysql_user"          => $form->mysql_user,
+                "{$slug}-mysql_password"      => $form->mysql_password,
+            ];
+
+            $secretDomain->createOwnedSecrets($service, $internalSecrets, true);
         }
     }
 
     protected function migrateMySQL(
-        Repository\Service $serviceRepo,
-        Repository\Network $networkRepo,
-        Repository\Secret $secretRepo,
-        Repository\ServiceType $serviceTypeRepo
+        Repository\ServiceType $serviceTypeRepo,
+        Domain\Secret $secretDomain
     ) {
-        $mySQLType   = $serviceTypeRepo->findBySlug('mysql');
-        $mySQLWorker = new Worker\MySQL($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
-        $refMethod   = new \ReflectionMethod(Worker\MySQL::class, 'createSecrets');
-        $refMethod->setAccessible(true);
+        $mysqlType = $serviceTypeRepo->findBySlug('mysql');
 
-        foreach ($mySQLType->getServices() as $service) {
+        foreach ($mysqlType->getServices() as $service) {
             $env = $service->getEnvironments();
 
             $form = new Form\MySQLCreate();
@@ -96,20 +93,24 @@ class Version1_0_6 extends FixtureMigrationAbstract
 
             $service->setEnvironments($env);
 
-            $refMethod->invoke($mySQLWorker, $service, $form);
+            $slug = $service->getSlug();
+            $internalSecrets = [
+                "{$slug}-mysql_host"          => $slug,
+                "{$slug}-mysql_root_password" => $form->mysql_root_password,
+                "{$slug}-mysql_database"      => $form->mysql_database,
+                "{$slug}-mysql_user"          => $form->mysql_user,
+                "{$slug}-mysql_password"      => $form->mysql_password,
+            ];
+
+            $secretDomain->createOwnedSecrets($service, $internalSecrets, true);
         }
     }
 
     protected function migratePostgreSQL(
-        Repository\Service $serviceRepo,
-        Repository\Network $networkRepo,
-        Repository\Secret $secretRepo,
-        Repository\ServiceType $serviceTypeRepo
+        Repository\ServiceType $serviceTypeRepo,
+        Domain\Secret $secretDomain
     ) {
-        $psqlType   = $serviceTypeRepo->findBySlug('postgresql');
-        $psqlWorker = new Worker\PostgreSQL($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
-        $refMethod  = new \ReflectionMethod(Worker\PostgreSQL::class, 'createSecrets');
-        $refMethod->setAccessible(true);
+        $psqlType = $serviceTypeRepo->findBySlug('postgresql');
 
         foreach ($psqlType->getServices() as $service) {
             $env = $service->getEnvironments();
@@ -127,7 +128,15 @@ class Version1_0_6 extends FixtureMigrationAbstract
 
             $service->setEnvironments($env);
 
-            $refMethod->invoke($psqlWorker, $service, $form);
+            $slug = $service->getSlug();
+            $internalSecrets = [
+                "{$slug}-postgres_host"     => $slug,
+                "{$slug}-postgres_db"       => $form->postgres_db,
+                "{$slug}-postgres_user"     => $form->postgres_user,
+                "{$slug}-postgres_password" => $form->postgres_password,
+            ];
+
+            $secretDomain->createOwnedSecrets($service, $internalSecrets, true);
         }
     }
 }

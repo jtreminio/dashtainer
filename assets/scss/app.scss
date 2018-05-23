@@ -264,3 +264,21 @@ ul.nav.nav-tabs {
 .card.hlt:hover {
     cursor: default;
 }
+
+.selectgroup-item.dark .selectgroup-input:checked + .selectgroup-button {
+    background: $primary;
+    color: #fff;
+}
+
+.scrollable-container {
+    max-height: 25em;
+    overflow-y: auto;
+}
+
+tbody > tr.empty-table:only-child {
+    display: table-row;
+}
+
+tbody > tr.empty-table {
+    display: none;
+}

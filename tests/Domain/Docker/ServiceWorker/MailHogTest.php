@@ -24,7 +24,12 @@ class MailHogTest extends ServiceWorkerBase
         $this->form->type    = $this->serviceType;
         $this->form->name    = 'service-name';
 
-        $this->worker = new MailHog($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new MailHog(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()

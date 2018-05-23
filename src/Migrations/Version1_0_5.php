@@ -17,6 +17,7 @@ class Version1_0_5 extends FixtureMigrationAbstract
                 uid VARCHAR(32) NOT NULL,
                 gid VARCHAR(32) NOT NULL,
                 mode VARCHAR(4) NOT NULL,
+                is_internal TINYINT NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL,
                 updated_at DATETIME NOT NULL,
                 INDEX IDX_7CB10CD762B29D0 (project_secret_id),

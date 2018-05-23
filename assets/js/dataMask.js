@@ -12,4 +12,8 @@ module.exports = function(element) {
     $(domElement).find('[data-mask-type="filename"]').mask('X'.repeat(64), {'translation':{
         'X': {pattern: /^[a-zA-Z0-9._\-]+$/}
     }});
+
+    $(domElement).find('[data-mask-type="secret"]').mask('X'.repeat(64), {'translation':{
+        'X': {pattern: /^[a-zA-Z0-9_\-]+$/}
+    }});
 };

@@ -45,7 +45,12 @@ class ServiceSecret implements
     protected $mode = '0444';
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="service_secrets")
+     * @ORM\Column(name="is_internal", type="boolean")
+     */
+    protected $is_internal = false;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="service_secrets", fetch="EAGER")
      * @ORM\JoinColumn(name="project_secret_id", referencedColumnName="id", nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#long-syntax-2
      */
@@ -130,6 +135,22 @@ class ServiceSecret implements
         return $this;
     }
 
+    public function getIsInternal() : bool
+    {
+        return $this->is_internal;
+    }
+
+    /**
+     * @param bool $is_internal
+     * @return $this
+     */
+    public function setIsInternal(bool $is_internal)
+    {
+        $this->is_internal = $is_internal;
+
+        return $this;
+    }
+
     public function getProjectSecret() : ?Secret
     {
         return $this->project_secret;
@@ -139,7 +160,7 @@ class ServiceSecret implements
      * @param Secret $project_secret
      * @return $this
      */
-    public function setProjectSecret(Secret $project_secret)
+    public function setProjectSecret(Secret $project_secret = null)
     {
         $this->project_secret = $project_secret;
 
@@ -155,7 +176,7 @@ class ServiceSecret implements
      * @param Service $service
      * @return $this
      */
-    public function setService(Service $service)
+    public function setService(Service $service = null)
     {
         $this->service = $service;
 

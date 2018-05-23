@@ -52,7 +52,7 @@ class Service
     ) : Form\Docker\Service\CreateAbstract {
         $handler = $this->manager->getWorkerFromType($serviceType);
 
-        return $handler->getCreateForm($serviceType);
+        return $handler->getCreateForm();
     }
 
     public function getCreateParams(

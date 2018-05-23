@@ -82,7 +82,9 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [];
+        return [
+            'secrets' => $this->getCreateSecrets($project),
+        ];
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -133,5 +135,12 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $this->userFilesUpdate($service, $form);
 
         return $service;
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

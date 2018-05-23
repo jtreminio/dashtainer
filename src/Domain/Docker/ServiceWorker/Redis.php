@@ -67,6 +67,7 @@ class Redis extends WorkerAbstract implements WorkerInterface
     {
         return [
             'bindPort' => $this->getOpenBindPort($project),
+            'secrets'  => $this->getCreateSecrets($project),
         ];
     }
 
@@ -137,5 +138,12 @@ class Redis extends WorkerAbstract implements WorkerInterface
         }
 
         return 6379;
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

@@ -35,7 +35,12 @@ class NodeJsTest extends ServiceWorkerBase
             ]
         ];
 
-        $this->worker = new NodeJs($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new NodeJs(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -52,11 +57,6 @@ class NodeJsTest extends ServiceWorkerBase
         $this->assertEquals([$this->form->port], $portMeta->getData());
 
         $this->assertNotNull($service->getVolume('project_files_source'));
-    }
-
-    public function testGetCreateParams()
-    {
-        $this->assertEquals([], $this->worker->getCreateParams($this->project));
     }
 
     public function testGetViewParams()

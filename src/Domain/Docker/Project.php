@@ -66,11 +66,11 @@ class Project
                 $deleted[spl_object_hash($network)]= $network;
             }
 
-            foreach ($service->getSecrets() as $secret) {
-                $service->removeSecret($secret);
-                $secret->removeService($service);
+            foreach ($service->getSecrets() as $serviceSecret) {
+                $service->removeSecret($serviceSecret);
+                $serviceSecret->setService(null);
 
-                $deleted[spl_object_hash($secret)]= $secret;
+                $deleted[spl_object_hash($serviceSecret)]= $serviceSecret;
             }
 
             foreach ($service->getVolumes() as $volume) {
@@ -105,10 +105,10 @@ class Project
             $deleted[spl_object_hash($network)]= $network;
         }
 
-        foreach ($project->getSecrets() as $secret) {
-            $project->removeSecret($secret);
+        foreach ($project->getSecrets() as $projectSecret) {
+            $project->removeSecret($projectSecret);
 
-            $deleted[spl_object_hash($secret)]= $secret;
+            $deleted[spl_object_hash($projectSecret)]= $projectSecret;
         }
 
         foreach ($project->getVolumes() as $volume) {

@@ -35,6 +35,13 @@
 
         {% include '@Dashtainer/project/service/snippets/networks_create.html.twig' %}
 
+        <hr class="my-6" />
+
+        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
+        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
+
+        <hr class="my-6" />
+
         <div class="row">
             <div class="col-6">
                 <label class="form-label" for="port">Bind Port</label>
@@ -87,7 +94,7 @@
                                data-toggle="radio-tab" data-target="#datastore-docker-tab"
                                data-error-container="datastore" />
                         <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-anchor"></i> Docker</span>
+                            <i class="fe fe-anchor"></i> Docker Volume</span>
                     </label>
 
                     <label class="selectgroup-item">
@@ -136,6 +143,17 @@
         <hr class="my-6" />
 
         <h4 class="mb-3">Database Credentials</h4>
+
+        <div class="row form-group">
+            <div class="col">
+                <small class="text-muted">
+                    Credentials will be available as Docker Secrets. Other services may then import
+                    and use them without having to hardcode the actual value.<br />
+                    If you do not plan to use Docker Secrets, you can leave the Secret Name fields
+                    as their default values.
+                </small>
+            </div>
+        </div>
 
         <div class="row">
             <div class="col-12 col-xl form-group">

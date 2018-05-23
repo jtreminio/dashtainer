@@ -38,7 +38,12 @@ class PostgreSQLTest extends ServiceWorkerBase
         $this->form->postgres_user     = 'dbuser';
         $this->form->postgres_password = 'userpw';
 
-        $this->worker = new PostgreSQL($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new PostgreSQL(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -47,9 +52,35 @@ class PostgreSQLTest extends ServiceWorkerBase
 
         $environment = $service->getEnvironments();
 
-        $this->assertEquals('dbname', $environment['POSTGRES_DB']);
-        $this->assertEquals('dbuser', $environment['POSTGRES_USER']);
-        $this->assertEquals('userpw', $environment['POSTGRES_PASSWORD']);
+        $this->assertEquals(
+            '/run/secrets/service-name-postgres_db',
+            $environment['POSTGRES_DB_FILE']
+        );
+        $this->assertEquals(
+            '/run/secrets/service-name-postgres_user',
+            $environment['POSTGRES_USER_FILE']
+        );
+        $this->assertEquals(
+            '/run/secrets/service-name-postgres_password',
+            $environment['POSTGRES_PASSWORD_FILE']
+        );
+
+        $secret_postgres_db       = $service->getSecret('service-name-postgres_db');
+        $secret_postgres_user     = $service->getSecret('service-name-postgres_user');
+        $secret_postgres_password = $service->getSecret('service-name-postgres_password');
+
+        $this->assertEquals(
+            $this->form->postgres_db,
+            $secret_postgres_db->getProjectSecret()->getContents()
+        );
+        $this->assertEquals(
+            $this->form->postgres_user,
+            $secret_postgres_user->getProjectSecret()->getContents()
+        );
+        $this->assertEquals(
+            $this->form->postgres_password,
+            $secret_postgres_password->getProjectSecret()->getContents()
+        );
 
         $configFileVolume = $service->getVolume('postgresql.conf');
 
@@ -145,9 +176,9 @@ class PostgreSQLTest extends ServiceWorkerBase
         $uEnvironments  = $updatedService->getEnvironments();
 
         $expectedEnvironments = [
-            'POSTGRES_DB'       => $form->postgres_db,
-            'POSTGRES_USER'     => $form->postgres_user,
-            'POSTGRES_PASSWORD' => $form->postgres_password,
+            'POSTGRES_DB_FILE'       => '/run/secrets/service-name-postgres_db',
+            'POSTGRES_USER_FILE'     => '/run/secrets/service-name-postgres_user',
+            'POSTGRES_PASSWORD_FILE' => '/run/secrets/service-name-postgres_password',
         ];
 
         $expectedServicePorts = ["{$form->port}:5432"];

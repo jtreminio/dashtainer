@@ -19,6 +19,9 @@ class Service extends Controller
     /** @var Domain\Docker\Network */
     protected $dNetworkDomain;
 
+    /** @var Domain\Docker\Secret */
+    protected $dSecretDomain;
+
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;
 
@@ -27,6 +30,9 @@ class Service extends Controller
 
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
+
+    /** @var Repository\Docker\Secret */
+    protected $dSecretRepo;
 
     /** @var Repository\Docker\Service */
     protected $dServiceRepo;
@@ -42,19 +48,23 @@ class Service extends Controller
 
     public function __construct(
         Domain\Docker\Network $dNetworkDomain,
+        Domain\Docker\Secret $dSecretDomain,
         Domain\Docker\Service $dServiceDomain,
         Repository\Docker\Network $dNetworkRepo,
         Repository\Docker\Project $dProjectRepo,
+        Repository\Docker\Secret $dSecretRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
         $this->dNetworkDomain = $dNetworkDomain;
+        $this->dSecretDomain  = $dSecretDomain;
         $this->dServiceDomain = $dServiceDomain;
 
         $this->dNetworkRepo     = $dNetworkRepo;
         $this->dProjectRepo     = $dProjectRepo;
+        $this->dSecretRepo      = $dSecretRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
         $this->dServiceTypeRepo = $dServiceTypeRepo;
@@ -126,6 +136,26 @@ class Service extends Controller
                 'tab'     => $blockTab->getContent(),
                 'content' => $blockContent->getContent(),
             ],
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.block-add-secret.get",
+     *     path="/project/{projectId}/service/block-add-secret",
+     *     methods={"GET"}
+     * )
+     * @return AjaxResponse
+     */
+    public function getBlockAddSecret() : AjaxResponse
+    {
+        $template = '@Dashtainer/project/service/snippets/secret-add.html.twig';
+        $rendered = $this->render($template, [
+            'id' => uniqid(),
+        ]);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_SUCCESS,
+            'data' => $rendered->getContent(),
         ], AjaxResponse::HTTP_OK);
     }
 
@@ -262,6 +292,11 @@ class Service extends Controller
 
         $form->project = $project;
         $form->type    = $serviceType;
+
+        $form->grant_secrets_not_belong = $this->dSecretDomain->idsNotBelongToProject(
+            $project,
+            array_column($form->grant_secrets, 'id')
+        );
 
         $this->validator->setSource($form);
 
@@ -409,6 +444,15 @@ class Service extends Controller
         $form->name    = $service->getName();
         $form->project = $project;
         $form->type    = $serviceType;
+
+        $form->owned_secrets_not_belong = $this->dSecretDomain->idsNotBelongToService(
+            $service,
+            array_column($form->owned_secrets, 'id')
+        );
+        $form->grant_secrets_not_belong = $this->dSecretDomain->idsNotBelongToProject(
+            $project,
+            array_column($form->grant_secrets, 'id')
+        );
 
         $this->validator->setSource($form);
 

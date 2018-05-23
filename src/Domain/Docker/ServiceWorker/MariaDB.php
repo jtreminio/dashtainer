@@ -33,17 +33,13 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $service->setImage("mariadb:{$version}")
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
 
-        $sec  = '/run/secrets';
-        $slug = $service->getSlug();
-
+        $secretPrepend = "/run/secrets/{$service->getSlug()}";
         $service->setEnvironments([
-            'MYSQL_ROOT_PASSWORD_FILE' => "{$sec}/{$slug}-mysql_root_password",
-            'MYSQL_DATABASE_FILE'      => "{$sec}/{$slug}-mysql_database",
-            'MYSQL_USER_FILE'          => "{$sec}/{$slug}-mysql_user",
-            'MYSQL_PASSWORD_FILE'      => "{$sec}/{$slug}-mysql_password",
+            'MYSQL_ROOT_PASSWORD_FILE' => "{$secretPrepend}-mysql_root_password",
+            'MYSQL_DATABASE_FILE'      => "{$secretPrepend}-mysql_database",
+            'MYSQL_USER_FILE'          => "{$secretPrepend}-mysql_user",
+            'MYSQL_PASSWORD_FILE'      => "{$secretPrepend}-mysql_password",
         ]);
-
-        $this->serviceRepo->save($service);
 
         $this->createSecrets($service, $form);
 
@@ -105,6 +101,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
     {
         return [
             'bindPort' => $this->getOpenBindPort($project),
+            'secrets'  => $this->getCreateSecrets($project),
         ];
     }
 
@@ -119,12 +116,19 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             ?? $this->getOpenBindPort($service->getProject());
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
-        $secrets = $this->getSecrets($service);
+        $secrets = $this->getViewSecrets($service);
 
-        $mysql_root_password = $secrets['mysql_root_password']->getProjectSecret()->getContents();
-        $mysql_database      = $secrets['mysql_database']->getProjectSecret()->getContents();
-        $mysql_user          = $secrets['mysql_user']->getProjectSecret()->getContents();
-        $mysql_password      = $secrets['mysql_password']->getProjectSecret()->getContents();
+        /** @var Entity\Docker\ServiceSecret[] $internal */
+        $internal = $secrets['internal'];
+        $slug     = $service->getSlug();
+        $mysql_root_password = $internal["{$slug}-mysql_root_password"]
+            ->getProjectSecret()->getContents();
+        $mysql_database      = $internal["{$slug}-mysql_database"]
+            ->getProjectSecret()->getContents();
+        $mysql_user          = $internal["{$slug}-mysql_user"]
+            ->getProjectSecret()->getContents();
+        $mysql_password      = $internal["{$slug}-mysql_password"]
+            ->getProjectSecret()->getContents();
 
         $myCnf         = $service->getVolume('my.cnf');
         $configFileCnf = $service->getVolume('config-file.cnf');
@@ -147,6 +151,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
                 'config-file.cnf' => $configFileCnf,
             ],
             'userFiles'           => $userFiles,
+            'secrets'             => $secrets,
         ];
     }
 
@@ -210,147 +215,23 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         return 3306;
     }
 
-    protected function createSecrets(
-        Entity\Docker\Service $service,
-        Form\Docker\Service\MariaDBCreate $form
-    ) {
-        $sec  = '/run/secrets';
-        $slug = $service->getSlug();
-
-        // mysql_host
-
-        $host = new Entity\Docker\Secret();
-        $host->setName("{$slug}-mysql_host")
-            ->setFile("./secrets/{$slug}-mysql_host")
-            ->setContents($slug)
-            ->setProject($service->getProject())
-            ->setOwner($service);
-
-        $hostSS = new Entity\Docker\ServiceSecret();
-        $hostSS->setProjectSecret($host)
-            ->setService($service)
-            ->setTarget("{$sec}/{$slug}-mysql_host");
-
-        $host->addServiceSecret($hostSS);
-
-        // mysql_root_password
-
-        $rootPw = new Entity\Docker\Secret();
-        $rootPw->setName("{$slug}-mysql_root_password")
-            ->setFile("./secrets/{$slug}-mysql_root_password")
-            ->setContents($form->mysql_root_password)
-            ->setProject($service->getProject())
-            ->setOwner($service);
-
-        $rootPwSS = new Entity\Docker\ServiceSecret();
-        $rootPwSS->setProjectSecret($rootPw)
-            ->setService($service)
-            ->setTarget("{$sec}/{$slug}-mysql_root_password");
-
-        $rootPw->addServiceSecret($rootPwSS);
-
-        // mysql_database
-
-        $database = new Entity\Docker\Secret();
-        $database->setName("{$slug}-mysql_database")
-            ->setFile("./secrets/{$slug}-mysql_database")
-            ->setContents($form->mysql_database)
-            ->setProject($service->getProject())
-            ->setOwner($service);
-
-        $databaseSS = new Entity\Docker\ServiceSecret();
-        $databaseSS->setProjectSecret($database)
-            ->setService($service)
-            ->setTarget("{$sec}/{$slug}-mysql_database");
-
-        $database->addServiceSecret($databaseSS);
-
-        // mysql_user
-
-        $user = new Entity\Docker\Secret();
-        $user->setName("{$slug}-mysql_user")
-            ->setFile("./secrets/{$slug}-mysql_user")
-            ->setContents($form->mysql_user)
-            ->setProject($service->getProject())
-            ->setOwner($service);
-
-        $userSS = new Entity\Docker\ServiceSecret();
-        $userSS->setProjectSecret($user)
-            ->setService($service)
-            ->setTarget("{$sec}/{$slug}-mysql_user");
-
-        $user->addServiceSecret($userSS);
-
-        // mysql_password
-
-        $password = new Entity\Docker\Secret();
-        $password->setName("{$slug}-mysql_password")
-            ->setFile("./secrets/{$slug}-mysql_password")
-            ->setContents($form->mysql_password)
-            ->setProject($service->getProject())
-            ->setOwner($service);
-
-        $passwordSS = new Entity\Docker\ServiceSecret();
-        $passwordSS->setProjectSecret($password)
-            ->setService($service)
-            ->setTarget("{$sec}/{$slug}-mysql_password");
-
-        $password->addServiceSecret($passwordSS);
-
-        $service->addSecret($hostSS)
-            ->addSecret($rootPwSS)
-            ->addSecret($databaseSS)
-            ->addSecret($userSS)
-            ->addSecret($passwordSS);
-
-        $this->serviceRepo->save(
-            $host, $hostSS,
-            $rootPw, $rootPwSS,
-            $database, $databaseSS,
-            $user, $userSS,
-            $password, $passwordSS,
-            $service
-        );
-    }
-
-    protected function updateSecrets(
-        Entity\Docker\Service $service,
-        Form\Docker\Service\MariaDBCreate $form
-    ) {
-        $secrets = $this->getSecrets($service);
-
-        $mysql_root_password = $secrets['mysql_root_password']->getProjectSecret();
-        $mysql_database      = $secrets['mysql_database']->getProjectSecret();
-        $mysql_user          = $secrets['mysql_user']->getProjectSecret();
-        $mysql_password      = $secrets['mysql_password']->getProjectSecret();
-
-        $mysql_root_password->setContents($form->mysql_root_password);
-        $mysql_database->setContents($form->mysql_database);
-        $mysql_user->setContents($form->mysql_user);
-        $mysql_password->setContents($form->mysql_password);
-
-        $this->serviceRepo->save(
-            $mysql_root_password,
-            $mysql_database,
-            $mysql_user,
-            $mysql_password
-        );
-    }
-
     /**
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\ServiceSecret[]
+     * @param Entity\Docker\Service             $service
+     * @param Form\Docker\Service\MariaDBCreate $form
+     * @return array [secret name => contents]
      */
-    protected function getSecrets(Entity\Docker\Service $service) : array
-    {
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
         $slug = $service->getSlug();
 
         return [
-            'mysql_host'          => $service->getSecret("{$slug}-mysql_host"),
-            'mysql_root_password' => $service->getSecret("{$slug}-mysql_root_password"),
-            'mysql_database'      => $service->getSecret("{$slug}-mysql_database"),
-            'mysql_user'          => $service->getSecret("{$slug}-mysql_user"),
-            'mysql_password'      => $service->getSecret("{$slug}-mysql_password"),
+            "{$slug}-mysql_host"          => $slug,
+            "{$slug}-mysql_root_password" => $form->mysql_root_password,
+            "{$slug}-mysql_database"      => $form->mysql_database,
+            "{$slug}-mysql_user"          => $form->mysql_user,
+            "{$slug}-mysql_password"      => $form->mysql_password,
         ];
     }
 }

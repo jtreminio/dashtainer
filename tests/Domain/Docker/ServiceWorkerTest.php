@@ -5,7 +5,6 @@ namespace Dashtainer\Tests\Domain\Docker;
 use Dashtainer\Tests\Mock\DomainDockerServiceWorker;
 use Dashtainer\Tests\Mock\FormDockerServiceCreate;
 use Dashtainer\Entity;
-use Dashtainer\Form;
 
 class ServiceWorkerTest extends ServiceWorkerBase
 {
@@ -29,8 +28,116 @@ class ServiceWorkerTest extends ServiceWorkerBase
         $this->worker = new DomainDockerServiceWorker(
             $this->serviceRepo,
             $this->networkRepo,
-            $this->serviceTypeRepo
+            $this->serviceTypeRepo,
+            $this->secretDomain
         );
+    }
+
+    public function testCreateReturnsServiceEntityWithNoOwnedSecrets()
+    {
+        $this->form->owned_secrets = [];
+
+        $service = $this->worker->create($this->form);
+
+        $this->assertEmpty($service->getSecrets());
+    }
+
+    public function testCreateReturnsServiceEntityWithInternalOwnedSecrets()
+    {
+        $this->form->owned_secrets = [];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $slug = $service->getSlug();
+
+        $this->assertCount(2, $service->getSecrets());
+
+        $internalProjectSecret1 = $service->getSecret("{$slug}-internal_secret_1")->getProjectSecret();
+        $internalProjectSecret2 = $service->getSecret("{$slug}-internal_secret_2")->getProjectSecret();
+
+        $this->assertNotEmpty($internalProjectSecret1);
+        $this->assertNotEmpty($internalProjectSecret2);
+
+        $this->assertEquals('internal secret 1 contents', $internalProjectSecret1->getContents());
+        $this->assertEquals('internal secret 2 contents', $internalProjectSecret2->getContents());
+    }
+
+    public function testCreateReturnsServiceEntityWithNotInternalOwnedSecrets()
+    {
+        $this->form->owned_secrets = [
+            [
+                'name'     => 'not-internal-secret1',
+                'contents' => 'not-internal-secret1 contents',
+            ],
+            [
+                'name'     => 'not-internal-secret2',
+                'contents' => 'not-internal-secret2 contents',
+            ],
+        ];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $slug = $service->getSlug();
+
+        $this->assertCount(4, $service->getSecrets());
+
+        $internalProjectSecret1    = $service->getSecret("{$slug}-internal_secret_1")->getProjectSecret();
+        $internalProjectSecret2    = $service->getSecret("{$slug}-internal_secret_2")->getProjectSecret();
+        $notInternalProjectSecret1 = $service->getSecret('not-internal-secret1')->getProjectSecret();
+        $notInternalProjectSecret2 = $service->getSecret('not-internal-secret2')->getProjectSecret();
+
+        $this->assertNotEmpty($internalProjectSecret1);
+        $this->assertNotEmpty($internalProjectSecret2);
+        $this->assertNotEmpty($notInternalProjectSecret1);
+        $this->assertNotEmpty($notInternalProjectSecret2);
+
+        $this->assertEquals('internal secret 1 contents', $internalProjectSecret1->getContents());
+        $this->assertEquals('internal secret 2 contents', $internalProjectSecret2->getContents());
+        $this->assertEquals('not-internal-secret1 contents', $notInternalProjectSecret1->getContents());
+        $this->assertEquals('not-internal-secret2 contents', $notInternalProjectSecret2->getContents());
+    }
+
+    public function testCreateReturnsServiceEntityWithNoGrantedSecrets()
+    {
+        $this->form->grant_secrets = [];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $slug = $service->getSlug();
+
+        $this->assertCount(2, $service->getSecrets());
+
+        $internalProjectSecret1 = $service->getSecret("{$slug}-internal_secret_1")->getProjectSecret();
+        $internalProjectSecret2 = $service->getSecret("{$slug}-internal_secret_2")->getProjectSecret();
+
+        $this->assertNotEmpty($internalProjectSecret1);
+        $this->assertNotEmpty($internalProjectSecret2);
+    }
+
+    public function testCreateReturnsServiceEntityWithGrantedSecrets()
+    {
+        $this->form->grant_secrets = [
+            [
+                // name: other project secret 1
+                'id'     => 'other-project-secret-1-id',
+                'target' => 'other-project-secret-1-target',
+            ],
+            [
+                'id'     => 'invalid-id',
+                'target' => 'invalid-id-target',
+            ],
+        ];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $this->assertCount(3, $service->getSecrets());
+
+        $grantServiceSecret1 = $service->getSecret('other project secret 1');
+        $grantProjectSecret1 = $grantServiceSecret1->getProjectSecret();
+
+        $this->assertEquals('other-project-secret-1-target', $grantServiceSecret1->getTarget());
+
+        $this->assertNotEmpty($grantProjectSecret1);
     }
 
     public function testCreateReturnsServiceEntityWithNoPrivateNetworks()
@@ -222,6 +329,102 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
         $this->assertEquals('service-name-datastore', $projectDatastoreVolume->getName());
         $this->assertEquals($projectDatastoreVolume->getName(), $datastore->getSource());
+    }
+
+    public function testUpdateReturnsServiceEntityWithNoNotInternalOwnedSecrets()
+    {
+        $this->form->owned_secrets = [
+            [
+                'name'     => 'not-internal-secret1',
+                'contents' => 'not-internal-secret1 contents',
+            ],
+            [
+                'name'     => 'not-internal-secret2',
+                'contents' => 'not-internal-secret2 contents',
+            ],
+        ];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $form = clone $this->form;
+
+        $form->owned_secrets = [];
+
+        $updatedService = $this->worker->updateWithSecrets($service, $form);
+
+        $this->assertCount(2, $updatedService->getSecrets());
+    }
+
+    public function testUpdateReturnsServiceEntityWithRemovedAndUpdatedNotInternalOwnedSecrets()
+    {
+        $this->form->owned_secrets = [
+            [
+                'name'     => 'not-internal-secret1',
+                'contents' => 'not-internal-secret1 contents',
+            ],
+            [
+                'name'     => 'not-internal-secret2',
+                'contents' => 'not-internal-secret2 contents',
+            ],
+        ];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $this->assertCount(4, $service->getSecrets());
+
+        $form = clone $this->form;
+
+        $form->owned_secrets = [
+            [
+                'name'     => 'not-internal-secret1',
+                'contents' => 'new contents',
+            ],
+            [
+                'name'     => 'not-internal-secret3',
+                'contents' => 'not-internal-secret3 contents',
+            ],
+        ];
+
+        $updatedService = $this->worker->updateWithSecrets($service, $form);
+
+        $this->assertCount(4, $updatedService->getSecrets());
+
+        $grantServiceSecret1 = $updatedService->getSecret('not-internal-secret1');
+        $grantServiceSecret2 = $updatedService->getSecret('not-internal-secret2');
+        $grantServiceSecret3 = $updatedService->getSecret('not-internal-secret3');
+
+        $this->assertNull($grantServiceSecret2);
+
+        $grantProjectSecret1 = $grantServiceSecret1->getProjectSecret();
+        $grantProjectSecret3 = $grantServiceSecret3->getProjectSecret();
+
+        $this->assertEquals('new contents', $grantProjectSecret1->getContents());
+        $this->assertEquals('not-internal-secret3 contents', $grantProjectSecret3->getContents());
+    }
+
+    public function testUpdateReturnsServiceEntityWithNoGrantedSecrets()
+    {
+        $this->form->grant_secrets = [
+            [
+                // name: other project secret 1
+                'id'     => 'other-project-secret-1-id',
+                'target' => 'other-project-secret-1-target',
+            ],
+        ];
+
+        $service = $this->worker->createWithSecrets($this->form);
+
+        $this->assertCount(3, $service->getSecrets());
+
+        $form = clone $this->form;
+
+        $form->grant_secrets = [];
+
+        $updatedService = $this->worker->updateWithSecrets($service, $form);
+
+        $this->assertCount(2, $updatedService->getSecrets());
+
+        $this->assertNull($updatedService->getSecret('other project secret 1'));
     }
 
     public function testUpdateReturnsServiceEntityWithNoPrivateNetworks()

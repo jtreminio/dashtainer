@@ -2,6 +2,7 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
+use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
@@ -14,11 +15,11 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
     public function __construct(
         Repository\Docker\Service $serviceRepo,
         Repository\Docker\Network $networkRepo,
-        Repository\Docker\Secret $secretRepo,
         Repository\Docker\ServiceType $serviceTypeRepo,
+        Domain\Docker\Secret $secretDomain,
         Blackfire $blackfireWorker
     ) {
-        parent::__construct($serviceRepo, $networkRepo, $secretRepo, $serviceTypeRepo);
+        parent::__construct($serviceRepo, $networkRepo, $serviceTypeRepo, $secretDomain);
 
         $this->blackfireWorker = $blackfireWorker;
     }
@@ -191,7 +192,9 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [];
+        return [
+            'secrets' => $this->getCreateSecrets($project),
+        ];
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -504,5 +507,12 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $blackfireNetworkMeta,
             $blackfireNetwork
         );
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

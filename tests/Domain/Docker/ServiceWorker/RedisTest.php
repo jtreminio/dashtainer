@@ -31,7 +31,12 @@ class RedisTest extends ServiceWorkerBase
         $this->form->port_confirm = false;
         $this->form->port_used    = false;
 
-        $this->worker = new Redis($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new Redis(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()

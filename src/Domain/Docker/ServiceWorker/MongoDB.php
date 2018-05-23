@@ -68,6 +68,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
     {
         return [
             'bindPort' => $this->getOpenBindPort($project),
+            'secrets'  => $this->getCreateSecrets($project),
         ];
     }
 
@@ -138,5 +139,12 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
         }
 
         return 27017;
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

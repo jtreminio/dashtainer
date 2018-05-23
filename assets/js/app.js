@@ -28,6 +28,7 @@ require('jquery-mask-plugin');
 require('jquery-sparkline');
 require('jdenticon');
 require('font-mfizz/dist/font-mfizz.css');
+require('floatthead');
 
 //require('./tabler-core');
 
@@ -43,7 +44,9 @@ DASHTAINER.dataMask = require('./dataMask');
 $(document).ready(function() {
     require('./formAjax');
     require('./addBlock');
+    require('./addElement');
     require('./removeBlock');
+    require('./removeElement');
     require('./codeFromRemote');
     require('./card');
 
@@ -57,7 +60,7 @@ $(document).ready(function() {
     $('[data-selectize-tags]').selectize({
         allowEmptyOption: true,
         create: true,
-        plugins: ['remove_button'],
+        plugins: ['remove_button']
     });
 
     $(document).on('change keyup', '[data-update-text]', function(e) {
@@ -80,5 +83,11 @@ $(document).ready(function() {
         $target.show();
     });
 
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip({boundary: 'viewport'});
+
+    $('table.table-scroll').floatThead({
+        scrollContainer: function ($table) {
+            return $table.closest('.scrollable-container');
+        }
+    });
 });

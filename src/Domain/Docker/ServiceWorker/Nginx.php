@@ -145,6 +145,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
     {
         return [
             'handlers' => $this->getHandlersForView($project),
+            'secrets'  => $this->getCreateSecrets($project),
         ];
     }
 
@@ -287,5 +288,12 @@ class Nginx extends WorkerAbstract implements WorkerInterface
             'PHP-FPM' => $phpfpm,
             'Node.js' => $nodejs,
         ];
+    }
+
+    protected function internalSecretsArray(
+        Entity\Docker\Service $service,
+        $form
+    ) : array {
+        return [];
     }
 }

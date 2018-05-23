@@ -39,7 +39,12 @@ class MySQLTest extends ServiceWorkerBase
         $this->form->mysql_user          = 'dbuser';
         $this->form->mysql_password      = 'userpw';
 
-        $this->worker = new MySQL($this->serviceRepo, $this->networkRepo, $this->serviceTypeRepo);
+        $this->worker = new MySQL(
+            $this->serviceRepo,
+            $this->networkRepo,
+            $this->serviceTypeRepo,
+            $this->secretDomain
+        );
     }
 
     public function testCreateReturnsServiceEntity()
@@ -48,10 +53,44 @@ class MySQLTest extends ServiceWorkerBase
 
         $environment = $service->getEnvironments();
 
-        $this->assertEquals('rootpw', $environment['MYSQL_ROOT_PASSWORD']);
-        $this->assertEquals('dbname', $environment['MYSQL_DATABASE']);
-        $this->assertEquals('dbuser', $environment['MYSQL_USER']);
-        $this->assertEquals('userpw', $environment['MYSQL_PASSWORD']);
+        $this->assertEquals(
+            '/run/secrets/service-name-mysql_root_password',
+            $environment['MYSQL_ROOT_PASSWORD_FILE']
+        );
+        $this->assertEquals(
+            '/run/secrets/service-name-mysql_database',
+            $environment['MYSQL_DATABASE_FILE']
+        );
+        $this->assertEquals(
+            '/run/secrets/service-name-mysql_user',
+            $environment['MYSQL_USER_FILE']
+        );
+        $this->assertEquals(
+            '/run/secrets/service-name-mysql_password',
+            $environment['MYSQL_PASSWORD_FILE']
+        );
+
+        $secret_mysql_root_password = $service->getSecret('service-name-mysql_root_password');
+        $secret_mysql_database      = $service->getSecret('service-name-mysql_database');
+        $secret_mysql_user          = $service->getSecret('service-name-mysql_user');
+        $secret_mysql_password      = $service->getSecret('service-name-mysql_password');
+
+        $this->assertEquals(
+            $this->form->mysql_root_password,
+            $secret_mysql_root_password->getProjectSecret()->getContents()
+        );
+        $this->assertEquals(
+            $this->form->mysql_database,
+            $secret_mysql_database->getProjectSecret()->getContents()
+        );
+        $this->assertEquals(
+            $this->form->mysql_user,
+            $secret_mysql_user->getProjectSecret()->getContents()
+        );
+        $this->assertEquals(
+            $this->form->mysql_password,
+            $secret_mysql_password->getProjectSecret()->getContents()
+        );
 
         $configFileVolume = $service->getVolume('config-file.cnf');
 
@@ -149,10 +188,10 @@ class MySQLTest extends ServiceWorkerBase
         $uEnvironments  = $updatedService->getEnvironments();
 
         $expectedEnvironments = [
-            'MYSQL_ROOT_PASSWORD' => $form->mysql_root_password,
-            'MYSQL_DATABASE'      => $form->mysql_database,
-            'MYSQL_USER'          => $form->mysql_user,
-            'MYSQL_PASSWORD'      => $form->mysql_password,
+            'MYSQL_ROOT_PASSWORD_FILE' => '/run/secrets/service-name-mysql_root_password',
+            'MYSQL_DATABASE_FILE'      => '/run/secrets/service-name-mysql_database',
+            'MYSQL_USER_FILE'          => '/run/secrets/service-name-mysql_user',
+            'MYSQL_PASSWORD_FILE'      => '/run/secrets/service-name-mysql_password',
         ];
 
         $expectedServicePorts = ["{$form->port}:3306"];

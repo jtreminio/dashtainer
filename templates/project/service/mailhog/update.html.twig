@@ -25,6 +25,11 @@
 
         <hr class="my-6" />
 
+        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
+        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
+
+        <hr class="my-6" />
+
         <div class="d-flex justify-content-between">
             <a href="{{ path('project.view.get', {
                 'projectId': project.id
