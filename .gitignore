@@ -1,7 +1,7 @@
 /.web-server-pid
 /app/config/parameters.yml
 /build/
-/docker-generated
+/docker/docker-compose.override.yml
 /test-coverage
 /phpunit.xml
 /var/*
