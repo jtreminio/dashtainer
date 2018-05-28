@@ -14,12 +14,12 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
     public function __construct(
         Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo,
         Repository\Docker\ServiceType $serviceTypeRepo,
+        Domain\Docker\Network $networkDomain,
         Domain\Docker\Secret $secretDomain,
         Blackfire $blackfireWorker
     ) {
-        parent::__construct($serviceRepo, $networkRepo, $serviceTypeRepo, $secretDomain);
+        parent::__construct($serviceRepo, $serviceTypeRepo, $networkDomain, $secretDomain);
 
         $this->blackfireWorker = $blackfireWorker;
     }
@@ -192,9 +192,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -264,7 +263,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'version'                => $version,
             'projectFiles'           => $this->projectFilesViewParams($service),
             'phpPackagesSelected'    => $phpPackagesSelected,
@@ -281,7 +280,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
-        ];
+        ]);
     }
 
     /**
@@ -415,7 +414,10 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $blackfireForm->fromArray($form->blackfire);
         $blackfireForm->project  = $form->project;
-        $blackfireForm->networks = $form->networks;
+
+        foreach ($this->networkDomain->findByService($parent) as $network) {
+            $blackfireForm->networks_join []= $network->getId();
+        }
 
         if (!$blackfireService = $this->getBlackfireChild($parent)) {
             $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
@@ -429,6 +431,11 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
             $blackfireService->setParent($parent);
             $parent->addChild($blackfireService);
+
+            foreach ($parent->getNetworks() as $network) {
+                $blackfireService->addNetwork($network);
+                $network->addService($blackfireService);
+            }
 
             $this->serviceRepo->save($blackfireService, $parent);
 
@@ -472,7 +479,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         );
     }
 
-    protected function deleteBlackfireChild(Entity\Docker\Service $parent) {
+    protected function deleteBlackfireChild(Entity\Docker\Service $parent)
+    {
         $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
         $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
 
@@ -489,24 +497,23 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $parent->removeChild($blackfireService);
 
         $blackfireNetworkMeta = $parent->getMeta('blackfire-network');
-        $blackfireNetwork = $this->networkRepo->findOneBy([
-            'project' => $parent->getProject(),
-            'name'    => $blackfireNetworkMeta->getData()[0],
-        ]);
+        foreach ($blackfireService->getNetworks() as $network) {
+            $blackfireService->removeNetwork($network);
+            $network->removeService($blackfireService);
 
-        $parent->removeMeta($blackfireNetworkMeta);
-        $blackfireNetwork->removeService($parent);
-        $parent->removeNetwork($blackfireNetwork);
-
-        $blackfireNetwork->removeService($blackfireService);
-        $blackfireService->removeNetwork($blackfireNetwork);
+            if ($network->getName() === $blackfireNetworkMeta->getData()[0]) {
+                $network->removeService($parent);
+                $parent->removeNetwork($network);
+            }
+        }
 
         $this->serviceRepo->save($parent);
         $this->serviceRepo->delete(
             $blackfireService,
-            $blackfireNetworkMeta,
-            $blackfireNetwork
+            $blackfireNetworkMeta
         );
+
+        $this->networkDomain->deleteEmptyNetworks($parent->getProject());
     }
 
     protected function internalSecretsArray(

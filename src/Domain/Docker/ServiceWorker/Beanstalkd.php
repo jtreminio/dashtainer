@@ -59,9 +59,8 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -70,12 +69,12 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
 
         $dockerfile = $service->getVolume('Dockerfile');
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'datastore'   => $datastore,
             'systemFiles' => [
                 'Dockerfile' => $dockerfile,
             ],
-        ];
+        ]);
     }
 
     /**

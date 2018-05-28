@@ -160,15 +160,15 @@ class Service extends Controller
     }
 
     /**
-     * @Route(name="project.service.network-block-create.get",
-     *     path="/project/{projectId}/service/network-block-create",
+     * @Route(name="project.service.block-add-network.get",
+     *     path="/project/{projectId}/service/block-add-network",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
-     * @return            AjaxResponse
+     * @return AjaxResponse
      */
-    public function getNetworkBlockCreate(
+    public function getBlockAddNetwork(
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
@@ -179,26 +179,15 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $uniqid = uniqid();
-
-        $id          = "network_new-{$uniqid}";
-        $name        = "network_new[{$uniqid}]";
-        $networkName = $this->dNetworkDomain->generateName($project);
-
-        $blockTemplate = '@Dashtainer/project/service/snippets/network_new_card.html.twig';
-        $blockContent  = $this->render($blockTemplate, [
-            'id'             => $id,
-            'name'           => $name,
-            'errorContainer' => 'network_new',
-            'networkName'    => $networkName,
-            'removable'      => true,
+        $template = '@Dashtainer/project/service/snippets/network-add.html.twig';
+        $rendered = $this->render($template, [
+            'id'          => uniqid(),
+            'networkName' => $this->dNetworkDomain->generateName($project),
         ]);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => [
-                'content' => $blockContent->getContent(),
-            ],
+            'data' => $rendered->getContent(),
         ], AjaxResponse::HTTP_OK);
     }
 
@@ -227,15 +216,11 @@ class Service extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $networks = $this->dNetworkRepo->getPrivateNetworks($project);
-
         $serviceName = $this->dServiceDomain->generateName(
             $project,
             $serviceType,
             $version
         );
-
-        $networkName = $this->dNetworkDomain->generateName($project);
 
         $template = sprintf('@Dashtainer/project/service/%s/create.html.twig',
             strtolower($serviceTypeSlug)
@@ -250,8 +235,6 @@ class Service extends Controller
             'serviceName'       => $serviceName,
             'serviceType'       => $serviceType,
             'version'           => $version,
-            'networks'          => $networks,
-            'networkName'       => $networkName,
         ], $params));
     }
 
@@ -381,8 +364,6 @@ class Service extends Controller
             ]);
         }
 
-        $nonJoinedNetworks = $this->dNetworkRepo->findByNotService($service);
-
         $serviceType = $service->getType();
         $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getSlug())
@@ -393,8 +374,7 @@ class Service extends Controller
         return $this->render($template, array_merge([
             'service'           => $service,
             'project'           => $project,
-            'nonJoinedNetworks' => $nonJoinedNetworks,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'serviceCategories' => $this->dServiceCatRepo->getPublic(),
         ], $params));
     }
 

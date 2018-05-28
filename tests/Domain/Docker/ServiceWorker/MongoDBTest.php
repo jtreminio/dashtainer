@@ -33,8 +33,8 @@ class MongoDBTest extends ServiceWorkerBase
 
         $this->worker = new MongoDB(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

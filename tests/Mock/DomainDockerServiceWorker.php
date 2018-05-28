@@ -68,12 +68,7 @@ class DomainDockerServiceWorker extends WorkerAbstract implements WorkerInterfac
             ->setType($form->type)
             ->setProject($form->project);
 
-        $publicNetwork = $this->networkRepo->getPublicNetwork(
-            $service->getProject()
-        );
-
-        $service->addNetwork($publicNetwork);
-
+        $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
 
         $this->userFilesCreate($service, $form);

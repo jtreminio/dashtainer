@@ -42,8 +42,8 @@ class MariaDBTest extends ServiceWorkerBase
 
         $this->worker = new MariaDB(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

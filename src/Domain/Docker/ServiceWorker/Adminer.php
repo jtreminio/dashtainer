@@ -4,7 +4,6 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 
 class Adminer extends WorkerAbstract implements WorkerInterface
 {
@@ -36,14 +35,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'ADMINER_PLUGINS' => join(' ', $form->plugins),
         ]);
 
-        $publicNetwork = $this->networkRepo->getPublicNetwork(
-            $service->getProject()
-        );
-
-        $service->addNetwork($publicNetwork);
-
-        $this->serviceRepo->save($service, $publicNetwork);
-
+        $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
 
         $frontendRule = sprintf('Host:%s.%s.localhost',
@@ -64,9 +56,8 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -101,13 +92,13 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'design'           => $design,
             'plugins'          => $plugins,
             'availableDesigns' => $availableDesigns,
             'availablePlugins' => $availablePlugins,
             'userFiles'        => $userFiles,
-        ];
+        ]);
     }
 
     /**

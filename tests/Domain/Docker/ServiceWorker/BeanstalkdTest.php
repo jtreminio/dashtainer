@@ -3,7 +3,6 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Beanstalkd;
-use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
@@ -31,8 +30,8 @@ class BeanstalkdTest extends ServiceWorkerBase
 
         $this->worker = new Beanstalkd(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

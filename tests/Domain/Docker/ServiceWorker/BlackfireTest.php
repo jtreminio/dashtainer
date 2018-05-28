@@ -3,7 +3,6 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Blackfire;
-use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
@@ -29,8 +28,8 @@ class BlackfireTest extends ServiceWorkerBase
 
         $this->worker = new Blackfire(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

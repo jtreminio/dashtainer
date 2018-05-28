@@ -73,8 +73,8 @@ EOD;
 
         $this->worker = new Apache(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

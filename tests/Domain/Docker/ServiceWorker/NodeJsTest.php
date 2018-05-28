@@ -3,10 +3,8 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\NodeJs;
-use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
-use Dashtainer\Tests\Mock\RepoDockerService;
 
 class NodeJsTest extends ServiceWorkerBase
 {
@@ -37,8 +35,8 @@ class NodeJsTest extends ServiceWorkerBase
 
         $this->worker = new NodeJs(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

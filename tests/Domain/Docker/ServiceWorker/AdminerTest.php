@@ -44,8 +44,8 @@ class AdminerTest extends ServiceWorkerBase
 
         $this->worker = new Adminer(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

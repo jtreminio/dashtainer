@@ -30,14 +30,7 @@ class MailHog extends WorkerAbstract implements WorkerInterface
 
         $service->setImage('mailhog/mailhog:latest');
 
-        $publicNetwork = $this->networkRepo->getPublicNetwork(
-            $service->getProject()
-        );
-
-        $service->addNetwork($publicNetwork);
-
-        $this->serviceRepo->save($service, $publicNetwork);
-
+        $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
 
         $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
@@ -50,14 +43,14 @@ class MailHog extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        return [];
+        return array_merge(parent::getViewParams($service), [
+        ]);
     }
 
     /**

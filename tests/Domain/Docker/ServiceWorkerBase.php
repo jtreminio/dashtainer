@@ -21,8 +21,8 @@ class ServiceWorkerBase extends KernelTestCase
     /** @var CreateAbstract */
     protected $form;
 
-    /** @var Mock\RepoDockerNetwork */
-    protected $networkRepo;
+    /** @var Domain\Docker\Network */
+    protected $networkDomain;
 
     /** @var Entity\Docker\Project */
     protected $project;
@@ -79,20 +79,27 @@ class ServiceWorkerBase extends KernelTestCase
 
     protected function setupNetwork()
     {
-        $this->networkRepo = new Mock\RepoDockerNetwork($this->em);
+        $this->networkDomain = new Domain\Docker\Network(
+            new Mock\RepoDockerNetwork($this->em),
+            __DIR__ . '/../../files/networkNames.txt'
+        );
 
         $this->publicNetwork = new Entity\Docker\Network();
+        $this->publicNetwork->fromArray(['id' => 'public-network-id']);
         $this->publicNetwork->setName('public-network')
             ->setIsEditable(false)
             ->setIsPublic(true);
 
         $privateNetworkA = new Entity\Docker\Network();
+        $privateNetworkA->fromArray(['id' => 'private-network-a-id']);
         $privateNetworkA->setName('private-network-a');
 
         $privateNetworkB = new Entity\Docker\Network();
+        $privateNetworkB->fromArray(['id' => 'private-network-b-id']);
         $privateNetworkB->setName('private-network-b');
 
         $privateNetworkC = new Entity\Docker\Network();
+        $privateNetworkC->fromArray(['id' => 'private-network-c-id']);
         $privateNetworkC->setName('private-network-c');
 
         $this->project->addNetwork($this->publicNetwork)

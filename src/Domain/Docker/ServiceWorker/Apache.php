@@ -39,14 +39,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $publicNetwork = $this->networkRepo->getPublicNetwork(
-            $service->getProject()
-        );
-
-        $service->addNetwork($publicNetwork);
-
-        $this->serviceRepo->save($service, $publicNetwork);
-
+        $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
@@ -83,10 +76,9 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
+        return array_merge(parent::getCreateParams($project), [
             'handlers' => $this->getHandlersForView($project),
-            'secrets'  => $this->getCreateSecrets($project),
-        ];
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -113,7 +105,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $vhostMeta = $service->getMeta('vhost');
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'projectFiles'           => $this->projectFilesViewParams($service),
             'apacheModulesEnable'    => $apacheModulesEnable,
             'apacheModulesDisable'   => $apacheModulesDisable,
@@ -133,7 +125,7 @@ class Apache extends WorkerAbstract implements WorkerInterface
             ],
             'vhost_conf'             => $vhostConf,
             'handlers'               => $this->getHandlersForView($service->getProject()),
-        ];
+        ]);
     }
 
     /**

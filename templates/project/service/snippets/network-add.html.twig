@@ -1,0 +1,17 @@
+<tr id="networks_create-{{ id }}-row">
+    <td>
+        <input type="text" class="form-control" maxlength="255"
+               id="networks_create-{{ id }}-name"
+               name="networks_create[{{ id }}]"
+               placeholder="" value="{{ networkName }}"
+               data-error-container="networks_create-{{ id }}-name-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="networks_create-{{ id }}-name-error"></div>
+    </td>
+    <td>New Network. This Service is added and you can add other Services later.</td>
+    <td><a href="#" class="btn btn-outline-danger btn-sm td-action"
+           data-toggle="delete-element"
+           data-target="#networks_create-{{ id }}-row"><i class="fe fe-x"></i></a>
+    </td>
+</tr>

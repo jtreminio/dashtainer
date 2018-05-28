@@ -41,8 +41,8 @@ class MySQLTest extends ServiceWorkerBase
 
         $this->worker = new MySQL(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

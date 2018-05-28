@@ -30,7 +30,11 @@ abstract class CreateAbstract implements Util\HydratorInterface
      */
     public $type;
 
-    public $networks = [];
+    // [name]
+    public $networks_create = [];
+
+    // [id]
+    public $networks_join = [];
 
     // [(id), name, contents]
     public $owned_secrets = [];
@@ -57,13 +61,38 @@ abstract class CreateAbstract implements Util\HydratorInterface
                 ->addViolation();
         }
 
-        if (empty($this->networks)) {
-            $context->buildViolation('You must join or create at least one network')
+        $this->validateNetworks($context);
+        $this->validateSecrets($context);
+    }
+
+    protected function validateNetworks(ExecutionContextInterface $context)
+    {
+        if (empty($this->networks_create) && empty($this->networks_join)) {
+            $context->buildViolation('You must join or create at least one Network')
                 ->atPath('networks')
                 ->addViolation();
         }
 
-        $this->validateSecrets($context);
+        foreach ($this->networks_create as $id => $networkName) {
+            if (empty($networkName)) {
+                $context->buildViolation('You must enter a name for this Network')
+                    ->atPath("networks_create-{$id}-name")
+                    ->addViolation();
+            }
+
+            $error = $context->getValidator()->validate(
+                $networkName,
+                new DashAssert\Hostname()
+            );
+
+            if (count($error) > 0) {
+                $context->buildViolation(
+                    'You must enter a name for this Network, valid characters are a-zA-Z0-9 and _'
+                )
+                    ->atPath("networks_create-{$id}-name")
+                    ->addViolation();
+            }
+        }
     }
 
     protected function validateSecrets(ExecutionContextInterface $context)

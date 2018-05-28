@@ -86,4 +86,21 @@ class ServiceCategory implements Repository\ObjectPersistInterface
     {
         return self::ENTITY_CLASS;
     }
+
+    /**
+     * @return Entity\Docker\ServiceCategory[]
+     */
+    public function getPublic()
+    {
+        $query = '
+            SELECT sc
+            FROM Dashtainer:Docker\ServiceCategory sc
+            JOIN sc.types st
+            WHERE st.is_public = true
+        ';
+
+        $q = $this->em->createQuery($query);
+
+        return $q->getResult();
+    }
 }

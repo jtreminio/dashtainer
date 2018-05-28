@@ -99,10 +99,9 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
+        return array_merge(parent::getCreateParams($project), [
             'bindPort' => $this->getOpenBindPort($project),
-            'secrets'  => $this->getCreateSecrets($project),
-        ];
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -137,7 +136,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             Entity\Docker\ServiceVolume::OWNER_USER
         );
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'version'             => $version,
             'datastore'           => $datastore,
             'bindPort'            => $bindPort,
@@ -151,8 +150,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
                 'config-file.cnf' => $configFileCnf,
             ],
             'userFiles'           => $userFiles,
-            'secrets'             => $secrets,
-        ];
+        ]);
     }
 
     /**

@@ -9,7 +9,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ path('index.get') }}">Home</a>
                 </li>
-                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                {% if is_granted('IS_AUTHENTICATED_FULLY') or is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ path('project.index.get') }}">Your Projects</a>
                     </li>
@@ -26,7 +26,7 @@
                        target="_blank">Hire Me!</a>
                 </li>
             </ul>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            {% if is_granted('IS_AUTHENTICATED_FULLY') or is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                 <div class="nav">
                     <div class="dropdown ml-3">
                         <a href="#" class="nav-link" data-toggle="dropdown">

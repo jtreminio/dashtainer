@@ -27,8 +27,8 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
         $this->worker = new DomainDockerServiceWorker(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }
@@ -142,7 +142,8 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntityWithNoPrivateNetworks()
     {
-        $this->form->networks = [];
+        $this->form->networks_create = [];
+        $this->form->networks_join   = [];
 
         $service = $this->worker->createWithPublicNetwork($this->form);
 
@@ -167,10 +168,13 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntityWithNewAndExistingPrivateNetworks()
     {
-        $this->form->networks = [
+        $this->form->networks_create = [
             'new-network-a',
             'new-network-b',
-            'private-network-a',
+        ];
+
+        $this->form->networks_join = [
+            'private-network-a-id',
         ];
 
         $service = $this->worker->createWithPublicNetwork($this->form);
@@ -202,7 +206,7 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntityWithNewPrivateNetworks()
     {
-        $this->form->networks = [
+        $this->form->networks_create = [
             'new-network-a',
             'new-network-b',
         ];
@@ -237,8 +241,8 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testCreateReturnsServiceEntityWithExistingPrivateNetworks()
     {
-        $this->form->networks = [
-            'private-network-a',
+        $this->form->networks_join = [
+            'private-network-a-id',
         ];
 
         $service = $this->worker->createWithPublicNetwork($this->form);
@@ -429,16 +433,16 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testUpdateReturnsServiceEntityWithNoPrivateNetworks()
     {
-        $this->form->networks = [
-            'private-network-a',
-            'private-network-b',
+        $this->form->networks_join = [
+            'private-network-a-id',
+            'private-network-b-id',
         ];
 
         $service = $this->worker->create($this->form);
 
         $form = clone $this->form;
 
-        $form->networks = [];
+        $form->networks_join = [];
 
         $updatedService = $this->worker->update($service, $form);
 
@@ -447,17 +451,17 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testUpdateReturnsServiceEntityWithLessPrivateNetworks()
     {
-        $this->form->networks = [
-            'private-network-a',
-            'private-network-b',
+        $this->form->networks_join = [
+            'private-network-a-id',
+            'private-network-b-id',
         ];
 
         $service = $this->worker->create($this->form);
 
         $form = clone $this->form;
 
-        $form->networks = [
-            'private-network-a',
+        $form->networks_join = [
+            'private-network-a-id',
         ];
 
         $updatedService = $this->worker->update($service, $form);
@@ -475,19 +479,19 @@ class ServiceWorkerTest extends ServiceWorkerBase
 
     public function testUpdateReturnsServiceEntityWithMorePrivateNetworks()
     {
-        $this->form->networks = [
-            'private-network-a',
-            'private-network-b',
+        $this->form->networks_join = [
+            'private-network-a-id',
+            'private-network-b-id',
         ];
 
         $service = $this->worker->create($this->form);
 
         $form = clone $this->form;
 
-        $form->networks = [
-            'private-network-a',
-            'private-network-b',
-            'private-network-c',
+        $form->networks_join = [
+            'private-network-a-id',
+            'private-network-b-id',
+            'private-network-c-id',
         ];
 
         $updatedService = $this->worker->update($service, $form);

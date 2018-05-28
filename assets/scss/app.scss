@@ -265,6 +265,11 @@ ul.nav.nav-tabs {
     cursor: default;
 }
 
+.td-action {
+    width: 80px;
+    padding: 0.375rem 1rem;
+}
+
 .selectgroup-item.dark .selectgroup-input:checked + .selectgroup-button {
     background: $primary;
     color: #fff;

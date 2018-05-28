@@ -4,7 +4,6 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 
 class NodeJs extends WorkerAbstract implements WorkerInterface
 {
@@ -61,9 +60,8 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -71,12 +69,12 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
         $version  = $service->getMeta('version')->getData()[0];
         $portMeta = $service->getMeta('port');
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'version'      => $version,
             'projectFiles' => $this->projectFilesViewParams($service),
             'port'         => $portMeta->getData()[0],
             'command'      => $service->getCommand()
-        ];
+        ]);
     }
 
     /**

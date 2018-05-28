@@ -33,8 +33,8 @@ class RedisTest extends ServiceWorkerBase
 
         $this->worker = new Redis(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

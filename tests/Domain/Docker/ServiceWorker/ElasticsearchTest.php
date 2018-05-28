@@ -33,8 +33,8 @@ class ElasticsearchTest extends ServiceWorkerBase
 
         $this->worker = new Elasticsearch(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

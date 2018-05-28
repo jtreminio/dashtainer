@@ -40,8 +40,8 @@ class PostgreSQLTest extends ServiceWorkerBase
 
         $this->worker = new PostgreSQL(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

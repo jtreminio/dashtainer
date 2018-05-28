@@ -66,10 +66,9 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
+        return array_merge(parent::getCreateParams($project), [
             'bindPort' => $this->getOpenBindPort($project),
-            'secrets'  => $this->getCreateSecrets($project),
-        ];
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -83,12 +82,12 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
             ?? $this->getOpenBindPort($service->getProject());
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
-        return [
+        return array_merge(parent::getViewParams($service), [
             'version'     => $version,
             'datastore'   => $datastore,
             'bindPort'    => $bindPort,
             'portConfirm' => $portConfirm,
-        ];
+        ]);
     }
 
     /**

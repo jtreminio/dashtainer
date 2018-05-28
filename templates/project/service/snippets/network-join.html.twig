@@ -1,0 +1,24 @@
+<tr id="networks_join-{{ network.id }}-row">
+    <td>{{ network.name }}</td>
+    <td>
+        <div class="tags">
+            {% for networkService in network.services if networkService.parent is empty %}
+                <a href="{{ path('project.service.view.get', {
+                    'projectId': project.id,
+                    'serviceId': networkService.id,
+                }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
+            {% endfor %}
+        </div>
+    </td>
+    <td>
+        <div class="selectgroup">
+            <label class="selectgroup-item dark mb-0">
+                <input type="checkbox" class="selectgroup-input"
+                       id="networks_join-{{ network.id }}-id"
+                       name="networks_join[]"
+                       value="{{ network.id }}" {{ checked ? 'checked' }} />
+                <span class="selectgroup-button btn btn-outline-primary td-action">Join</span>
+            </label>
+        </div>
+    </td>
+</tr>

@@ -1,0 +1,57 @@
+<div class="d-flex align-items-end">
+    <div class="p-2 w-100"><h4 class="mb-0">Networks</h4></div>
+    <div class="p-2 flex-shrink-1">
+        <a class="btn btn-outline-success"
+           data-toggle="add-element"
+           data-target="#networks_create-container"
+           href="{{ path('project.service.block-add-network.get', {
+               'projectId': project.id,
+           }) }}"><i class="fe fe-plus"></i> Create Network</a>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col">
+        <hr class="my-0 mb-3" />
+
+        {% if networks.joined is empty and networks.unjoined is empty %}
+            <div class="alert alert-icon alert-warning mb-6" role="alert">
+                <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+                This is the first Service in this Project.
+                You must create an initial Network. You may add more Services to this Network
+                later. Services must share a Network to speak to each other.
+            </div>
+        {% endif %}
+
+        <div id="networks" data-error-container="networks"
+             class="table-responsive scrollable-container">
+            <table class="table table-striped table-vcenter table-scroll">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-25">Name</th>
+                    <th>Services</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="networks_create-container">
+                <tr class="empty-table">
+                    <td colspan="3">
+                        To add a Network, click "Create Network" above.
+                    </td>
+                </tr>
+                </tbody>
+                <tbody id="networks_join-container">
+                {% for network in networks.joined %}
+                    {% include '@Dashtainer/project/service/snippets/network-join.html.twig' with {'checked': true} %}
+                {% endfor %}
+                {% for network in networks.unjoined %}
+                    {% include '@Dashtainer/project/service/snippets/network-join.html.twig' with {'checked': false} %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="networks"></div>
+    </div>
+</div>

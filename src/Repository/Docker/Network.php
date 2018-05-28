@@ -107,53 +107,86 @@ class Network implements Repository\ObjectPersistInterface
     }
 
     /**
-     * @param Entity\Docker\Service $service
-     * @param bool                  $public
+     * @param Entity\Docker\Project $project
+     * @param string[]              $ids
      * @return Entity\Docker\Network[]
      */
-    public function findByService(Entity\Docker\Service $service, bool $public = false) : array
-    {
-        $qb = $this->em->createQueryBuilder()
-            ->select('n')
-            ->from('Dashtainer:Docker\Network', 'n')
-            ->where(':service MEMBER OF n.services')
-            ->andWhere('n.project = :project');
-
-        if (!$public) {
-            $qb->andWhere('n.is_public = 0');
-        }
-
-        $qb->setParameters([
-            'service' => $service,
-            'project' => $service->getProject(),
+    public function findByProjectMultipleIds(
+        Entity\Docker\Project $project,
+        array $ids
+    ) : array {
+        return $this->findBy([
+            'id'      => $ids,
+            'project' => $project,
         ]);
-
-        return $qb->getQuery()->getResult();
     }
 
     /**
      * @param Entity\Docker\Service $service
-     * @param bool                  $public
      * @return Entity\Docker\Network[]
      */
-    public function findByNotService(Entity\Docker\Service $service, bool $public = false) : array
+    public function findByService(Entity\Docker\Service $service) : array
     {
-        $qb = $this->em->createQueryBuilder()
-            ->select('n')
-            ->from('Dashtainer:Docker\Network', 'n')
-            ->where(':service NOT MEMBER OF n.services')
-            ->andWhere('n.project = :project');
+        $query = '
+            SELECT n, s
+            FROM Dashtainer:Docker\Network n
+            JOIN n.services s
+            WHERE :service MEMBER OF n.services
+              AND n.is_public = false
+        ';
 
-        if (!$public) {
-            $qb->andWhere('n.is_public = 0');
-        }
+        $q = $this->em->createQuery($query)
+            ->setParameters([
+                'service' => $service,
+            ]);
 
-        $qb->setParameters([
-            'service' => $service,
-            'project' => $service->getProject(),
-        ]);
+        return $q->getResult();
+    }
 
-        return $qb->getQuery()->getResult();
+    /**
+     * @param Entity\Docker\Service $service
+     * @return Entity\Docker\Network[]
+     */
+    public function findByNotService(Entity\Docker\Service $service) : array
+    {
+        $query = '
+            SELECT n, s
+            FROM Dashtainer:Docker\Network n
+            JOIN n.services s
+            WHERE :service NOT MEMBER OF n.services
+              AND n.project = :project
+              AND n.is_public = false
+        ';
+
+        $q = $this->em->createQuery($query)
+            ->setParameters([
+                'service' => $service,
+                'project' => $service->getProject(),
+            ]);
+
+        return $q->getResult();
+    }
+
+    /**
+     * @param Entity\Docker\Project $project
+     * @return Entity\Docker\Network[]
+     */
+    public function findWithNoServices(Entity\Docker\Project $project) : array
+    {
+        $query = '
+            SELECT n
+            FROM Dashtainer:Docker\Network n
+            LEFT JOIN n.services s
+            WHERE n.project = :project
+              AND s IS NULL
+        ';
+
+        $q = $this->em->createQuery($query)
+            ->setParameters([
+                'project' => $project,
+            ]);
+
+        return $q->getResult();
     }
 
     public function getPublicNetwork(

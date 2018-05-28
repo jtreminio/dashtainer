@@ -13,8 +13,8 @@ abstract class WorkerAbstract implements WorkerInterface
 {
     protected const INTERNAL_SECRETS = [];
 
-    /** @var Repository\Docker\Network */
-    protected $networkRepo;
+    /** @var Domain\Docker\Network */
+    protected $networkDomain;
 
     /** @var Domain\Docker\Secret */
     protected $secretDomain;
@@ -27,15 +27,32 @@ abstract class WorkerAbstract implements WorkerInterface
 
     public function __construct(
         Repository\Docker\Service $serviceRepo,
-        Repository\Docker\Network $networkRepo,
         Repository\Docker\ServiceType $serviceTypeRepo,
+        Domain\Docker\Network $networkDomain,
         Domain\Docker\Secret $secretDomain
     ) {
         $this->serviceRepo     = $serviceRepo;
-        $this->networkRepo     = $networkRepo;
         $this->serviceTypeRepo = $serviceTypeRepo;
 
-        $this->secretDomain = $secretDomain;
+        $this->networkDomain = $networkDomain;
+        $this->secretDomain  = $secretDomain;
+    }
+
+    public function getCreateParams(Entity\Docker\Project $project): array
+    {
+        return [
+            'networkName' => $networkName = $this->networkDomain->generateName($project),
+            'networks'    => $this->getCreateNetworks($project),
+            'secrets'     => $this->getCreateSecrets($project),
+        ];
+    }
+
+    public function getViewParams(Entity\Docker\Service $service) : array
+    {
+        return [
+            'networks' => $this->getViewNetworks($service),
+            'secrets'  => $this->getViewSecrets($service),
+        ];
     }
 
     public function delete(Entity\Docker\Service $service)
@@ -393,72 +410,25 @@ abstract class WorkerAbstract implements WorkerInterface
      */
     protected function addToPrivateNetworks(Entity\Docker\Service $service, $form)
     {
-        // New project networks
-        $projectNetworks = [];
-        $createdNetworks = [];
+        $this->networkDomain->joinNetworks($service, $form->networks_join);
+        $this->networkDomain->createNetworksForService($service, $form->networks_create);
+        $this->networkDomain->deleteEmptyNetworks($service->getProject());
+    }
 
-        // New service networks
-        $serviceNetworks = [];
-        $joinedNetworks  = [];
+    protected function getCreateNetworks(Entity\Docker\Project $project) : array
+    {
+        return [
+            'joined'   => [],
+            'unjoined' => $this->networkDomain->getPrivateNetworks($project),
+        ];
+    }
 
-        $removedNetworks = [];
-
-        // Project-level private networks
-        foreach ($this->networkRepo->getPrivateNetworks($form->project) as $network) {
-            $projectNetworks[$network->getName()] = $network;
-        }
-
-        // Service-level private networks
-        foreach ($this->networkRepo->findByService($service) as $network) {
-            $serviceNetworks[$network->getName()] = $network;
-        }
-
-        $newProjectNetworks = array_diff($form->networks, array_keys($projectNetworks));
-        $newServiceNetworks = array_diff($form->networks, array_keys($serviceNetworks));
-
-        foreach ($newProjectNetworks as $networkName) {
-            $network = new Entity\Docker\Network();
-            $network->setName($networkName)
-                ->setProject($service->getProject())
-                ->setIsEditable(true)
-                ->addService($service);
-
-            $service->addNetwork($network);
-
-            $createdNetworks []= $network;
-        }
-
-        foreach ($newServiceNetworks as $networkName) {
-            // Network already created
-            if (in_array($networkName, $newProjectNetworks)) {
-                continue;
-            }
-
-            /** @var Entity\Docker\Network $network */
-            $network = $projectNetworks[$networkName];
-            $network->addService($service);
-
-            $service->addNetwork($network);
-
-            $joinedNetworks []= $network;
-        }
-
-        // Networks this service does not belong to
-        /** @var Entity\Docker\Network $network */
-        foreach ($projectNetworks as $networkName => $network) {
-            if (in_array($networkName, $form->networks)) {
-                continue;
-            }
-
-            $service->removeNetwork($network);
-            $network->removeService($service);
-
-            $removedNetworks []= $network;
-        }
-
-        $this->serviceRepo->save($service, ...$createdNetworks);
-        $this->serviceRepo->save($service, ...$joinedNetworks);
-        $this->serviceRepo->save($service, ...array_values($removedNetworks));
+    protected function getViewNetworks(Entity\Docker\Service $service) : array
+    {
+        return [
+            'joined'   => $this->networkDomain->findByService($service),
+            'unjoined' => $this->networkDomain->findByNotService($service),
+        ];
     }
 
     /**
@@ -522,9 +492,9 @@ abstract class WorkerAbstract implements WorkerInterface
         return [
             'all'       => $allSecrets,
             'internal'  => [],
+            'owned'     => [],
             'granted'   => [],
             'grantable' => $allSecrets,
-            'owned'     => [],
         ];
     }
 

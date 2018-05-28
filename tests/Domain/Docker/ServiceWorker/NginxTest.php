@@ -62,8 +62,8 @@ EOD;
 
         $this->worker = new Nginx(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
     }

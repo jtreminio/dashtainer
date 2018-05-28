@@ -107,23 +107,26 @@ class PhpFpmTest extends ServiceWorkerBase
             'php-fpm.conf' => 'php-fpm.conf contents',
         ];
 
-        $this->form->networks = [
+        $this->form->networks_create = [
             'new-network-a',
             'new-network-b',
-            'private-network-a',
+        ];
+
+        $this->form->networks_join = [
+            'private-network-a-id',
         ];
 
         $blackfireWorker = new Blackfire(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain
         );
 
         $this->worker = new PhpFpm(
             $this->serviceRepo,
-            $this->networkRepo,
             $this->serviceTypeRepo,
+            $this->networkDomain,
             $this->secretDomain,
             $blackfireWorker
         );
@@ -190,6 +193,9 @@ class PhpFpmTest extends ServiceWorkerBase
         $this->assertNotNull($xdebugCliVolume);
     }
 
+    /**
+     * @group me
+     */
     public function testCreateAddsBlackfire()
     {
         $this->form->blackfire = [

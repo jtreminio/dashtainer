@@ -82,9 +82,8 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
-        return [
-            'secrets' => $this->getCreateSecrets($project),
-        ];
+        return array_merge(parent::getCreateParams($project), [
+        ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
@@ -95,14 +94,14 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $configYml = $service->getVolume('elasticsearch.yml');
 
-        return [
-            'version'             => $version,
-            'datastore'           => $datastore,
-            'heap_size'           => $heap_size,
-            'systemFiles'         => [
+        return array_merge(parent::getViewParams($service), [
+            'version'     => $version,
+            'datastore'   => $datastore,
+            'heap_size'   => $heap_size,
+            'systemFiles' => [
                 'elasticsearch.yml' => $configYml,
             ],
-        ];
+        ]);
     }
 
     /**
