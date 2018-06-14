@@ -1,10 +1,11 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.create.post', {
+<form action="{{ path('project.service.create.post', {
     'projectId': project.id,
     'serviceTypeSlug': serviceType.slug,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
         <div class="row">
             <div class="form-group col">
@@ -12,7 +13,7 @@
                 <input type="text" class="form-control" maxlength="64"
                        id="name" name="name" placeholder=""
                        value="{{ serviceName }}" required data-mask-type="dns"
-                       data-update-text="service-name-tag,server-name-tag"
+                       data-update-text="service-name-tag,server-name-tag,volumes_dir_internal-datadir-bind-span"
                        data-error-container="name" />
                 <div class="invalid-feedback" data-error-container-name="name"></div>
             </div>
@@ -30,19 +31,14 @@
                 <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
                 http://<span id="server-name-tag">{{ serviceName }}</span>.localhost:8025</span>
         </div>
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
 </form>
 {% endblock %}

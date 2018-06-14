@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Elasticsearch extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'elasticsearch';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('elasticsearch');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -40,6 +44,8 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $ulimits = $service->getUlimits();
         $ulimits->setMemlock(-1, -1);
@@ -61,21 +67,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $heapsizeMeta, $service);
 
-        $configYml = new Entity\Docker\ServiceVolume();
-        $configYml->setName('elasticsearch.yml')
-            ->setSource("\$PWD/{$service->getSlug()}/elasticsearch.yml")
-            ->setTarget('/usr/share/elasticsearch/config/elasticsearch.yml')
-            ->setData($form->system_file['elasticsearch.yml'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $service->addVolume($configYml);
-
-        $this->serviceRepo->save($configYml, $service);
-
-        $this->createDatastore($service, $form, '/usr/share/elasticsearch/data');
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -83,24 +75,19 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
+            'fileHighlight' => 'yml',
         ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
         $version   = (string) $service->getMeta('version')->getData()[0];
-        $datastore = $service->getMeta('datastore')->getData()[0];
         $heap_size = $service->getMeta('heap_size')->getData()[0];
 
-        $configYml = $service->getVolume('elasticsearch.yml');
-
         return array_merge(parent::getViewParams($service), [
-            'version'     => $version,
-            'datastore'   => $datastore,
-            'heap_size'   => $heap_size,
-            'systemFiles' => [
-                'elasticsearch.yml' => $configYml,
-            ],
+            'version'       => $version,
+            'heap_size'     => $heap_size,
+            'fileHighlight' => 'yml',
         ]);
     }
 
@@ -117,23 +104,30 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
             'ES_JAVA_OPTS' => "-Xms{$form->heap_size} -Xmx{$form->heap_size}",
         ]);
 
-        $this->addToPrivateNetworks($service, $form);
-
         $heapsizeMeta = $service->getMeta('heap_size');
         $heapsizeMeta->setData([$form->heap_size]);
 
         $this->serviceRepo->save($heapsizeMeta);
 
-        $configYml = $service->getVolume('elasticsearch.yml');
-        $configYml->setData($form->system_file['elasticsearch.yml'] ?? '');
+        $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($configYml);
-
-        $this->updateDatastore($service, $form);
-
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'elasticsearch-yml',
+            ],
+            'other' => [
+                'datadir',
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

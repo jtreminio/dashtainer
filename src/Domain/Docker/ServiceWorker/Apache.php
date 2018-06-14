@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Apache extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'apache';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('apache');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -39,8 +43,12 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
+        $this->serviceRepo->save($service);
+
         $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -65,19 +73,14 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
-        $this->addVolumes($service, $form);
-
-        $this->projectFilesCreate($service, $form);
-
-        $this->userFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'handlers' => $this->getHandlersForView($project),
+            'handlers'      => $this->getHandlersForView($project),
+            'fileHighlight' => 'apacheconf',
         ]);
     }
 
@@ -95,36 +98,21 @@ class Apache extends WorkerAbstract implements WorkerInterface
         $availableApacheModules += $apacheModules->getData()['default'];
         $availableApacheModules += $apacheModules->getData()['available'];
 
-        $dockerfile  = $service->getVolume('Dockerfile');
-        $apache2Conf = $service->getVolume('apache2.conf');
-        $portsConf   = $service->getVolume('ports.conf');
-        $vhostConf   = $service->getVolume('vhost.conf');
-        $userFiles   = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
-
         $vhostMeta = $service->getMeta('vhost');
 
         return array_merge(parent::getViewParams($service), [
-            'projectFiles'           => $this->projectFilesViewParams($service),
             'apacheModulesEnable'    => $apacheModulesEnable,
             'apacheModulesDisable'   => $apacheModulesDisable,
             'availableApacheModules' => $availableApacheModules,
             'systemPackagesSelected' => $systemPackagesSelected,
-            'systemFiles'            => [
-                'Dockerfile'   => $dockerfile,
-                'apache2.conf' => $apache2Conf,
-                'ports.conf'   => $portsConf,
-            ],
-            'userFiles'              => $userFiles,
             'vhost'                  => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'vhost_conf'             => $vhostConf,
             'handlers'               => $this->getHandlersForView($service->getProject()),
+            'fileHighlight'          => 'apacheconf',
         ]);
     }
 
@@ -150,8 +138,6 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
-
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
 
@@ -169,89 +155,13 @@ class Apache extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta);
 
+        $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->projectFilesUpdate($service, $form);
-
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
-    }
-
-    protected function addVolumes(
-        Entity\Docker\Service $service,
-        Form\Docker\Service\ApacheCreate $form
-    ) {
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->setName('Dockerfile')
-            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->system_file['Dockerfile'] ?? '')
-            ->setConsistency(null)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('docker')
-            ->setService($service);
-
-        $apache2Conf = new Entity\Docker\ServiceVolume();
-        $apache2Conf->setName('apache2.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/apache2.conf")
-            ->setTarget('/etc/apache2/apache2.conf')
-            ->setData($form->system_file['apache2.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $portsConf = new Entity\Docker\ServiceVolume();
-        $portsConf->setName('ports.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/ports.conf")
-            ->setTarget('/etc/apache2/ports.conf')
-            ->setData($form->system_file['ports.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $vhostConf = new Entity\Docker\ServiceVolume();
-        $vhostConf->setName('vhost.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
-            ->setTarget('/etc/apache2/sites-enabled/000-default.conf')
-            ->setData($form->vhost_conf ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('apacheconf')
-            ->setService($service);
-
-        $service->addVolume($dockerfile)
-            ->addVolume($apache2Conf)
-            ->addVolume($portsConf)
-            ->addVolume($vhostConf);
-
-        $this->serviceRepo->save(
-            $dockerfile, $apache2Conf, $portsConf, $vhostConf, $service
-        );
-    }
-
-    protected function updateVolumes(
-        Entity\Docker\Service $service,
-        Form\Docker\Service\ApacheCreate $form
-    ) {
-        $dockerfile  = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
-
-        $apache2Conf = $service->getVolume('apache2.conf');
-        $apache2Conf->setData($form->system_file['apache2.conf'] ?? '');
-
-        $portsConf   = $service->getVolume('ports.conf');
-        $portsConf->setData($form->system_file['ports.conf'] ?? '');
-
-        $vhostConf   = $service->getVolume('vhost.conf');
-        $vhostConf->setData($form->vhost_conf);
-
-        $this->serviceRepo->save($dockerfile, $apache2Conf, $portsConf, $vhostConf);
     }
 
     protected function getHandlersForView(Entity\Docker\Project $project) : array
@@ -284,6 +194,21 @@ class Apache extends WorkerAbstract implements WorkerInterface
         return [
             'PHP-FPM' => $phpfpm,
             'Node.js' => $nodejs,
+        ];
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'apache2-conf',
+                'ports-conf',
+                'vhost-conf',
+                'Dockerfile',
+            ],
+            'other' => [
+                'root',
+            ],
         ];
     }
 

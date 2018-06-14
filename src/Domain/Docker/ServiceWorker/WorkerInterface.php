@@ -7,7 +7,9 @@ use Dashtainer\Form;
 
 interface WorkerInterface
 {
-    public function getServiceTypeSlug() : string;
+    public function setVersion(string $version = null);
+
+    public function getServiceType() : Entity\Docker\ServiceType;
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract;
 

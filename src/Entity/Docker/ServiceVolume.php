@@ -25,39 +25,12 @@ class ServiceVolume implements
     public const CONSISTENCY_CONSISTENT = 'consistent';
     public const CONSISTENCY_DELEGATED  = 'delegated';
 
-    protected const ALLOWED_CONSISTENCIES = [
-        self::CONSISTENCY_CACHED,
-        self::CONSISTENCY_CONSISTENT,
-        self::CONSISTENCY_DELEGATED,
-    ];
-
-    public const OWNER_USER   = 'user';
-    public const OWNER_SYSTEM = 'system';
-
-    protected const ALLOWED_OWNERS = [
-        self::OWNER_USER,
-        self::OWNER_SYSTEM,
-    ];
-
-    public const FILETYPE_DIR   = 'directory';
     public const FILETYPE_FILE  = 'file';
     public const FILETYPE_OTHER = 'other';
-
-    protected const ALLOWED_FILETYPES = [
-        self::FILETYPE_DIR,
-        self::FILETYPE_FILE,
-        self::FILETYPE_OTHER,
-    ];
 
     public const TYPE_BIND   = 'bind';
     public const TYPE_TMPFS  = 'tmpfs';
     public const TYPE_VOLUME = 'volume';
-
-    protected const ALLOWED_TYPES = [
-        self::TYPE_BIND,
-        self::TYPE_TMPFS,
-        self::TYPE_VOLUME,
-    ];
 
     /**
      * @ORM\Column(name="name", type="string", length=64)
@@ -75,6 +48,11 @@ class ServiceVolume implements
     protected $target;
 
     /**
+     * @ORM\Column(name="prepend", type="boolean")
+     */
+    protected $prepend = false;
+
+    /**
      * Only used in MacOS hosts.
      *
      * @ORM\Column(name="consistency", type="string", length=10, nullable=true)
@@ -83,16 +61,19 @@ class ServiceVolume implements
     protected $consistency = 'default';
 
     /**
-     * Only set if $type is file
+     * Only set if $filetype == file
      *
      * @ORM\Column(name="data", type="text", nullable=true)
      */
     protected $data;
 
     /**
-     * One of file, directory
+     * One of file, other
      *
-     * @ORM\Column(name="filetype", type="string", length=9)
+     * "file" is always type "bind" (local), may or may not have data
+     * "other" can be a directory or a file, type "bind" or "volume", no data
+     *
+     * @ORM\Column(name="filetype", type="string", length=32)
      */
     protected $filetype;
 
@@ -102,11 +83,9 @@ class ServiceVolume implements
     protected $highlight;
 
     /**
-     * One of system, user
-     *
-     * @ORM\Column(name="owner", type="string", length=6)
+     * @ORM\Column(name="is_internal", type="boolean")
      */
-    protected $owner = 'system';
+    protected $is_internal = false;
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Volume", inversedBy="service_volumes")
@@ -160,22 +139,18 @@ class ServiceVolume implements
         return $this;
     }
 
-    public function getOwner() : string
+    public function getIsInternal() : bool
     {
-        return $this->owner;
+        return $this->is_internal;
     }
 
     /**
-     * @param string $owner
+     * @param bool $is_internal
      * @return $this
      */
-    public function setOwner(string $owner)
+    public function setIsInternal(bool $is_internal)
     {
-        if (!in_array($owner, static::ALLOWED_OWNERS)) {
-            throw new \UnexpectedValueException();
-        }
-
-        $this->owner = $owner;
+        $this->is_internal = $is_internal;
 
         return $this;
     }
@@ -191,10 +166,6 @@ class ServiceVolume implements
      */
     public function setConsistency(string $consistency = null)
     {
-        if ($consistency && !in_array($consistency, static::ALLOWED_CONSISTENCIES)) {
-            throw new \UnexpectedValueException();
-        }
-
         $this->consistency = $consistency;
 
         return $this;
@@ -211,10 +182,6 @@ class ServiceVolume implements
      */
     public function setFiletype(string $filetype)
     {
-        if (!in_array($filetype, static::ALLOWED_FILETYPES)) {
-            throw new \UnexpectedValueException();
-        }
-
         $this->filetype = $filetype;
 
         return $this;
@@ -247,7 +214,15 @@ class ServiceVolume implements
      */
     public function setProjectVolume(Volume $project_volume = null)
     {
+        if ($this->project_volume === $project_volume) {
+            return $this;
+        }
+
         $this->project_volume = $project_volume;
+
+        if ($project_volume) {
+            $project_volume->addServiceVolume($this);
+        }
 
         return $this;
     }
@@ -261,9 +236,17 @@ class ServiceVolume implements
      * @param Service $service
      * @return $this
      */
-    public function setService(Service $service)
+    public function setService(Service $service = null)
     {
+        if ($this->service === $service) {
+            return $this;
+        }
+
         $this->service = $service;
+
+        if ($service) {
+            $service->addVolume($this);
+        }
 
         return $this;
     }
@@ -305,6 +288,22 @@ class ServiceVolume implements
         return $this;
     }
 
+    public function getPrepend() : bool
+    {
+        return $this->prepend;
+    }
+
+    /**
+     * @param bool $prepend
+     * @return $this
+     */
+    public function setPrepend(bool $prepend = false)
+    {
+        $this->prepend = $prepend;
+
+        return $this;
+    }
+
     public function getType() : ?string
     {
         return $this->type;
@@ -316,10 +315,6 @@ class ServiceVolume implements
      */
     public function setType(string $type)
     {
-        if (!in_array($type, static::ALLOWED_TYPES)) {
-            throw new \UnexpectedValueException();
-        }
-
         $this->type = $type;
 
         return $this;

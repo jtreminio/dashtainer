@@ -1,11 +1,19 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.update.post', {
+<form action="{{ path('project.service.update.post', {
     'projectId': project.id,
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label">Service Name</label>
+                <div class="form-control">{{ service.name }}</div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -22,16 +30,8 @@
 
         <hr class="my-6" />
 
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/service_files_source_update.html.twig' %}
+        {% set volume = volumes.other.remove('root') %}
+        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
         <hr class="my-6" />
 
@@ -47,6 +47,9 @@
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="system-packages"></div>
+                <small class="text-muted">
+                    Will be installed using <code>apt-get</code>.
+                </small>
             </div>
         </div>
 
@@ -92,7 +95,7 @@
         <h4 class="mb-3">Virtual Host Config</h4>
 
         <div class="row">
-            <div class="col-12 col-xl form-group">
+            <div class="col form-group">
                 <label class="form-label" for="server_name">Server Name</label>
                 <input type="text" class="form-control"
                        id="server_name" name="server_name" placeholder=""
@@ -103,8 +106,10 @@
                     for local development.
                 </small>
             </div>
+        </div>
 
-            <div class="col-12 col-xl form-group">
+        <div class="row">
+            <div class="col form-group">
                 <label class="form-label" for="server_alias">Server Aliases</label>
                 <select class="form-control" id="server_alias"
                         name="server_alias[]"
@@ -121,7 +126,7 @@
         </div>
 
         <div class="row">
-            <div class="col-12 col-xl form-group">
+            <div class="col form-group">
                 <label class="form-label" for="document_root">Document Root</label>
                 <input type="text" class="form-control"
                        id="document_root" name="document_root" placeholder=""
@@ -132,9 +137,11 @@
                     <code>public</code>.
                 </small>
             </div>
+        </div>
 
+        <div class="row">
+            <div class="col form-group">
             {% set has_handlers = false %}
-            <div class="col-12 col-xl form-group">
                 <label class="form-label" for="handler">Handler</label>
                 <select class="form-control" id="handler"
                         name="handler"
@@ -162,6 +169,7 @@
             </div>
         </div>
 
+        {% set volume = volumes.files.remove('vhost-conf') %}
         <div class="row">
             <div class="col">
                 <ul class="nav nav-tabs mb-3" role="tablist">
@@ -174,188 +182,81 @@
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'basic_html',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Basic HTML</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Basic HTML</a>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'basic_phpfpm',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Basic PHP-FPM</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Basic PHP-FPM</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'symfony2_3',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Symfony 2 &amp; 3</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Symfony 2 &amp; 3</a>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'symfony4',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Symfony 4</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Symfony 4</a>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'laravel',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Laravel</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Laravel</a>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'wordpress',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Wordpress</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Wordpress</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item"
                                href="{{ path('project.service.apache.vhost.post', {
                                     'projectId': project.id,
                                     'type': 'basic_nodejs',
-                                }) }}" data-code-from-remote="#vhost_conf-code">Basic Node.js</a>
+                                }) }}" data-code-from-remote="#volumes_file-vhost-conf-data">Basic Node.js</a>
                         </div>
                     </li>
                 </ul>
 
-                <div id="nav-vhost_conf-content" class="tab-content">
+                <input type="hidden" name="volumes_file[{{ volume.id }}][name]"
+                       value="{{ volume.name }}" />
+                <input type="hidden" name="volumes_file[{{ volume.id }}][source]"
+                       value="{{ volume.source }}" />
+                <input type="hidden" name="volumes_file[{{ volume.id }}][target]"
+                       value="{{ volume.target }}" />
+                <input type="hidden" name="volumes_file[{{ volume.id }}][type]"
+                       value="{{ volume.type }}" />
+
+                <div id="volumes_file-content" class="tab-content">
                     <div class="tab-pane fade show active" role="tabpanel"
                          data-role="empty-tab">
                         <div class="row">
                             <div class="col">
                                 <pre class="language-apacheconf" data-code-highlight><code
-                                        id="vhost_conf-code"
+                                        id="volumes_file-{{ volume.id }}-data"
                                         contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false">{{ vhost_conf.data }}</code></pre>
-                                <input type="hidden" value="" id="vhost_conf" name="vhost_conf"
-                                       data-error-container="vhost"
-                                       data-get-value-source="vhost_conf-code" />
+                                        spellcheck="false">{{ volume.data }}</code></pre>
+                                <input type="hidden" value=""
+                                       name="volumes_file[{{ volume.id }}][data]"
+                                       data-error-container="volumes_file-{{ volume.id }}-error"
+                                       data-get-value-source="volumes_file-{{ volume.id }}-data" />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="invalid-feedback" data-error-container-name="vhost"></div>
+                <div class="invalid-feedback" data-error-container-name="volumes_file-{{ volume.id }}-error"></div>
             </div>
-        </div>
-
-        <hr class="mb-4" />
-
-        <h4 class="mb-3">Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                               'language': 'apacheconf',
-                           }) }}">
-                            <i class="fe fe-plus"></i> Add</a>
-                    </li>
-                    {% for file in systemFiles %}
-                        <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
-                               data-toggle="tab" role="tab"
-                               href="#system_file-{{ file.name }}" aria-controls="system_file-{{ file.name }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
-                        </li>
-                    {% endfor %}
-                    {% for file in userFiles %}
-                        <li class="nav-item">
-                            <a id="nav-user_file-{{ file.id }}-tab"
-                               class="nav-link"
-                               data-toggle="tab" href="#user_file-{{ file.id }}"
-                               role="tab" aria-controls="user_file-{{ file.id }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-default"
-                                        data-toggle="delete-block"
-                                        data-target="#user_file-{{ file.id }}">
-                                    <i class="fa fa-close"></i></button>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                    {% for file in systemFiles %}
-                        <div id="system_file-{{ file.name }}" role="tabpanel"
-                             class="tab-pane fade {{ loop.first ? 'show active' }}">
-                            <div class="row">
-                                <div class="col">
-                                    <pre class="language-{{ value.highlight ?? 'apacheconf' }}"
-                                         data-code-highlight><code
-                                            id="system_file-{{ file.name }}-source"
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="system_file[{{ file.name }}]"
-                                           data-error-container="system_file-error"
-                                           data-get-value-source="system_file-{{ file.name }}-source" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
-                    {% for file in userFiles %}
-                        <div id="user_file-{{ file.id }}"
-                             class="tab-pane fade"
-                             role="tabpanel">
-                            <div class="row">
-                                <div class="form-group col">
-                                    <label class="form-label"
-                                           for="user_file-{{ file.id }}-filename">Filename</label>
-                                    <input type="text" class="form-control" maxlength="255"
-                                           id="user_file-{{ file.id }}-filename"
-                                           name="user_file[{{ file.id }}][filename]"
-                                           placeholder="" value="{{ file.name }}"
-                                           data-update-text="nav-user_file-{{ file.id }}-tab"
-                                           data-mask-type="filename"
-                                           data-error-container="user_file-error" />
-                                    <small class="text-muted">
-                                        Save config into this local file.
-                                    </small>
-                                </div>
-
-                                <div class="form-group col">
-                                    <label class="form-label"
-                                           for="user_file-{{ file.id }}-target">Target Path</label>
-                                    <input type="text" class="form-control" maxlength="255"
-                                           id="user_file-{{ file.id }}-target"
-                                           name="user_file[{{ file.id }}][target]"
-                                           placeholder="" value="{{ file.target }}"
-                                           data-error-container="user_file-error" />
-                                    <small class="text-muted">
-                                        Make file available inside container at this location.
-                                    </small>
-                                </div>
-
-                                <div class="col-12">
-                                    <pre class="language-ini" data-code-highlight><code
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false"
-                                            id="user_file-{{ file.id }}-data">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="user_file[{{ file.id }}][data]"
-                                           data-error-container="user_file-error"
-                                           data-get-value-source="user_file-{{ file.id }}-data" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="system_file-error"></div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="user_file-error"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('project.view.get', {
-                'projectId': project.id
-            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
-            <button class="btn btn-primary btn-lg" type="submit">Update Service</button>
         </div>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 </form>
 {% endblock %}

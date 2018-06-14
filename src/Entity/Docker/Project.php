@@ -5,7 +5,6 @@ namespace Dashtainer\Entity\Docker;
 use Dashtainer\Entity;
 use Dashtainer\Util;
 
-use Behat\Transliterator\Transliterator;
 use Doctrine\Common\Collections;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -219,14 +218,24 @@ class Project implements
      */
     public function addVolume(Volume $volume)
     {
-        $this->volumes[] = $volume;
+        if ($this->volumes->contains($volume)) {
+            return $this;
+        }
+
+        $this->volumes->add($volume);
+        $volume->setProject($this);
 
         return $this;
     }
 
     public function removeVolume(Volume $volume)
     {
+        if (!$this->volumes->contains($volume)) {
+            return;
+        }
+
         $this->volumes->removeElement($volume);
+        $volume->setProject(null);
     }
 
     /**

@@ -1,0 +1,139 @@
+<div class="page-header mb-0" id="volume">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Local Volumes
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-element"
+               data-target="#volumes_bind-container"
+               href="{{ path('project.service.block-add-volume-bind.get', {
+                  'projectId': project.id,
+               }) }}"><i class="fe fe-plus"></i> Create Local Volume</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            Mount any file or directory on your PC into the container.
+        </div>
+
+        <div class="table-responsive scrollable-container">
+            <table class="table table-striped table-vcenter table-scroll">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-50">Source</th>
+                    <th class="w-50">Target</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="volumes_bind-container">
+                <tr class="empty-table">
+                    <td colspan="3">
+                        To add a Local Volume, click "Create Local Volume" above.
+                    </td>
+                </tr>
+                {% for volume in volumes.other if volume.type == 'bind' %}
+                    {% include '@Dashtainer/project/service/snippets/volume-bind-add.html.twig' with {'volume': volume} %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="page-header mb-0" id="volume">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Docker Volumes
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-element"
+               data-target="#volumes-container"
+               href="{{ path('project.service.block-add-volume.get', {
+                  'projectId': project.id,
+               }) }}"><i class="fe fe-plus"></i> Create Docker Volume</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            Create a persistant Docker Volume. These can be shared with other Services.
+        </div>
+
+        <h4 class="mb-3">Owned Volumes</h4>
+        <hr class="my-0 mb-3" />
+
+        <div class="table-responsive scrollable-container">
+            <table class="table table-striped table-vcenter table-scroll">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-50">Name</th>
+                    <th class="w-50">Target</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="volumes-container">
+                <tr class="empty-table">
+                    <td colspan="2">
+                        To add a Docker Volume, click "Create Docker Volume" above.
+                    </td>
+                </tr>
+                {% for volume in volumes.other if volume.type == 'volume' %}
+                    {% include '@Dashtainer/project/service/snippets/volume-add.html.twig' with {'volume': volume} %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            Create a persistant Docker Volume. These can be shared with other Services.
+        </div>
+        <h4 class="mb-3">Grant Volumes</h4>
+        <hr class="my-0 mb-3" />
+
+        <div class="table-responsive scrollable-container">
+            <table class="table table-striped table-vcenter table-scroll">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-auto">Name</th>
+                    <th class="w-auto">Owner</th>
+                    <th class="w-auto">Target</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="volumes_grant-container">
+                <tr class="empty-table">
+                    <td colspan="4">
+                        No other Services have any Volumes to share.
+                    </td>
+                </tr>
+                {% for volume in volumes.granted %}
+                    {% include '@Dashtainer/project/service/snippets/volume-granted.html.twig' with {
+                        'volume': volume,
+                    } %}
+                {% endfor %}
+                {% for projectVolume in volumes.grantable %}
+                    {% include '@Dashtainer/project/service/snippets/volume-grantable.html.twig' with {
+                        'projectVolume': projectVolume,
+                    } %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

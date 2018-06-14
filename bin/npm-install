@@ -9,4 +9,4 @@ docker container run -it --rm \
     -v ${DIR}/../var/cache/yarn:/.yarn \
     -w /var/www \
     -u "$(id -u $USER):$(id -g $USER)" \
-    node:9 npm install
+    node:9 npm install "$@"

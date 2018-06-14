@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class MariaDB extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'mariadb';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('mariadb');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -41,9 +45,11 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             'MYSQL_PASSWORD_FILE'      => "{$secretPrepend}-mysql_password",
         ]);
 
-        $this->createSecrets($service, $form);
+        $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -65,42 +71,14 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $portMeta, $service);
 
-        $myCnf = new Entity\Docker\ServiceVolume();
-        $myCnf->setName('my.cnf')
-            ->setSource("\$PWD/{$service->getSlug()}/my.cnf")
-            ->setTarget('/etc/mysql/my.cnf')
-            ->setData($form->system_file['my.cnf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $configFileCnf = new Entity\Docker\ServiceVolume();
-        $configFileCnf->setName('config-file.cnf')
-            ->setSource("\$PWD/{$service->getSlug()}/config-file.cnf")
-            ->setTarget('/etc/mysql/conf.d/config-file.cnf')
-            ->setData($form->system_file['config-file.cnf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $service->addVolume($myCnf)
-            ->addVolume($configFileCnf);
-
-        $this->serviceRepo->save($myCnf, $configFileCnf, $service);
-
-        $this->createDatastore($service, $form, '/var/lib/mysql');
-
-        $this->userFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'bindPort' => $this->getOpenBindPort($project),
+            'bindPort'      => $this->getOpenBindPort($project),
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -108,7 +86,6 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
     {
         $version   = $service->getMeta('version')->getData()[0];
         $version   = (string) number_format($version, 1);
-        $datastore = $service->getMeta('datastore')->getData()[0];
 
         $bindPortMeta = $service->getMeta('bind-port');
         $bindPort     = $bindPortMeta->getData()[0]
@@ -121,35 +98,23 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $internal = $secrets['internal'];
         $slug     = $service->getSlug();
         $mysql_root_password = $internal["{$slug}-mysql_root_password"]
-            ->getProjectSecret()->getContents();
+            ->getProjectSecret()->getData();
         $mysql_database      = $internal["{$slug}-mysql_database"]
-            ->getProjectSecret()->getContents();
+            ->getProjectSecret()->getData();
         $mysql_user          = $internal["{$slug}-mysql_user"]
-            ->getProjectSecret()->getContents();
+            ->getProjectSecret()->getData();
         $mysql_password      = $internal["{$slug}-mysql_password"]
-            ->getProjectSecret()->getContents();
-
-        $myCnf         = $service->getVolume('my.cnf');
-        $configFileCnf = $service->getVolume('config-file.cnf');
-
-        $userFiles = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
+            ->getProjectSecret()->getData();
 
         return array_merge(parent::getViewParams($service), [
             'version'             => $version,
-            'datastore'           => $datastore,
             'bindPort'            => $bindPort,
             'portConfirm'         => $portConfirm,
             'mysql_root_password' => $mysql_root_password,
             'mysql_database'      => $mysql_database,
             'mysql_user'          => $mysql_user,
             'mysql_password'      => $mysql_password,
-            'systemFiles'         => [
-                'my.cnf'          => $myCnf,
-                'config-file.cnf' => $configFileCnf,
-            ],
-            'userFiles'           => $userFiles,
+            'fileHighlight'       => 'ini',
         ]);
     }
 
@@ -162,8 +127,6 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
-        $this->addToPrivateNetworks($service, $form);
-
         $portMetaData = $form->port_confirm ? [$form->port] : [];
         $servicePort  = $form->port_confirm ? ["{$form->port}:3306"] : [];
 
@@ -174,19 +137,11 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $myCnf = $service->getVolume('my.cnf');
-        $myCnf->setData($form->system_file['my.cnf'] ?? '');
-
-        $configFileCnf = $service->getVolume('config-file.cnf');
-        $configFileCnf->setData($form->system_file['config-file.cnf'] ?? '');
-
-        $this->serviceRepo->save($myCnf, $configFileCnf);
-
-        $this->updateDatastore($service, $form);
-
+        $this->addToPrivateNetworks($service, $form);
         $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -211,6 +166,18 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         }
 
         return 3306;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'my-cnf',
+            ],
+            'other' => [
+                'datadir',
+            ],
+        ];
     }
 
     /**

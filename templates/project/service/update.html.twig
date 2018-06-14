@@ -4,70 +4,67 @@
    data-toggle="tooltip" data-html="true"
    title="This is available as a Docker Secret to other services."></i>' %}
 
+{% block breadcrumb %}
+<div class="header d-lg-flex p-0">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent mb-0">
+                        <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">
+                                Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                                'projectId': project.id,
+                            }) }}">{{ project.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Update {{ service.type.name }} Service</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-body text-wrap">
-                <div class="row">
-                    <div class="col">
-                        <ul class="nav nav-tabs mb-3" data-steps-list>
-                            <li class="col nav-item complete">
-                                <a class="nav-link" href="{{ path('project.view.get', {
-                                    'projectId': project.id
-                                }) }}">Step 1<br />
-                                    <span class="small">View Project</span></a>
-                            </li>
-                            <li class="col nav-item active">
-                                <a class="nav-link" href="#">Step 2<br />
-                                    <span class="small">Updating Service</span></a>
-                            </li>
-                            <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
-                                <a class="nav-link"
-                                    {% if project.services is not empty %}
-                                        href="{{ path('project.export.get', {'projectId': project.id}) }}
-                                    {% endif %}">Step 3<br />
-                                    <span class="small">Download Project</span></a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col pt-3 px-3 pb-0">
-                        Updating this amazing service
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col">
-        <div class="list-group-transparent mb-5">
-            <div class="d-flex flex-row hor-menu">
-                <a href="{{ path('project.view.get', {
+<div class="row" data-sticky-container>
+    <div class="col-lg-3 order-lg-0 mb-4">
+        <div data-sticky>
+            <a href="{{ path('project.view.get', {
                     'projectId': project.id
-                }) }}" class="list-group-item"><span
-                        class="icon mr-3"><i class="fe fe-list"></i></span>View Services</a>
-                <a href="#" class="list-group-item"
-                   data-toggle="modal" data-target="#service-create-modal"><span
-                        class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Service</a>
-                <a href="#" class="list-group-item text-danger ml-auto" data-toggle="modal"
-                   data-target="#service-delete-modal"><span
-                        class="icon mr-3"><i class="fe fe-delete"></i></span>Delete Service</a>
+                }) }}" class="btn btn-block btn-primary mb-6">
+                <i class="fe fe-arrow-left mr-2"></i>Back to Project
+            </a>
+
+            <div class="list-group list-group-transparent mb-0 text-right">
+                <a class="list-group-item list-group-item-action"
+                   href="#service">Service Settings <i class="fe fe-corner-up-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#file">Config Files <i class="fe fe-corner-down-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#network">Networks <i class="fe fe-corner-down-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#secret">Secrets <i class="fe fe-corner-down-right"></i></a>
+            </div>
+            <div class="list-group list-group-transparent mb-0">
+                <a class="list-group-item list-group-item-action text-danger"
+                   data-toggle="modal" data-target="#service-delete-modal"
+                   href="#"><span class="icon mr-3"><i class="fe fe-delete"></i></span>
+                    Delete Service</a>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col">
+    <div class="col-lg-9" id="service">
+        <div class="page-header mt-0 mb-2">
+            <div class="d-flex align-items-end w-100">
+                <h1 class="page-title">Update {{ service.type.name }} Service</h1>
+            </div>
+        </div>
+
         {% block serviceContent %}{% endblock %}
     </div>
 </div>
 
-{% include '@Dashtainer/project/snippets/service_create.html.twig' %}
 {% include '@Dashtainer/project/service/snippets/delete.html.twig' %}
 {% endblock %}

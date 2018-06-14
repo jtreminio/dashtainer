@@ -1,0 +1,62 @@
+<div id="volumes_file-{{ volume.id }}-container"
+     role="tabpanel" class="tab-pane fade {{ loopFirst ? 'show active' }}">
+    <input type="hidden" name="volumes_file[{{ volume.id }}][name]"
+           value="{{ volume.name }}" />
+    <input type="hidden" name="volumes_file[{{ volume.id }}][type]"
+           value="{{ volume.type }}" />
+
+    <div class="row">
+        <div class="form-group col">
+            <label class="form-label"
+                   for="volumes_file-{{ volume.id }}-source">Filename</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><em data-toggle="tooltip"
+                       title="File will be created in a directory named after this Service">
+                            <span id="service-name-tag">{{ serviceName }}</span>/
+                        </em></span>
+                </div>
+                <input type="text" class="form-control" maxlength="255"
+                       id="volumes_file-{{ volume.id }}-source"
+                       name="volumes_file[{{ volume.id }}][source]"
+                       value="{{ volume.source }}"
+                       data-update-text="volumes_file-{{ volume.id }}-tab"
+                       data-mask-type="filename"
+                       data-error-container="volumes_file-error"
+                       {{ volume.isInternal ? 'readonly' }} />
+            </div>
+            <small class="text-muted">
+                Save config into this local file.
+            </small>
+        </div>
+
+        <div class="form-group col">
+            <label class="form-label"
+                   for="volumes_file-{{ volume.id }}-target">Target Path</label>
+            <input type="text" class="form-control" maxlength="255"
+                   id="volumes_file-{{ volume.id }}-target"
+                   name="volumes_file[{{ volume.id }}][target]"
+                   value="{{ volume.target }}"
+                   data-error-container="volumes_file-error"
+                   {{ volume.isInternal ? 'readonly' }} />
+            <small class="text-muted">
+                Make file available inside container at this location. If blank, file
+                will be written on local disk but not shared inside the container.
+            </small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <pre class="language-{{ volume.highlight }}"
+                 data-code-highlight><code
+                    id="volumes_file-{{ volume.id }}-data"
+                    contenteditable autocorrect="off" autocapitalize="off"
+                    spellcheck="false">{{ volume.data }}</code></pre>
+            <input type="hidden" value=""
+                   name="volumes_file[{{ volume.id }}][data]"
+                   data-error-container="volumes_file-error"
+                   data-get-value-source="volumes_file-{{ volume.id }}-data" />
+        </div>
+    </div>
+</div>

@@ -20,6 +20,7 @@
     "font-mfizz": "^2.4.1",
     "jdenticon": "^2.0.0",
     "popper.js": "^1.12.9",
+    "sticky-js": "^1.2.0",
     "webpack": "^3.0.0"
   }
 }

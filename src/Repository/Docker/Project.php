@@ -6,6 +6,7 @@ use Dashtainer\Entity;
 use Dashtainer\Repository;
 
 use Doctrine\ORM;
+use Doctrine\ORM\Query\Expr;
 use Doctrine\Common\Persistence;
 
 class Project implements Repository\ObjectPersistInterface
@@ -95,5 +96,36 @@ class Project implements Repository\ObjectPersistInterface
             'id'   => $id,
             'user' => $user
         ]);
+    }
+
+    /**
+     * Return list of project ID, Name and count of Services in the Project
+     *
+     * @param Entity\User $user
+     * @return array [id, name, service_count]
+     */
+    public function getNamesAndCount(Entity\User $user) : array
+    {
+        $query = '
+            SELECT
+                p.id id,
+                p.name name,
+                (
+                    SELECT COUNT(*)
+                    FROM docker_service ds
+                    WHERE ds.project_id = p.id
+                ) service_count
+            FROM docker_project p
+            WHERE p.user_id = :user
+        ';
+
+        $userId = $user->getId();
+
+        $dbal = $this->em->getConnection();
+        $stmt = $dbal->prepare($query);
+        $stmt->bindParam(':user', $userId);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
 }

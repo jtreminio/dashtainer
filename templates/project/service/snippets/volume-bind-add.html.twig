@@ -1,0 +1,38 @@
+<tr id="volumes_other-{{ volume.id }}-row">
+    <td>
+        <input type="hidden" name="volumes_other[{{ volume.id }}][name]"
+               value="{{ volume.id }}" />
+        <input type="hidden" name="volumes_other[{{ volume.id }}][type]"
+               value="bind" />
+
+        <input type="text" class="form-control" maxlength="255"
+               id="volumes_other-{{ volume.id }}-source"
+               name="volumes_other[{{ volume.id }}][source]"
+               placeholder="/absolute/path/on/local/pc" value="{{ volume.source }}" required
+               data-error-container="volumes_other-{{ volume.id }}-source-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="volumes_other-{{ volume.id }}-source-error"></div>
+    </td>
+    <td>
+        <input type="text" class="form-control" maxlength="255"
+               id="volumes_other-{{ volume.id }}-target"
+               name="volumes_other[{{ volume.id }}][target]"
+               placeholder="/absolute/path/in/container" value="{{ volume.target }}" required
+               data-error-container="volumes_other-{{ volume.id }}-target-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="volumes_other-{{ volume.id }}-target-error"></div>
+    </td>
+    <td class="td-action">
+        <div class="selectgroup" data-toggle="delete-element"
+             data-target="#volumes_other-{{ volume.id }}-row">
+            <label class="selectgroup-item dark mb-0">
+                <span class="btn btn-outline-danger">
+                    <i class="fe fe-x-square" aria-hidden="true"></i>
+                    Delete
+                </span>
+            </label>
+        </div>
+    </td>
+</tr>

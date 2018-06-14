@@ -20,23 +20,8 @@
     }
 }
 
-.header-nav {
-    .breadcrumb {
-        background: transparent;
-        margin-top: 1rem;
-    }
-}
-
-// https://github.com/tabler/tabler/issues/8
-.nav {
-    .dropdown-menu-right {
-        right: 0;
-        left: auto;
-    }
-
-    .dropdown-item {
-        white-space: normal;
-    }
+.navbar-brand {
+    max-width: 25px !important;
 }
 
 .nav-tabs .nav-item + .nav-item {
@@ -55,7 +40,7 @@
 }
 
 [data-code-highlight] {
-    height: 50em;
+    height: 35em;
     resize: vertical;
     cursor: text;
     position: relative;
@@ -120,105 +105,91 @@ code {
     }
 }
 
-ul.nav.nav-tabs {
-    &[data-steps-list] {
-        li:hover {
-            background-color: transparent;
-            border-color: #eee #eee #ddd;
-        }
+/*
+ * Tabs and contents with delete button on tab
+ */
+ul {
+    &.nav.nav-tabs {
+        li {
+            padding: 0 5px 5px;
+            cursor: pointer;
+            -webkit-box-shadow: inset 0 -2px 0 transparent;
+            box-shadow: inset 0 -2px 0 transparent;
 
-        .nav-item + .nav-item {
-            margin-left: .1rem;
-        }
+            &:hover {
+                background-color: #eee;
+                border-color: #eee #eee #ddd;
+            }
 
-        .nav-item {
-            padding-left: 15px;
-            padding-right: 15px;
-        }
+            &.active {
+                background-color: #fff;
+                color: #333;
+                -webkit-box-shadow: inset 0 -2px 0 $primary;
+                box-shadow: inset 0 -2px 0 $primary;
 
-        .nav-link {
-            width: 100%;
-            height: 100%;
-            padding: 1rem 0 0;
-        }
+                & > a,
+                & > a:hover,
+                & > a:active,
+                & > a:focus {
+                    border-color: transparent;
+                    background-color: transparent;
+                }
 
-        .nav-link:hover:not(.disabled) {
-            color: $black;
-        }
+                & > a {
+                    color: #000;
+                }
+            }
 
-        li.complete {
-            -webkit-box-shadow: inset 0 -2px 0 $success;
-            box-shadow: inset 0 -2px 0 $success;
+            a, button {
+                color: $gray-500 !important;
+                display: inline-block;
+                background-color: transparent !important;
+                border: none;
+
+                &:hover,
+                &:active,
+                &:link,
+                &:visited,
+                &:focus {
+                    background-color: transparent !important;
+                    border: none;
+                }
+            }
+
+            a.dropdown-item {
+                color: #000;
+
+                &:hover {
+                    background-color: $gray-100 !important;
+                }
+            }
+
+            .btn-group button {
+                border: none;
+            }
+
+            a[data-toggle="add-block"],
+            a[data-toggle="add-block-inline"],
+            a[data-toggle="dropdown"] {
+                color: #000;
+            }
+
+            button[data-toggle="delete-block"] {
+                background-color: transparent !important;
+            }
         }
     }
 
-    li {
-        padding: 0 5px 5px;
-        cursor: pointer;
-        -webkit-box-shadow: inset 0 -2px 0 transparent;
-        box-shadow: inset 0 -2px 0 transparent;
+    & > li.empty-tablist:only-child {
+        display: block;
+        box-shadow: none;
+        background: none;
+        border: none;
+        color: $gray-700;
+    }
 
-        &:hover {
-            background-color: #eee;
-            border-color: #eee #eee #ddd;
-        }
-
-        &.active {
-            background-color: #fff;
-            color: #333;
-            -webkit-box-shadow: inset 0 -2px 0 $primary;
-            box-shadow: inset 0 -2px 0 $primary;
-
-            & > a,
-            & > a:hover,
-            & > a:active,
-            & > a:focus {
-                border-color: transparent;
-                background-color: transparent;
-            }
-
-            & > a {
-                color: #000;
-            }
-        }
-
-        a {
-            color: $gray-500;
-            display: inline-block;
-            background-color: transparent !important;
-            border: none;
-
-            &:hover,
-            &:active,
-            &:link,
-            &:visited,
-            &:focus {
-                background-color: transparent !important;
-                border: none;
-            }
-        }
-
-        a.dropdown-item {
-            color: #000;
-
-            &:hover {
-                background-color: $gray-100 !important;
-            }
-        }
-
-        .btn-group button {
-            border: none;
-        }
-
-        a[data-toggle="add-block"],
-        a[data-toggle="add-block-inline"],
-        a[data-toggle="dropdown"] {
-            color: #000;
-        }
-
-        button[data-toggle="delete-block"] {
-            background-color: transparent !important;
-        }
+    & > li.empty-tablist {
+        display: none;
     }
 }
 
@@ -265,14 +236,38 @@ ul.nav.nav-tabs {
     cursor: default;
 }
 
+/*
+ * "Join" and "Delete" buttons for Services to add Networks/Volumes/Secrets
+ */
 .td-action {
-    width: 80px;
-    padding: 0.375rem 1rem;
-}
+    .selectgroup {
+        width: 100%;
 
-.selectgroup-item.dark .selectgroup-input:checked + .selectgroup-button {
-    background: $primary;
-    color: #fff;
+        .btn {
+            width: 100%;
+        }
+
+        .selectgroup-item.dark .selectgroup-input + .btn {
+            .fe-square {
+                display: contents;
+            }
+            .fe-check-square {
+                display: none;
+            }
+        }
+
+        .selectgroup-item.dark .selectgroup-input:checked + .btn {
+            background: $primary;
+            color: #fff;
+
+            .fe-square {
+                display: none;
+            }
+            .fe-check-square {
+                display: contents;
+            }
+        }
+    }
 }
 
 .scrollable-container {

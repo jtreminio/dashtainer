@@ -1,55 +1,79 @@
-<div class="header">
+<div class="header py-4">
     <div class="container">
-        <nav class="navbar navbar-expand navbar-light">
-            <a class="navbar-brand d-none d-sm-block" href="{{ path('index.get') }}"><img
-                    src="{{ asset('build/assets/images/logo.svg') }}"
-                    class="navbar-brand-img" alt="dashtainer.com"></a>
+        <div class="d-flex">
+            <a class="header-brand" href="{{ path('index.get') }}">
+                <img src="{{ asset('build/assets/images/logo.svg') }}"
+                     class="header-brand-img" alt="dashtainer.com">
+            </a>
 
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('index.get') }}">Home</a>
-                </li>
-                {% if is_granted('IS_AUTHENTICATED_FULLY') or is_granted('IS_AUTHENTICATED_REMEMBERED') %}
+            <nav class="navbar navbar-expand navbar-light">
+                <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ path('project.index.get') }}">Your Projects</a>
+                        <a class="nav-link" href="{{ path('index.get') }}">Home</a>
                     </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
-                       target="_blank">Fork Me</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://jtreminio.com" target="_blank">Blog</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="https://jtreminio.com/hire-me/"
-                       target="_blank">Hire Me!</a>
-                </li>
-            </ul>
-            {% if is_granted('IS_AUTHENTICATED_FULLY') or is_granted('IS_AUTHENTICATED_REMEMBERED') %}
-                <div class="nav">
-                    <div class="dropdown ml-3">
-                        <a href="#" class="nav-link" data-toggle="dropdown">
-                            <svg width="80" height="80" class="avatar"
-                                 data-jdenticon-value="{{ app.user.email }}"></svg>
-                            <span class="ml-2 d-none d-lg-block"></span>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/jtreminio/dashtainer"
+                           target="_blank">Fork Me</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://jtreminio.com" target="_blank">Blog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://jtreminio.com/hire-me/"
+                           target="_blank">Hire Me!</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="d-flex order-lg-2 ml-auto">
+                <div class="dropdown d-none d-md-flex">
+                    <a class="nav-link icon" data-toggle="dropdown">
+                        <i class="fe fe-bell"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                        <div class="dropdown-header">v1.0.6</div>
+                        <div class="dropdown-divider"></div>
+                        <a href="https://github.com/jtreminio/dashtainer/issues/18"
+                           target="_blank" class="dropdown-item d-flex">
+                            <div>Added <strong>Docker Secrets</strong> support</div>
                         </a>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="{{ path('fos_user_profile_show') }}">
-                                <span>View Profile</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item"
-                               href="{{ path('fos_user_security_logout') }}">Sign out</a>
-                        </div>
+                        <a href="https://github.com/jtreminio/dashtainer/issues/24"
+                           target="_blank" class="dropdown-item d-flex">
+                            <div><strong>Networks UI</strong> updated</div>
+                        </a>
+                        <a href="https://github.com/jtreminio/dashtainer/issues/25"
+                           target="_blank" class="dropdown-item d-flex">
+                            <div>Added <strong>docker-compose.override.yml</strong> support</div>
+                        </a>
                     </div>
                 </div>
-            {% else %}
-                <div class="nav">
-                    <a href="{{ path('fos_user_security_login') }}"
-                       class="btn btn-outline-success btn-lg ml-2">Log In</a>
+
+                {% if is_granted('IS_AUTHENTICATED_FULLY') or is_granted('IS_AUTHENTICATED_REMEMBERED') %}
+                <div class="dropdown">
+                    <a href="#" class="nav-link pr-0 leading-none" data-toggle="dropdown">
+                        <svg width="80" height="80" class="avatar"
+                                 data-jdenticon-value="{{ app.user.email }}"></svg>
+                        <span class="ml-2 d-none d-lg-block"></span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right dropdown-menu-arrow">
+                        <div class="dropdown-header">{{ app.user.email }}</div>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ path('fos_user_profile_show') }}">
+                            <i class="dropdown-icon fe fe-user"></i> Profile
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="{{ path('fos_user_security_logout') }}">
+                            <i class="dropdown-icon fe fe-log-out"></i> Sign out
+                        </a>
+                    </div>
                 </div>
-            {% endif %}
-        </nav>
+                {% else %}
+                    <div class="nav">
+                        <a href="{{ path('fos_user_security_login') }}"
+                           class="btn btn-outline-success btn-lg ml-2">Log In</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>

@@ -1,11 +1,19 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.update.post', {
+<form action="{{ path('project.service.update.post', {
     'projectId': project.id,
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label">Service Name</label>
+                <div class="form-control">{{ service.name }}</div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -18,24 +26,14 @@
                 <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
                 http://<span id="server-name-tag">{{ service.name }}</span>.localhost:8025</span>
         </div>
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('project.view.get', {
-                'projectId': project.id
-            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
-            <button class="btn btn-primary btn-lg" type="submit">Update Service</button>
-        </div>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 </form>
 {% endblock %}

@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class PostgreSQL extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'postgresql';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('postgresql');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -40,9 +44,11 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'POSTGRES_PASSWORD_FILE' => "{$secretPrepend}-postgres_password",
         ]);
 
-        $this->createSecrets($service, $form);
+        $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -64,31 +70,14 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $portMeta, $service);
 
-        $configFileConf = new Entity\Docker\ServiceVolume();
-        $configFileConf->setName('postgresql.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/postgresql.conf")
-            ->setTarget('/etc/postgresql/postgresql.conf')
-            ->setData($form->system_file['postgresql.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $service->addVolume($configFileConf);
-
-        $this->serviceRepo->save($configFileConf, $service);
-
-        $this->createDatastore($service, $form, '/var/lib/postgresql/data');
-
-        $this->userFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'bindPort' => $this->getOpenBindPort($project),
+            'bindPort'      => $this->getOpenBindPort($project),
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -96,7 +85,6 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
     {
         $version   = $service->getMeta('version')->getData()[0];
         $version   = (string) number_format($version, 1);
-        $datastore = $service->getMeta('datastore')->getData()[0];
 
         $bindPortMeta = $service->getMeta('bind-port');
         $bindPort     = $bindPortMeta->getData()[0]
@@ -109,30 +97,20 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $internal = $secrets['internal'];
         $slug     = $service->getSlug();
         $postgres_db       = $internal["{$slug}-postgres_db"]
-            ->getProjectSecret()->getContents();
+            ->getProjectSecret()->getData();
         $postgres_user     = $internal["{$slug}-postgres_user"]
-            ->getProjectSecret()->getContents();
+            ->getProjectSecret()->getData();
         $postgres_password = $internal["{$slug}-postgres_password"]
-            ->getProjectSecret()->getContents();
-
-        $configFileConf = $service->getVolume('postgresql.conf');
-
-        $userFiles = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
+            ->getProjectSecret()->getData();
 
         return array_merge(parent::getViewParams($service), [
             'version'           => $version,
-            'datastore'         => $datastore,
             'bindPort'          => $bindPort,
             'portConfirm'       => $portConfirm,
             'postgres_db'       => $postgres_db,
             'postgres_user'     => $postgres_user,
             'postgres_password' => $postgres_password,
-            'systemFiles'       => [
-                'postgresql.conf' => $configFileConf,
-            ],
-            'userFiles'         => $userFiles,
+            'fileHighlight'     => 'ini',
         ]);
     }
 
@@ -145,8 +123,6 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
-        $this->addToPrivateNetworks($service, $form);
-
         $portMetaData = $form->port_confirm ? [$form->port] : [];
         $servicePort  = $form->port_confirm ? ["{$form->port}:5432"] : [];
 
@@ -157,16 +133,11 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $configFileConf = $service->getVolume('postgresql.conf');
-        $configFileConf->setData($form->system_file['postgresql.conf'] ?? '');
-
-        $this->serviceRepo->save($configFileConf);
-
-        $this->updateDatastore($service, $form);
-
+        $this->addToPrivateNetworks($service, $form);
         $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -191,6 +162,18 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         }
 
         return 5432;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                "conf-{$this->version}",
+            ],
+            'other' => [
+                'datadir',
+            ],
+        ];
     }
 
     /**

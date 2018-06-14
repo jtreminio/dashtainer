@@ -1,19 +1,24 @@
-<div class="d-flex align-items-end">
-    <div class="p-2 w-100"><h4 class="mb-0">Networks</h4></div>
-    <div class="p-2 flex-shrink-1">
-        <a class="btn btn-outline-success"
-           data-toggle="add-element"
-           data-target="#networks_create-container"
-           href="{{ path('project.service.block-add-network.get', {
-               'projectId': project.id,
-           }) }}"><i class="fe fe-plus"></i> Create Network</a>
+<div class="page-header mb-0" id="network">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Networks
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-element"
+               data-target="#networks_create-container"
+               href="{{ path('project.service.block-add-network.get', {
+                   'projectId': project.id,
+               }) }}"><i class="fe fe-plus"></i> Create Network</a>
+        </div>
     </div>
 </div>
 
-<div class="row mb-5">
-    <div class="col">
-        <hr class="my-0 mb-3" />
-
+<div class="card">
+    <div class="card-body">
         {% if networks.joined is empty and networks.unjoined is empty %}
             <div class="alert alert-icon alert-warning mb-6" role="alert">
                 <i class="fe fe-bell mr-2" aria-hidden="true"></i>

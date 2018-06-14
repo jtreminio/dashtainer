@@ -11,9 +11,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class MySQLCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\DatastoreTrait;
-    use DashAssert\SystemFileTrait;
-    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -60,8 +57,6 @@ class MySQLCreate extends CreateAbstract implements Util\HydratorInterface
         parent::validate($context, $payload);
 
         $this->validatePort($context);
-        $this->validateSystemFile($context);
-        $this->validateUserFile($context);
     }
 
     protected function validatePort(ExecutionContextInterface $context)

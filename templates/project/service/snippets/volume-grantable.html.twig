@@ -1,0 +1,30 @@
+<tr id="volumes_granted-{{ projectVolume.id }}-row">
+    <td>{{ projectVolume.name }}</td>
+    <td><a class="text-blue" target="_blank"
+           href="#">{{ projectVolume.owner.name }}</a></td>
+    <td>
+        <input type="text" class="form-control" maxlength="255"
+               id="volumes_granted-{{ projectVolume.id }}-target"
+               name="volumes_granted[{{ projectVolume.id }}][target]"
+               placeholder="/absolute/path/in/container" value=""
+               data-error-container="volumes_granted-{{ projectVolume.id }}-target-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="volumes_granted-{{ projectVolume.id }}-target-error"></div>
+    </td>
+    <td class="td-action">
+        <div class="selectgroup">
+            <label class="selectgroup-item dark mb-0">
+                <input type="checkbox" class="selectgroup-input"
+                       id="volumes_granted-{{ projectVolume.id }}-id"
+                       name="volumes_granted[{{ projectVolume.id }}][id]"
+                       value="{{ projectVolume.id }}" />
+                <span class="btn btn-outline-primary">
+                    <i class="fe fe-square" aria-hidden="true"></i>
+                    <i class="fe fe-check-square" aria-hidden="true"></i>
+                    Grant
+                </span>
+            </label>
+        </div>
+    </td>
+</tr>

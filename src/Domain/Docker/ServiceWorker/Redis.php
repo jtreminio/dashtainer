@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Redis extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'redis';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('redis');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -35,6 +39,8 @@ class Redis extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -56,9 +62,7 @@ class Redis extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $portMeta, $service);
 
-        $this->createDatastore($service, $form, '/data');
-
-        $this->userFilesCreate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -66,15 +70,15 @@ class Redis extends WorkerAbstract implements WorkerInterface
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'bindPort' => $this->getOpenBindPort($project),
+            'bindPort'      => $this->getOpenBindPort($project),
+            'fileHighlight' => 'ini',
         ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $version   = $service->getMeta('version')->getData()[0];
-        $version   = (string) number_format($version, 1);
-        $datastore = $service->getMeta('datastore')->getData()[0];
+        $version = $service->getMeta('version')->getData()[0];
+        $version = (string) number_format($version, 1);
 
         $bindPortMeta = $service->getMeta('bind-port');
         $bindPort     = $bindPortMeta->getData()[0]
@@ -82,10 +86,10 @@ class Redis extends WorkerAbstract implements WorkerInterface
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
         return array_merge(parent::getViewParams($service), [
-            'version'     => $version,
-            'datastore'   => $datastore,
-            'bindPort'    => $bindPort,
-            'portConfirm' => $portConfirm,
+            'version'       => $version,
+            'bindPort'      => $bindPort,
+            'portConfirm'   => $portConfirm,
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -98,8 +102,6 @@ class Redis extends WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
-        $this->addToPrivateNetworks($service, $form);
-
         $portMetaData = $form->port_confirm ? [$form->port] : [];
         $servicePort  = $form->port_confirm ? ["{$form->port}:6379"] : [];
 
@@ -110,9 +112,11 @@ class Redis extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $this->updateDatastore($service, $form);
+        $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -137,6 +141,17 @@ class Redis extends WorkerAbstract implements WorkerInterface
         }
 
         return 6379;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+            ],
+            'other' => [
+                'datadir',
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

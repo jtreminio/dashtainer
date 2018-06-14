@@ -1,10 +1,11 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.create.post', {
+<form action="{{ path('project.service.create.post', {
     'projectId': project.id,
     'serviceTypeSlug': serviceType.slug,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
         <div class="row">
             <div class="form-group col">
@@ -30,19 +31,6 @@
                 <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
                 http://<span id="server-name-host">adminer</span>.{{ project.slug }}.localhost</span>
         </div>
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Settings</h4>
 
         {% set designs = serviceType.meta('designs') %}
         <div class="row">
@@ -87,38 +75,14 @@
                 </small>
             </div>
         </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                               'language': 'php',
-                               'targetPath': '/var/www/html/plugins-enabled/'|url_encode
-                           }) }}">
-                            <i class="fe fe-plus"></i> Add</a>
-                    </li>
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="user_file-error"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
 </form>
 {% endblock %}

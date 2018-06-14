@@ -29,8 +29,7 @@ require('jquery-sparkline');
 require('jdenticon');
 require('font-mfizz/dist/font-mfizz.css');
 require('floatthead');
-
-//require('./tabler-core');
+Sticky = require('sticky-js/dist/sticky.compile.js');
 
 require('./tabToSpacesInput');
 
@@ -40,18 +39,18 @@ DASHTAINER.eventDataToggleTab = require('./eventDataToggleTab');
 DASHTAINER.misbehave = require('misbehave');
 DASHTAINER.runMisbehave = require('./runMisbehave');
 DASHTAINER.dataMask = require('./dataMask');
+DASHTAINER.updateTextTo = require('./updateTextTo');
 
 $(document).ready(function() {
     require('./formAjax');
-    require('./addBlock');
     require('./addElement');
-    require('./removeBlock');
+    require('./addTab');
     require('./removeElement');
+    require('./removeTab');
     require('./codeFromRemote');
     require('./card');
 
-    DASHTAINER.eventDataToggleTab();
-    DASHTAINER.dataMask();
+    DASHTAINER.eventDataToggleTab($('body'));
 
     $.each($('pre[data-code-highlight]'), function(_, element) {
         DASHTAINER.runMisbehave(element);
@@ -64,17 +63,7 @@ $(document).ready(function() {
     });
 
     $(document).on('change keyup', '[data-update-text]', function(e) {
-        var ids = $(this).data('update-text').split(',');
-        var val = $(this).val();
-
-        $.each(ids, function(_, id) {
-            var $target = $('[id="' + id + '"]');
-            $target.text(val);
-
-            if ($target.text() === '') {
-                $target.text('* Needs Data');
-            }
-        });
+        DASHTAINER.updateTextTo($(this));
     });
 
     $(document).on('click', 'input[data-toggle="radio-tab"]', function(e) {
@@ -89,5 +78,9 @@ $(document).ready(function() {
         scrollContainer: function ($table) {
             return $table.closest('.scrollable-container');
         }
+    });
+
+    new Sticky('[data-sticky]', {
+        marginTop: 130,
     });
 });

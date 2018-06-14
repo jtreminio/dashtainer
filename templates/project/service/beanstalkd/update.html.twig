@@ -1,11 +1,19 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.update.post', {
+<form action="{{ path('project.service.update.post', {
     'projectId': project.id,
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label">Service Name</label>
+                <div class="form-control">{{ service.name }}</div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -16,125 +24,19 @@
 
         <hr class="my-6" />
 
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Data Storage</h4>
-
-        <div class="row">
-            <div class="col">
-                <div class="selectgroup" role="tablist">
-                    <label class="selectgroup-item">
-                        <input type="radio" class="selectgroup-input"
-                               id="datastore-docker" name="datastore"
-                               value="docker" {{ datastore == 'docker' ? 'checked' }} role="tab"
-                               data-toggle="radio-tab" data-target="#datastore-docker-tab"
-                               data-error-container="datastore" />
-                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-anchor"></i> Docker</span>
-                    </label>
-
-                    <label class="selectgroup-item">
-                        <input type="radio" class="selectgroup-input"
-                               id="datastore-local" name="datastore"
-                               value="local" {{ datastore == 'local' ? 'checked' }} role="tab"
-                               data-toggle="radio-tab" data-target="#datastore-local-tab"
-                               data-error-container="datastore" />
-                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-hard-drive"></i> Local</span>
-                    </label>
-                </div>
-
-                <div id="nav-datastore-content" class="tab-content">
-                    <div id="datastore-docker-tab" role="tabpanel"
-                         class="tab-pane {{ datastore == 'docker' ? 'show active' }}">
-                        <div class="row">
-                            <div class="form-group col">
-                                <small class="text-muted">
-                                    Let Docker manage the storage of your Beanstalkd data.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="datastore-local-tab" role="tabpanel"
-                         class="tab-pane {{ datastore == 'local' ? 'show active' }}">
-                        <div class="row">
-                            <div class="form-group col">
-                                <small class="text-muted">
-                                    Create a data directory on the host system.
-                                    The directory will be
-                                    <code><span id="datastore-local-span">
-                                            {{ service.name }}</span>/datadir</code>.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="datastore"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    {% for file in systemFiles %}
-                        <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-system_file-{{ file.name }}-tab" class="nav-link {{ loop.first ? 'active' }}"
-                               data-toggle="tab" role="tab"
-                               href="#system_file-{{ file.name }}" aria-controls="system_file-{{ file.name }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                    {% for file in systemFiles %}
-                        <div id="system_file-{{ file.name }}" role="tabpanel"
-                             class="tab-pane fade {{ loop.first ? 'show active' }}">
-                            <div class="row">
-                                <div class="col">
-                                    <pre class="language-{{ value.highlight ?? 'apacheconf' }}" data-code-highlight><code
-                                            id="system_file-{{ file.name }}-source"
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="system_file[{{ file.name }}]"
-                                           data-error-container="system_file-error"
-                                           data-get-value-source="system_file-{{ file.name }}-source" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="system_file-error"></div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="user_file-error"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('project.view.get', {
-                'projectId': project.id
-            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
-            <button class="btn btn-primary btn-lg" type="submit">Update Service</button>
-        </div>
+        {% set volume = volumes.other.remove('datadir') %}
+        {% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
+            {% block dataDir %}
+            {% endblock %}
+        {% endembed %}
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 </form>
 {% endblock %}

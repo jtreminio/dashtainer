@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Blackfire extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'blackfire';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('blackfire');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -37,6 +41,9 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -70,8 +77,21 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+
+        $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+            ],
+            'other' => [
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

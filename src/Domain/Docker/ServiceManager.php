@@ -36,7 +36,7 @@ class ServiceManager
         Entity\Docker\ServiceType $type
     ) : ServiceWorker\WorkerInterface {
         foreach ($this->workers as $worker) {
-            if ($type->getSlug() == $worker->getServiceTypeSlug()) {
+            if ($type === $worker->getServiceType()) {
                 return $worker;
             }
         }

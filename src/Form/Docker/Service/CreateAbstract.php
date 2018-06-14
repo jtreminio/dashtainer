@@ -30,6 +30,14 @@ abstract class CreateAbstract implements Util\HydratorInterface
      */
     public $type;
 
+    // [id => [name, source, target, data]]
+    public $volumes_file = [];
+
+    // [id => [name, source, target, type]]
+    public $volumes_other = [];
+
+    public $volumes_granted = [];
+
     // [name]
     public $networks_create = [];
 
@@ -63,6 +71,157 @@ abstract class CreateAbstract implements Util\HydratorInterface
 
         $this->validateNetworks($context);
         $this->validateSecrets($context);
+        $this->validateVolumes($context);
+    }
+
+    protected function validateVolumes(ExecutionContextInterface $context)
+    {
+        $names   = [];
+        $sources = [];
+        $targets = [];
+
+        /*
+         * Fields:
+         *      name
+         *      source
+         *      target
+         *      type
+         * Unique:
+         *      name
+         *      target
+         */
+        foreach ($this->volumes_other as $id => $volume) {
+            $name   = trim($volume['name'] ?? '');
+            $source = trim($volume['source'] ?? '');
+            $target = trim($volume['target'] ?? '');
+            $type   = trim($volume['type'] ?? '');
+
+            if (empty($name)) {
+                $context->buildViolation('Ensure all Volumes have a name')
+                    ->atPath("volumes_other[{$id}][name]")
+                    ->addViolation();
+            }
+            elseif (in_array($name, $names)) {
+                $context->buildViolation('Ensure all Volume names are unique')
+                    ->atPath("volumes_other[{$id}][name]")
+                    ->addViolation();
+            }
+
+            if (empty($source)) {
+                $context->buildViolation('Ensure all Volumes have a source')
+                    ->atPath("volumes_other[{$id}][source]")
+                    ->addViolation();
+            }
+
+            if (empty($target)) {
+                $context->buildViolation('Ensure all Volumes have a target')
+                    ->atPath("volumes_other[{$id}][target]")
+                    ->addViolation();
+            }
+            elseif (in_array($target, $targets)) {
+                $context->buildViolation('Ensure all Volume targets are unique')
+                    ->atPath("volumes_other[{$id}][target]")
+                    ->addViolation();
+            }
+
+            if (empty($type)) {
+                $context->buildViolation('Ensure all Volumes have a type')
+                    ->atPath("volumes_other[{$id}][type]")
+                    ->addViolation();
+            }
+
+            $names   []= $name;
+            $sources []= $source;
+            $targets []= $target;
+        }
+
+        /*
+         * Fields:
+         *      name
+         *      source
+         *      target (can be empty)
+         *      data (can be empty)
+         *      type
+         * Unique:
+         *      name
+         *      source
+         *      target
+         */
+        foreach ($this->volumes_file as $id => $volume) {
+            $name   = trim($volume['name'] ?? '');
+            $source = trim($volume['source'] ?? '');
+            $target = trim($volume['target'] ?? '');
+            $type   = trim($volume['type'] ?? '');
+
+            if (empty($name)) {
+                $context->buildViolation('Ensure all Files have a name')
+                    ->atPath("volumes_file[{$id}][name]")
+                    ->addViolation();
+            }
+            elseif (in_array($name, $names)) {
+                $context->buildViolation('Ensure all Files names are unique')
+                    ->atPath("volumes_file[{$id}][name]")
+                    ->addViolation();
+            }
+
+            if (empty($source)) {
+                $context->buildViolation('Ensure all Files have a source')
+                    ->atPath("volumes_file[{$id}][source]")
+                    ->addViolation();
+            }
+            elseif (in_array($source, $sources)) {
+                $context->buildViolation('Ensure all File sources are unique')
+                    ->atPath("volumes_file[{$id}][source]")
+                    ->addViolation();
+            }
+
+            if (!empty($target) && in_array($target, $targets)) {
+                $context->buildViolation('Ensure all File targets are unique')
+                    ->atPath("volumes_file[{$id}][target]")
+                    ->addViolation();
+            }
+
+            if (empty($type)) {
+                $context->buildViolation('Ensure all Files have a type')
+                    ->atPath("volumes_file[{$id}][type]")
+                    ->addViolation();
+            }
+
+            $names   []= $name;
+            $sources []= $source;
+            $targets []= $target;
+        }
+
+        /*
+         * Fields:
+         *      id (checkbox to enable/disable)
+         *      target
+         * Unique:
+         *      target
+         */
+        foreach ($this->volumes_granted as $key => $volume) {
+            $id     = trim($volume['id'] ?? '');
+            $target = trim($volume['target'] ?? '');
+
+            if (empty($id)) {
+                unset($this->volumes_granted[$key]);
+
+                continue;
+            }
+
+            if (empty($target)) {
+                $context->buildViolation('Ensure all Granted Volumes have a target')
+                    ->atPath("volumes_granted[{$id}][target]")
+                    ->addViolation();
+            }
+            elseif (in_array($target, $targets)) {
+                $context->buildViolation('Ensure all Granted Volume targets are unique')
+                    ->atPath("volumes_granted[{$id}][target]")
+                    ->addViolation();
+            }
+
+            $targets []= $target;
+        }
     }
 
     protected function validateNetworks(ExecutionContextInterface $context)

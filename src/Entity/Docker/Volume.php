@@ -71,6 +71,12 @@ class Volume implements
     protected $project;
 
     /**
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Service", fetch="EAGER")
+     * @ORM\JoinColumn(name="owner_id", referencedColumnName="id")
+     */
+    protected $owner;
+
+    /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceVolume", mappedBy="project_volume")
      */
     protected $service_volumes;
@@ -216,9 +222,33 @@ class Volume implements
      * @param Project $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(Project $project = null)
     {
+        if ($this->project === $project) {
+            return $this;
+        }
+
         $this->project = $project;
+
+        if ($project) {
+            $project->addVolume($this);
+        }
+
+        return $this;
+    }
+
+    public function getOwner() : ?Service
+    {
+        return $this->owner;
+    }
+
+    /**
+     * @param Service $service
+     * @return $this
+     */
+    public function setOwner(Service $service = null)
+    {
+        $this->owner = $service;
 
         return $this;
     }
@@ -234,14 +264,27 @@ class Volume implements
      */
     public function addServiceVolume(ServiceVolume $serviceVolume)
     {
-        $this->service_volumes[] = $serviceVolume;
+        if ($this->service_volumes->contains($serviceVolume)) {
+            return $this;
+        }
+
+        $this->service_volumes->add($serviceVolume);
+        $serviceVolume->setProjectVolume($this);
 
         return $this;
     }
 
     public function removeServiceVolume(ServiceVolume $serviceVolume)
     {
+        if (!$this->service_volumes->contains($serviceVolume)) {
+            return;
+        }
+
         $this->service_volumes->removeElement($serviceVolume);
+
+        if ($serviceVolume->getProjectVolume() === $this) {
+            $serviceVolume->setProjectVolume(null);
+        }
     }
 
     /**

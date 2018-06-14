@@ -10,14 +10,18 @@
             {% endfor %}
         </div>
     </td>
-    <td>
+    <td class="td-action">
         <div class="selectgroup">
             <label class="selectgroup-item dark mb-0">
                 <input type="checkbox" class="selectgroup-input"
                        id="networks_join-{{ network.id }}-id"
                        name="networks_join[]"
                        value="{{ network.id }}" {{ checked ? 'checked' }} />
-                <span class="selectgroup-button btn btn-outline-primary td-action">Join</span>
+                <span class="btn btn-outline-primary">
+                    <i class="fe fe-square" aria-hidden="true"></i>
+                    <i class="fe fe-check-square" aria-hidden="true"></i>
+                    Join
+                </span>
             </label>
         </div>
     </td>

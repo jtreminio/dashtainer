@@ -178,6 +178,7 @@ class Network implements Repository\ObjectPersistInterface
             FROM Dashtainer:Docker\Network n
             LEFT JOIN n.services s
             WHERE n.project = :project
+              AND n.is_public = false
               AND s IS NULL
         ';
 

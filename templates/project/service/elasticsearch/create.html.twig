@@ -1,10 +1,11 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.create.post', {
+<form action="{{ path('project.service.create.post', {
     'projectId': project.id,
     'serviceTypeSlug': serviceType.slug,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
         <div class="row">
             <div class="form-group col">
@@ -12,7 +13,7 @@
                 <input type="text" class="form-control" maxlength="64"
                        id="name" name="name" placeholder=""
                        value="{{ serviceName }}" required data-mask-type="dns"
-                       data-update-text="service-name-tag,datastore-local-span"
+                       data-update-text="service-name-tag,volumes_dir_internal-datadir-bind-span"
                        data-error-container="name" />
                 <div class="invalid-feedback" data-error-container-name="name"></div>
             </div>
@@ -28,73 +29,11 @@
 
         <hr class="my-6" />
 
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Data Storage</h4>
-
-        <div class="row">
-            <div class="col">
-                <div class="selectgroup" role="tablist">
-                    <label class="selectgroup-item">
-                        <input type="radio" class="selectgroup-input"
-                               id="datastore-docker" name="datastore"
-                               value="docker" checked role="tab"
-                               data-toggle="radio-tab" data-target="#datastore-docker-tab"
-                               data-error-container="datastore" />
-                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-anchor"></i> Docker</span>
-                    </label>
-
-                    <label class="selectgroup-item">
-                        <input type="radio" class="selectgroup-input"
-                               id="datastore-local" name="datastore"
-                               value="local" role="tab"
-                               data-toggle="radio-tab" data-target="#datastore-local-tab"
-                               data-error-container="datastore" />
-                        <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
-                            <i class="fe fe-hard-drive"></i> Local</span>
-                    </label>
-                </div>
-
-                <div id="nav-datastore-content" class="tab-content">
-                    <div id="datastore-docker-tab" role="tabpanel"
-                         class="tab-pane show active">
-                        <div class="row">
-                            <div class="form-group col">
-                                <small class="text-muted">
-                                    Let Docker manage the storage of your database data.
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="datastore-local-tab" role="tabpanel"
-                         class="tab-pane">
-                        <div class="row">
-                            <div class="form-group col">
-                                <small class="text-muted">
-                                    Create a data directory on the host system.
-                                    The directory will be
-                                    <code><span id="datastore-local-span">
-                                            {{ serviceName }}</span>/datadir</code>.
-                                </small>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="datastore"></div>
-            </div>
-        </div>
+        {% set volume = volumes.other.remove('datadir') %}
+        {% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
+            {% block dataDir %}
+            {% endblock %}
+        {% endembed %}
 
         <hr class="my-6" />
 
@@ -116,56 +55,15 @@
             </div>
         </div>
 
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Config Files</h4>
-        {% set conf = serviceType.meta('conf') %}
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    {% for key, value in conf.data %}
-                        <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-system_file-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
-                               data-toggle="tab" role="tab"
-                               href="#system_file-{{ key }}" aria-controls="system_file-{{ key }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                    {% for key, value in conf.data %}
-                        <div id="system_file-{{ key }}" role="tabpanel"
-                             class="tab-pane fade {{ loop.first ? 'show active' }}">
-                            <div class="row">
-                                <div class="col">
-                                    <pre class="language-yaml" data-code-highlight><code
-                                            id="system_file-{{ key }}-source"
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false">{{ value }}</code></pre>
-                                    <input type="hidden" value="" name="system_file[{{ key }}]"
-                                           data-error-container="system_file-error"
-                                           data-get-value-source="system_file-{{ key }}-source" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="system_file-error"></div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="user_file-error"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
         <input type="hidden" id="version" name="version" value="{{ version }}" />
-
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
 </form>
 {% endblock %}

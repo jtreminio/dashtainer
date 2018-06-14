@@ -13,92 +13,102 @@ class Export
     /** @var ZipStream */
     protected $archive;
 
-    protected $baseDir = 'dashtainer/';
+    protected $baseDir = 'dashtainer';
+
+    /** @var Entity\Docker\Project */
+    protected $project;
 
     public function setArchiver(ZipStream $archive)
     {
         $this->archive = $archive;
     }
 
-    public function generateArchive(Entity\Docker\Project $project, bool $traefik)
+    public function dump(Entity\Docker\Project $project) : string
     {
+        $this->project = $project;
+
+        return $this->generate();
+    }
+
+    public function download(Entity\Docker\Project $project, bool $traefik)
+    {
+        $this->project = $project;
+
         if ($traefik) {
-            $this->archive->addFileFromPath(
-                "{$this->baseDir}traefik/docker-compose.yml",
+            $this->addFileFromPath(
+                "{$this->baseDir}/traefik/docker-compose.yml",
                 __DIR__ . '/../../../assets/files/traefik.yml'
             );
 
-            $this->archive->addFileFromPath(
+            $this->addFileFromPath(
                 "{$this->baseDir}/traefik/.env",
                 __DIR__ . '/../../../assets/files/traefik.env'
             );
 
-            $this->archive->addFileFromPath(
-                "{$this->baseDir}README.md",
+            $this->addFileFromPath(
+                "{$this->baseDir}/README.md",
                 __DIR__ . '/../../../assets/files/README-traefik.md'
             );
 
-            $this->baseDir .= 'project/';
+            $this->baseDir .= '/project';
         } else {
-            $this->archive->addFileFromPath(
-                "{$this->baseDir}README.md",
+            $this->addFileFromPath(
+                "{$this->baseDir}/README.md",
                 __DIR__ . '/../../../assets/files/README-no-traefik.md'
             );
         }
 
-        $config = $this->getProject($project);
+        $yaml = $this->generate();
 
-        $networks = $this->getNetworks($project->getNetworks());
+        $this->addFile("{$this->baseDir}/docker-compose.yml", $yaml);
+    }
+
+    protected function generate() : string
+    {
+        $config = $this->getProject();
+
+        $networks = $this->getNetworks($this->project->getNetworks());
         $config['networks'] = empty($networks) ? Util\YamlTag::emptyHash() : $networks;
 
-        // secrets
+        $secrets = $this->getSecrets($this->project->getSecrets());
+        $config['secrets'] = empty($secrets) ? Util\YamlTag::emptyHash() : $secrets;
 
-        $volumes = $this->getVolumes($project->getVolumes());
+        $volumes = $this->getVolumes($this->project->getVolumes());
         $config['volumes'] = empty($volumes) ? Util\YamlTag::emptyHash() : $volumes;
 
-        $services = $this->getServices($project->getServices());
+        $services = $this->getServices($this->project->getServices());
         $config['services'] = empty($services) ? Util\YamlTag::emptyHash() : $services;
 
         $yaml = Yaml::dump($config, 999, 2);
-        $yaml = Util\YamlTag::parse($yaml);
 
-        $this->writeYamlFile($yaml);
-        $this->writeServiceFiles($project->getServices());
+        return Util\YamlTag::parse($yaml);
     }
 
-    protected function writeYamlFile(string $yaml)
+    protected function addFile(string $target, string $data = null)
     {
-        $this->archive->addFile("{$this->baseDir}docker-compose.yml", $yaml);
-    }
-
-    /**
-     * @param Entity\Docker\Service[]|iterable $services
-     */
-    protected function writeServiceFiles(iterable $services)
-    {
-        foreach ($services as $service) {
-            foreach ($service->getVolumes() as $volume) {
-                if ($volume->getFiletype() !== Entity\Docker\ServiceVolume::FILETYPE_FILE) {
-                    continue;
-                }
-
-                $filename = $service->getSlug() . '/' . $volume->getName();
-                $this->archive->addFile("{$this->baseDir}{$filename}", $volume->getData());
-            }
+        if (!$this->archive) {
+            return;
         }
+
+        $this->archive->addFile($target, $data);
     }
 
-    protected function getProject(Entity\Docker\Project $project)
+    protected function addFileFromPath(string $source, string $target)
     {
-        $config = [
-            'version' => '3.2',
-        ];
+        if (!$this->archive) {
+            return;
+        }
 
+        $this->archive->addFileFromPath($source, $target);
+    }
+
+    protected function getProject() : array
+    {
         $environments = [
-            "COMPOSE_PROJECT_NAME={$project->getSlug()}",
+            "COMPOSE_PROJECT_NAME={$this->project->getSlug()}",
         ];
 
-        foreach ($project->getEnvironments() as $k => $v) {
+        foreach ($this->project->getEnvironments() as $k => $v) {
             if (empty($v)) {
                 $environments []= $k;
 
@@ -108,9 +118,11 @@ class Export
             $environments []= "{$k}={$v}";
         }
 
-        $this->archive->addFile("{$this->baseDir}.env", implode("\n", $environments));
+        $this->addFile("{$this->baseDir}/.env", implode("\n", $environments));
 
-        return $config;
+        return [
+            'version' => '3.2',
+        ];
     }
 
     /**
@@ -139,6 +151,28 @@ class Export
             }
 
             $arr[$network->getName()] = empty($current) ? Util\YamlTag::nilValue() : $current;
+        }
+
+        return $arr;
+    }
+
+    /**
+     * @param Entity\Docker\Secret[]|iterable $secrets
+     * @return array
+     */
+    protected function getSecrets(iterable $secrets) : array
+    {
+        $arr = [];
+
+        foreach ($secrets as $secret) {
+            $arr [$secret->getSlug()]= [
+                'file' => $secret->getFile(),
+            ];
+
+            $filename = ltrim($secret->getFile(), '.');
+            $filename = ltrim($filename, '/');
+
+            $this->addFile("{$this->baseDir}/{$filename}", $secret->getData());
         }
 
         return $arr;
@@ -194,90 +228,16 @@ class Export
                 $current['image'] = $service->getImage();
             }
 
-            if ($build = $service->getBuild()) {
-                $sub = [];
-
-                if ($context = $build->getContext()) {
-                    $sub['context'] = $context;
-                }
-
-                if ($dockerfile = $build->getDockerfile()) {
-                    $sub['dockerfile'] = $dockerfile;
-                }
-
-                foreach ($build->getArgs() as $k => $v) {
-                    $v = is_array($v) ? implode(' ', $v) : $v;
-
-                    $sub['args'][$k]= $v;
-                }
-
-                if (!empty($build->getCacheFrom())) {
-                    $sub['cache_from'] []= $build->getCacheFrom();
-                }
-
-                foreach ($build->getLabels() as $k => $v) {
-                    $sub['labels'] []= "{$k}={$v}";
-                }
-
-                if ($shmSize = $build->getShmSize()) {
-                    $sub['shm_size'] = $shmSize;
-                }
-
-                if ($target = $build->getTarget()) {
-                    $sub['target'] = $target;
-                }
-
-                if (!empty($sub)) {
-                    $current['build'] = $sub;
-                }
+            if ($build = $this->serviceBuild($service)) {
+                $current['build'] = $build;
             }
 
             if ($command = $service->getCommand()) {
                 $current['command'] = $command;
             }
 
-            if ($deploy = $service->getDeploy()) {
-                $sub = [
-                    'mode' => $deploy->getMode(),
-                ];
-
-                foreach ($deploy->getLabels() as $k => $v) {
-                    $sub['labels'] []= "{$k}={$v}";
-                }
-
-                $placement = $deploy->getPlacement();
-                if (!empty($placement->getConstraints())) {
-                    $sub['placement']['constraints'] = $placement->getConstraints();
-                }
-
-                if (!empty($placement->getPreferences())) {
-                    $sub['placement']['preferences'] = $placement->getPreferences();
-                }
-
-                if ($deploy->getMode() == 'replicated' && $deploy->getReplicas()) {
-                    $sub['replicas'] = $deploy->getReplicas();
-                }
-
-                $resources = $deploy->getResources();
-                if (!empty($resources->getLimits())) {
-                    $sub['resources']['limits'] = $resources->getLimits();
-                }
-
-                if (!empty($resources->getReservations())) {
-                    $sub['resources']['reservations'] = $resources->getReservations();
-                }
-
-                $restartPolicy = $deploy->getRestartPolicy();
-                $sub['restart_policy']['condition'] = $restartPolicy->getCondition();
-                $sub['restart_policy']['delay'] = $restartPolicy->getDelay();
-
-                if ($maxAttempts = $restartPolicy->getMaxAttempts()) {
-                    $sub['restart_policy']['max_attempts'] = $maxAttempts;
-                }
-
-                $sub['restart_policy']['window'] = $restartPolicy->getWindow();
-
-                $current['deploy'] = $sub;
+            if ($deploy = $this->serviceDeploy($service)) {
+                $current['deploy'] = $deploy;
             }
 
             foreach ($service->getDevices() as $k => $v) {
@@ -369,7 +329,7 @@ class Export
             }
 
             foreach ($service->getSecrets() as $secret) {
-                $current['secrets'] []= $secret->getSlug();
+                $current['secrets'] []= $secret->getProjectSecret()->getSlug();
             }
 
             if (!empty($service->getStopGracePeriod())) {
@@ -403,22 +363,173 @@ class Export
                 $current['userns_mode'] = $service->getUsernsMode();
             }
 
-            foreach ($service->getVolumes() as $volume) {
-                if (empty($volume->getTarget())) {
-                    continue;
-                }
-
-                $string = "{$volume->getSource()}:{$volume->getTarget()}";
-                $string = $volume->getConsistency()
-                    ? "{$string}:{$volume->getConsistency()}"
-                    : $string;
-
-                $current['volumes'] []= Util\YamlTag::doubleQuotes($string);
+            if ($volumes = $this->serviceVolumes($service)) {
+                $current['volumes'] = $volumes;
             }
 
             $arr[$service->getSlug()] = $current;
         }
 
         return $arr;
+    }
+
+    protected function serviceBuild(Entity\Docker\Service $service) : ?array
+    {
+        $build = $service->getBuild();
+
+        if (empty($build)) {
+            return null;
+        }
+
+        $arr = [];
+
+        if ($context = $build->getContext()) {
+            $arr['context'] = $context;
+        }
+
+        if ($dockerfile = $build->getDockerfile()) {
+            $arr['dockerfile'] = $dockerfile;
+        }
+
+        foreach ($build->getArgs() as $k => $v) {
+            $v = is_array($v) ? implode(' ', $v) : $v;
+
+            $arr['args'][$k]= $v;
+        }
+
+        if (!empty($build->getCacheFrom())) {
+            $arr['cache_from'] []= $build->getCacheFrom();
+        }
+
+        foreach ($build->getLabels() as $k => $v) {
+            $arr['labels'] []= "{$k}={$v}";
+        }
+
+        if ($shmSize = $build->getShmSize()) {
+            $arr['shm_size'] = $shmSize;
+        }
+
+        if ($target = $build->getTarget()) {
+            $arr['target'] = $target;
+        }
+
+        return !empty($arr) ? $arr : null;
+    }
+
+    protected function serviceDeploy(Entity\Docker\Service $service) : ?array
+    {
+        $deploy = $service->getDeploy();
+
+        if (empty($deploy)) {
+            return null;
+        }
+
+        $arr = [
+            'mode' => $deploy->getMode(),
+        ];
+
+        foreach ($deploy->getLabels() as $k => $v) {
+            $arr['labels'] []= "{$k}={$v}";
+        }
+
+        $placement = $deploy->getPlacement();
+        if (!empty($placement->getConstraints())) {
+            $arr['placement']['constraints'] = $placement->getConstraints();
+        }
+
+        if (!empty($placement->getPreferences())) {
+            $arr['placement']['preferences'] = $placement->getPreferences();
+        }
+
+        if ($deploy->getMode() == 'replicated' && $deploy->getReplicas()) {
+            $arr['replicas'] = $deploy->getReplicas();
+        }
+
+        $resources = $deploy->getResources();
+        if (!empty($resources->getLimits())) {
+            $arr['resources']['limits'] = $resources->getLimits();
+        }
+
+        if (!empty($resources->getReservations())) {
+            $arr['resources']['reservations'] = $resources->getReservations();
+        }
+
+        $restartPolicy = $deploy->getRestartPolicy();
+        $arr['restart_policy']['condition'] = $restartPolicy->getCondition();
+        $arr['restart_policy']['delay'] = $restartPolicy->getDelay();
+
+        if ($maxAttempts = $restartPolicy->getMaxAttempts()) {
+            $arr['restart_policy']['max_attempts'] = $maxAttempts;
+        }
+
+        $arr['restart_policy']['window'] = $restartPolicy->getWindow();
+
+        return $arr;
+    }
+
+    protected function serviceVolumes(Entity\Docker\Service $service) : ?array
+    {
+        $arr = [];
+
+        foreach ($service->getVolumes() as $serviceVolume) {
+            $consistency = $serviceVolume->getConsistency()
+                ? ":{$serviceVolume->getConsistency()}"
+                : '';
+
+            // file with data
+            if ($serviceVolume->getFiletype() == Entity\Docker\ServiceVolume::FILETYPE_FILE) {
+                // file with source & target
+                if ($serviceVolume->getSource() && $serviceVolume->getTarget()) {
+                    $filename = $service->getSlug() . '/' . $serviceVolume->getSource();
+
+                    $string = "./{$filename}:{$serviceVolume->getTarget()}{$consistency}";
+                    $arr []= Util\YamlTag::doubleQuotes($string);
+
+                    $this->addFile("{$this->baseDir}/{$filename}", $serviceVolume->getData());
+
+                    continue;
+                }
+
+                // file with source, no target
+                if ($serviceVolume->getSource() && empty($serviceVolume->getTarget())) {
+                    $filename = $service->getSlug() . '/' . $serviceVolume->getSource();
+
+                    $this->addFile("{$this->baseDir}/{$filename}", $serviceVolume->getData());
+
+                    continue;
+                }
+            }
+
+            // Non-File Volume
+            if ($serviceVolume->getFiletype() == Entity\Docker\ServiceVolume::FILETYPE_OTHER) {
+                // local
+                if ($serviceVolume->getType() == Entity\Docker\ServiceVolume::TYPE_BIND) {
+                    $filenamePrepend = $serviceVolume->getPrepend()
+                        ? $service->getSlug() . '/'
+                        : '';
+
+                    $filename = $filenamePrepend . $serviceVolume->getSource();
+
+                    $string = "{$filename}:{$serviceVolume->getTarget()}{$consistency}";
+                    $arr []= Util\YamlTag::doubleQuotes($string);
+
+                    continue;
+                }
+
+                // docker volume
+                if ($serviceVolume->getType() == Entity\Docker\ServiceVolume::TYPE_VOLUME) {
+                    if (!$projectVolume = $serviceVolume->getProjectVolume()) {
+                        continue;
+                    }
+
+                    $string = "{$projectVolume->getSlug()}:{$serviceVolume->getTarget()}";
+                    $arr []= Util\YamlTag::doubleQuotes($string);
+
+                    continue;
+                }
+            }
+        }
+
+        return !empty($arr) ? $arr : null;
     }
 }

@@ -8,7 +8,10 @@
 
 <div class="page">
     <div class="page-main">
-        {% include '@Dashtainer/header.html.twig' %}
+        <div class="sticky-top">
+            {% include '@Dashtainer/header.html.twig' %}
+            {% block breadcrumb %}{% endblock %}
+        </div>
 
         <div class="page-content">
             <div class="container">

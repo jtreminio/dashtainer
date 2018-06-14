@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Beanstalkd extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'beanstalkd';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('beanstalkd');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -37,22 +41,10 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->setName('Dockerfile')
-            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->system_file['Dockerfile'] ?? '')
-            ->setConsistency(null)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('docker')
-            ->setService($service);
-
-        $service->addVolume($dockerfile);
-
-        $this->serviceRepo->save($dockerfile, $service);
-
-        $this->createDatastore($service, $form, '/var/lib/beanstalkd/binlog');
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -60,20 +52,14 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
+            'fileHighlight' => 'ini',
         ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $datastore = $service->getMeta('datastore')->getData()[0];
-
-        $dockerfile = $service->getVolume('Dockerfile');
-
         return array_merge(parent::getViewParams($service), [
-            'datastore'   => $datastore,
-            'systemFiles' => [
-                'Dockerfile' => $dockerfile,
-            ],
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -87,15 +73,24 @@ class Beanstalkd extends WorkerAbstract implements WorkerInterface
         $form
     ) : Entity\Docker\Service {
         $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
-
-        $this->serviceRepo->save($dockerfile);
-
-        $this->updateDatastore($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'Dockerfile'
+            ],
+            'other' => [
+                'datadir'
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

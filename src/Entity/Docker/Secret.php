@@ -55,9 +55,9 @@ class Secret implements
     /**
      * Only used if $file is set
      *
-     * @ORM\Column(name="contents", type="enc_blob", nullable=true)
+     * @ORM\Column(name="data", type="enc_blob", nullable=true)
      */
-    protected $contents;
+    protected $data;
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Service", fetch="EAGER")
@@ -79,6 +79,25 @@ class Secret implements
     public function __construct()
     {
         $this->service_secrets = new Collections\ArrayCollection();
+    }
+
+    /**
+     * @return string
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @param string $data
+     * @return $this
+     */
+    public function setData($data)
+    {
+        $this->data = $data;
+
+        return $this;
     }
 
     /**
@@ -125,25 +144,6 @@ class Secret implements
     public function setFile($file)
     {
         $this->file = $file;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getContents()
-    {
-        return $this->contents;
-    }
-
-    /**
-     * @param string $contents
-     * @return $this
-     */
-    public function setContents($contents)
-    {
-        $this->contents = $contents;
 
         return $this;
     }

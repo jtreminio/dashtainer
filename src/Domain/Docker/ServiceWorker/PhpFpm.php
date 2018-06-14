@@ -17,16 +17,21 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         Repository\Docker\ServiceType $serviceTypeRepo,
         Domain\Docker\Network $networkDomain,
         Domain\Docker\Secret $secretDomain,
+        Domain\Docker\Volume $volume,
         Blackfire $blackfireWorker
     ) {
-        parent::__construct($serviceRepo, $serviceTypeRepo, $networkDomain, $secretDomain);
+        parent::__construct($serviceRepo, $serviceTypeRepo, $networkDomain, $secretDomain, $volume);
 
         $this->blackfireWorker = $blackfireWorker;
     }
 
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'php-fpm';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('php-fpm');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -68,6 +73,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -78,132 +85,36 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $service);
 
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->setName('Dockerfile')
-            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->system_file['Dockerfile'] ?? '')
-            ->setConsistency(null)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('docker')
-            ->setService($service);
-
-        $phpIni = new Entity\Docker\ServiceVolume();
-        $phpIni->setName('php.ini')
-            ->setSource("\$PWD/{$service->getSlug()}/php.ini")
-            ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
-            ->setData($form->system_file['php.ini'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('ini')
-            ->setService($service);
-
-        $phpCliIni = new Entity\Docker\ServiceVolume();
-        $phpCliIni->setName('php-cli.ini')
-            ->setSource("\$PWD/{$service->getSlug()}/php-cli.ini")
-            ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
-            ->setData($form->system_file['php.ini'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('ini')
-            ->setService($service);
-
-        $fpmConf = new Entity\Docker\ServiceVolume();
-        $fpmConf->setName('php-fpm.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/php-fpm.conf")
-            ->setTarget("/etc/php/{$form->version}/fpm/php-fpm.conf")
-            ->setData($form->system_file['php-fpm.conf'])
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('ini')
-            ->setService($service);
-
-        $fpmStartupMeta = $service->getType()->getMeta('php-fpm-startup');
-
-        $fpmStartup = new Entity\Docker\ServiceVolume();
-        $fpmStartup->setName('php-fpm-startup')
-            ->setSource("\$PWD/{$service->getSlug()}/php-fpm-startup")
-            ->setData($fpmStartupMeta->getData()[0])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $xdebugBinMeta = $service->getType()->getMeta('xdebug-bin');
-
-        $xdebugBin = new Entity\Docker\ServiceVolume();
-        $xdebugBin->setName('xdebug')
-            ->setSource("\$PWD/{$service->getSlug()}/xdebug")
-            ->setData($xdebugBinMeta->getData()[0])
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setService($service);
-
-        $service->addVolume($dockerfile)
-            ->addVolume($phpIni)
-            ->addVolume($phpCliIni)
-            ->addVolume($fpmConf)
-            ->addVolume($fpmStartup)
-            ->addVolume($xdebugBin);
-
-        $this->serviceRepo->save(
-            $dockerfile, $phpIni, $phpCliIni, $fpmConf, $fpmStartup, $xdebugBin, $service
-        );
-
-        $this->projectFilesCreate($service, $form);
-
-        if ($form->xdebug['install'] ?? false) {
-            $xdebugIni = new Entity\Docker\ServiceVolume();
-            $xdebugIni->setName('xdebug.ini')
-                ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
-                ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
-                ->setData($form->xdebug['ini'])
-                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                ->setService($service);
-
-            $xdebugCliIni = new Entity\Docker\ServiceVolume();
-            $xdebugCliIni->setName('xdebug-cli.ini')
-                ->setSource("\$PWD/{$service->getSlug()}/xdebug-cli.ini")
-                ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_xdebug.ini")
-                ->setData($form->xdebug['cli_ini'])
-                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                ->setService($service);
-
-            $service->addVolume($xdebugIni)
-                ->addVolume($xdebugCliIni);
-
-            $this->serviceRepo->save($xdebugIni, $xdebugCliIni, $service);
-        }
-
-        $this->userFilesCreate($service, $form);
-
         if (!empty($form->blackfire['install'])) {
             $this->createUpdateBlackfireChild($service, $form);
         }
+
+        $this->serviceRepo->save($service);
 
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
+        $serviceType = $this->getServiceType();
+
         return array_merge(parent::getCreateParams($project), [
+            'phpVersionedPackages' => $serviceType->getMeta("packages-{$this->version}"),
+            'phpGeneralPackages'   => $serviceType->getMeta('packages-general'),
+            'fileHighlight'        => 'ini',
         ]);
     }
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $version = $service->getMeta('version')->getData()[0];
+        $this->version = $service->getMeta('version')->getData()[0];
 
-        $phpPackagesSelected = $service->getBuild()->getArgs()['PHP_PACKAGES'];
+        $build = $service->getBuild()->getArgs();
+
+        $phpPackagesSelected = $build['PHP_PACKAGES'];
 
         $phpPackagesAvailable = [];
-        if ($phpVersionedPackages = $service->getType()->getMeta("packages-${version}")) {
+        if ($phpVersionedPackages = $service->getType()->getMeta("packages-{$this->version}")) {
             $phpPackagesAvailable += $phpVersionedPackages->getData()['default'];
             $phpPackagesAvailable += $phpVersionedPackages->getData()['available'];
         }
@@ -215,34 +126,16 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $phpPackagesAvailable = array_diff($phpPackagesAvailable, $phpPackagesSelected);
 
-        $pearPackagesSelected   = $service->getBuild()->getArgs()['PEAR_PACKAGES'];
-        $peclPackagesSelected   = $service->getBuild()->getArgs()['PECL_PACKAGES'];
-        $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
-
-        $dockerfile = $service->getVolume('Dockerfile');
-        $phpIni     = $service->getVolume('php.ini');
-        $fpmConf    = $service->getVolume('php-fpm.conf');
+        $pearPackagesSelected   = $build['PEAR_PACKAGES'];
+        $peclPackagesSelected   = $build['PECL_PACKAGES'];
+        $systemPackagesSelected = $build['SYSTEM_PACKAGES'];
 
         $composer = [
-            'install' => $service->getBuild()->getArgs()['COMPOSER_INSTALL'],
+            'install' => $build['COMPOSER_INSTALL'],
         ];
-
-        if ($xdebugVol = $service->getVolume('xdebug.ini')) {
-            $xdebugIni = $xdebugVol->getData();
-        } else {
-            $xdebugIni = $service->getType()->getMeta('ini-xdebug')->getData()[0];
-        }
-
-        if ($xdebugCliVol = $service->getVolume('xdebug-cli.ini')) {
-            $xdebugCliIni = $xdebugCliVol->getData();
-        } else {
-            $xdebugCliIni = $service->getType()->getMeta('ini-xdebug-cli')->getData()[0];
-        }
 
         $xdebug = [
             'install' => in_array('php-xdebug', $phpPackagesSelected),
-            'ini'     => $xdebugIni,
-            'cli_ini' => $xdebugCliIni,
         ];
 
         $blackfire = [
@@ -259,27 +152,17 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
         }
 
-        $userFiles = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
-
         return array_merge(parent::getViewParams($service), [
-            'version'                => $version,
-            'projectFiles'           => $this->projectFilesViewParams($service),
+            'version'                => $this->version,
             'phpPackagesSelected'    => $phpPackagesSelected,
             'phpPackagesAvailable'   => $phpPackagesAvailable,
             'pearPackagesSelected'   => $pearPackagesSelected,
             'peclPackagesSelected'   => $peclPackagesSelected,
             'systemPackagesSelected' => $systemPackagesSelected,
-            'systemFiles'            => [
-                'Dockerfile'   => $dockerfile,
-                'php.ini'      => $phpIni,
-                'php-fpm.conf' => $fpmConf,
-            ],
-            'userFiles'              => $userFiles,
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
+            'fileHighlight'          => 'ini',
         ]);
     }
 
@@ -314,82 +197,6 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
-
-        $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
-
-        if (!$phpIni = $service->getVolume('php.ini')) {
-            $phpIni = new Entity\Docker\ServiceVolume();
-            $phpIni->setName('php.ini')
-                ->setSource("\$PWD/{$service->getSlug()}/php.ini")
-                ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_custom.ini")
-                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                ->setHighlight('ini')
-                ->setService($service);
-
-            $service->addVolume($phpIni);
-        }
-
-        if (!$phpCliIni = $service->getVolume('php-cli.ini')) {
-            $phpCliIni = new Entity\Docker\ServiceVolume();
-            $phpCliIni->setName('php-cli.ini')
-                ->setSource("\$PWD/{$service->getSlug()}/php-cli.ini")
-                ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_custom.ini")
-                ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                ->setHighlight('ini')
-                ->setService($service);
-
-            $service->addVolume($phpCliIni);
-        }
-
-        $phpIni->setData($form->system_file['php.ini'] ?? '');
-        $phpCliIni->setData($form->system_file['php.ini'] ?? '');
-
-        $fpmConf = $service->getVolume('php-fpm.conf');
-        $fpmConf->setData($form->system_file['php-fpm.conf']);
-
-        $this->serviceRepo->save($dockerfile, $phpIni, $phpCliIni, $fpmConf);
-
-        $this->projectFilesUpdate($service, $form);
-
-        if ($form->xdebug['install'] ?? false) {
-            if (!$xdebugIni = $service->getVolume('xdebug.ini')) {
-                $xdebugIni = new Entity\Docker\ServiceVolume();
-                $xdebugIni->setName('xdebug.ini')
-                    ->setSource("\$PWD/{$service->getSlug()}/xdebug.ini")
-                    ->setTarget("/etc/php/{$form->version}/fpm/conf.d/zzzz_xdebug.ini")
-                    ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                    ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                    ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                    ->setService($service);
-
-                $service->addVolume($xdebugIni);
-            }
-
-            if (!$xdebugCliIni = $service->getVolume('xdebug-cli.ini')) {
-                $xdebugCliIni = new Entity\Docker\ServiceVolume();
-                $xdebugCliIni->setName('xdebug-cli.ini')
-                    ->setSource("\$PWD/{$service->getSlug()}/xdebug-cli.ini")
-                    ->setTarget("/etc/php/{$form->version}/cli/conf.d/zzzz_xdebug.ini")
-                    ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-                    ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-                    ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-                    ->setService($service);
-
-                $service->addVolume($xdebugCliIni);
-            }
-
-            $xdebugIni->setData($form->xdebug['ini']);
-            $xdebugCliIni->setData($form->xdebug['cli_ini']);
-
-            $this->serviceRepo->save($xdebugIni, $xdebugCliIni);
-        }
-
         // create or update blackfire service
         if (!empty($form->blackfire['install'])) {
             $this->createUpdateBlackfireChild($service, $form);
@@ -400,7 +207,11 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $this->deleteBlackfireChild($service);
         }
 
-        $this->userFilesUpdate($service, $form);
+        $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
+
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -420,7 +231,8 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         }
 
         if (!$blackfireService = $this->getBlackfireChild($parent)) {
-            $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
+            $blackfireType = $this->blackfireWorker->getServiceType();
+            $blackfireSlug = $blackfireType->getSlug();
 
             $blackfireForm->name = "{$blackfireSlug}-{$form->name}";
             $blackfireForm->type = $this->serviceTypeRepo->findBySlug(
@@ -470,23 +282,17 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
     protected function getBlackfireChild(
         Entity\Docker\Service $parent
     ) : ?Entity\Docker\Service {
-        $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
-        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
-
         return $this->serviceRepo->findChildByType(
             $parent,
-            $blackfireType
+            $this->blackfireWorker->getServiceType()
         );
     }
 
     protected function deleteBlackfireChild(Entity\Docker\Service $parent)
     {
-        $blackfireSlug = $this->blackfireWorker->getServiceTypeSlug();
-        $blackfireType = $this->serviceTypeRepo->findBySlug($blackfireSlug);
-
         $blackfireService = $this->serviceRepo->findChildByType(
             $parent,
-            $blackfireType
+            $this->blackfireWorker->getServiceType()
         );
 
         if (!$blackfireService) {
@@ -514,6 +320,25 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
         );
 
         $this->networkDomain->deleteEmptyNetworks($parent->getProject());
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                "php-ini-{$this->version}",
+                "php-ini-cli-{$this->version}",
+                "fpm-conf-{$this->version}",
+                "xdebug-ini-{$this->version}",
+                "xdebug-ini-cli-{$this->version}",
+                'fpm-bin',
+                'xdebug-bin',
+                "Dockerfile-{$this->version}",
+            ],
+            'other' => [
+                'root',
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

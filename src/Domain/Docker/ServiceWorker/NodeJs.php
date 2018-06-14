@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class NodeJs extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'node-js';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('node-js');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -36,6 +40,8 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($service);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $versionMeta = new Entity\Docker\ServiceMeta();
         $versionMeta->setName('version')
@@ -53,14 +59,13 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($versionMeta, $portMeta, $service);
 
-        $this->projectFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -70,10 +75,10 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
         $portMeta = $service->getMeta('port');
 
         return array_merge(parent::getViewParams($service), [
-            'version'      => $version,
-            'projectFiles' => $this->projectFilesViewParams($service),
-            'port'         => $portMeta->getData()[0],
-            'command'      => $service->getCommand()
+            'version'       => $version,
+            'port'          => $portMeta->getData()[0],
+            'command'       => $service->getCommand(),
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -95,10 +100,23 @@ class NodeJs extends WorkerAbstract implements WorkerInterface
         $this->serviceRepo->save($portMeta);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->projectFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+            ],
+            'other' => [
+                'root',
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

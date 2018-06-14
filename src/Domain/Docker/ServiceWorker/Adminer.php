@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Adminer extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'adminer';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('adminer');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -35,8 +39,12 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'ADMINER_PLUGINS' => join(' ', $form->plugins),
         ]);
 
+        $this->serviceRepo->save($service);
+
         $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $frontendRule = sprintf('Host:%s.%s.localhost',
             $service->getSlug(),
@@ -49,14 +57,13 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->userFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
+            'fileHighlight' => 'php',
         ]);
     }
 
@@ -88,16 +95,12 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             }
         }
 
-        $userFiles = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
-
         return array_merge(parent::getViewParams($service), [
             'design'           => $design,
             'plugins'          => $plugins,
             'availableDesigns' => $availableDesigns,
             'availablePlugins' => $availablePlugins,
-            'userFiles'        => $userFiles,
+            'fileHighlight'    => 'php',
         ]);
     }
 
@@ -116,10 +119,22 @@ class Adminer extends WorkerAbstract implements WorkerInterface
         ]);
 
         $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+            ],
+            'other' => [
+            ],
+        ];
     }
 
     protected function internalSecretsArray(

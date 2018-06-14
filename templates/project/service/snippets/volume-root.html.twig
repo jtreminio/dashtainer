@@ -1,0 +1,30 @@
+<input type="hidden" name="volumes_other[{{ volume.id }}][name]"
+       value="{{ volume.name }}" />
+<input type="hidden" name="volumes_other[{{ volume.id }}][target]"
+       value="{{ volume.target }}" />
+<input type="hidden" name="volumes_other[{{ volume.id }}][type]"
+       value="{{ volume.type }}" />
+
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label"
+               for="volumes_other-{{ volume.id }}-source">Path to App Root</label>
+        <input type="text" class="form-control" maxlength="255"
+               id="volumes_other-{{ volume.id }}-source"
+               name="volumes_other[{{ volume.id }}][source]"
+               placeholder="{{ volume.source }}" required
+               value="{{ volume.source }}"
+               data-error-container="volumes_other-{{ volume.id }}-source" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="volumes_other-{{ volume.id }}-source"></div>
+        <small class="text-muted">
+            Location of your project files on host machine.
+            The contents will be made available inside the container
+            at <code>{{ volume.target }}</code>.<br />
+            Windows users: You must use forward-slash
+            <code>c:/dev/my-project</code> or double back-slash
+            <code>c:\\dev\\my-project</code>.
+        </small>
+    </div>
+</div>

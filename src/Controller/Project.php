@@ -25,9 +25,6 @@ class Project extends Controller
     /** @var Domain\Docker\Project */
     protected $dProjectDomain;
 
-    /** @var Domain\Docker\Service */
-    protected $dServiceDomain;
-
     /** @var Repository\Docker\Network */
     protected $dNetworkRepo;
 
@@ -46,7 +43,6 @@ class Project extends Controller
     public function __construct(
         Domain\Docker\Export $dExportDomain,
         Domain\Docker\Project $dProjectDomain,
-        Domain\Docker\Service $dServiceDomain,
         Repository\Docker\Network $dNetworkRepo,
         Repository\Docker\Project $dProjectRepo,
         Repository\Docker\Service $dServiceRepo,
@@ -55,7 +51,6 @@ class Project extends Controller
     ) {
         $this->dExportDomain  = $dExportDomain;
         $this->dProjectDomain = $dProjectDomain;
-        $this->dServiceDomain = $dServiceDomain;
 
         $this->dNetworkRepo    = $dNetworkRepo;
         $this->dProjectRepo    = $dProjectRepo;
@@ -76,7 +71,8 @@ class Project extends Controller
     public function getIndex(Entity\User $user) : Response
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
-            'user' => $user,
+            'user'        => $user,
+            'projectList' => $this->dProjectDomain->getList($user),
         ]);
     }
 
@@ -248,15 +244,15 @@ class Project extends Controller
     }
 
     /**
-     * @Route(name="project.export.get",
-     *     path="/project/{projectId}/export",
+     * @Route(name="project.download.get",
+     *     path="/project/{projectId}/download",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
      * @param string      $projectId
      * @return Response
      */
-    public function getExport(
+    public function getDownload(
         Entity\User $user,
         string $projectId
     ) : Response {
@@ -264,14 +260,14 @@ class Project extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        return $this->render('@Dashtainer/project/export.html.twig', [
+        return $this->render('@Dashtainer/project/download.html.twig', [
             'project' => $project,
         ]);
     }
 
     /**
-     * @Route(name="project.export.download.get",
-     *     path="/project/{projectId}/export/download/{traefik}",
+     * @Route(name="project.download.file.get",
+     *     path="/project/{projectId}/download/{traefik}",
      *     methods={"GET"}
      * )
      * @param Entity\User $user
@@ -279,7 +275,7 @@ class Project extends Controller
      * @param string      $traefik
      * @return StreamedResponse
      */
-    public function getExportDownload(
+    public function getDownloadArchive(
         Entity\User $user,
         string $projectId,
         string $traefik
@@ -296,11 +292,34 @@ class Project extends Controller
             $zip = new ZipStream('dashtainer.zip', $opt);
 
             $this->dExportDomain->setArchiver($zip);
-            $this->dExportDomain->generateArchive($project, $traefik === 'traefik');
+            $this->dExportDomain->download($project, $traefik === 'traefik');
 
             $zip->finish();
         });
 
         return $response;
+    }
+
+    /**
+     * @Route(name="project.download.dump.get",
+     *     path="/project/{projectId}/dump",
+     *     methods={"GET"}
+     * )
+     * @param Entity\User $user
+     * @param string      $projectId
+     * @return Response
+     */
+    public function getDump(
+        Entity\User $user,
+        string $projectId
+    ) : Response {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+            return $this->render('@Dashtainer/project/not-found.html.twig');
+        }
+
+        return $this->render('@Dashtainer/project/dump.html.twig', [
+            'project' => $project,
+            'dump'    => $this->dExportDomain->dump($project),
+        ]);
     }
 }

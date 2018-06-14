@@ -1,11 +1,21 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.update.post', {
+<form action="{{ path('project.service.update.post', {
     'projectId': project.id,
     'serviceId': service.id,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
+        <div class="row">
+            <div class="form-group col">
+                <label class="form-label">Service Name</label>
+                <input type="hidden" value="{{ service.name }}"
+                       data-update-text="service-name-tag" />
+                <div class="form-control">{{ service.name }}</div>
+            </div>
+        </div>
+
         <div class="alert alert-icon alert-info mb-6" role="alert">
             <i class="fe fe-bell mr-2" aria-hidden="true"></i>
             This service is available <strong>privately</strong> at
@@ -14,16 +24,10 @@
                 <span id="service-name-tag">{{ service.name }}</span>:9000</span>
         </div>
 
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
         <hr class="my-6" />
 
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/service_files_source_update.html.twig' %}
+        {% set volume = volumes.other.remove('root') %}
+        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
         <hr class="my-6" />
 
@@ -42,6 +46,11 @@
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="php-packages"></div>
+                <small class="text-muted">
+                    Package list
+                    <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
+                       target="_blank">available here</a>.
+                </small>
             </div>
         </div>
 
@@ -55,6 +64,12 @@
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
+                <small class="text-muted">
+                    Package list
+                    <a href="https://pear.php.net/packages.php"
+                       target="_blank">available here</a>.
+                    PEAR is deprecated, you should consider something else.
+                </small>
             </div>
         </div>
 
@@ -68,6 +83,12 @@
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
+                <small class="text-muted">
+                    Package list
+                    <a href="https://pecl.php.net/packages.php"
+                       target="_blank">available here</a>.
+                    PECL is deprecated, you should consider something else.
+                </small>
             </div>
         </div>
 
@@ -81,239 +102,87 @@
                     {% endfor %}
                 </select>
                 <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Config Files</h4>
-
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                               'language': 'ini',
-                           }) }}">
-                            <i class="fe fe-plus"></i> Add</a>
-                    </li>
-                    {% for key, value in systemFiles %}
-                        <li class="nav-item {{ loop.first ? 'active' }}">
-                            <a id="nav-{{ key }}-tab" class="nav-link {{ loop.first ? 'active' }}"
-                               data-toggle="tab" role="tab"
-                               href="#system_file-{{ key }}" aria-controls="system_file-{{ key }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ key }}</a>
-                        </li>
-                    {% endfor %}
-
-                    {% for file in userFiles %}
-                        <li class="nav-item">
-                            <a id="nav-user_file-{{ file.id }}-tab"
-                               class="nav-link"
-                               data-toggle="tab" href="#user_file-{{ file.id }}"
-                               role="tab" aria-controls="user_file-{{ file.id }}"
-                               aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ file.name }}</a>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-default"
-                                        data-toggle="delete-block"
-                                        data-target="#user_file-{{ file.id }}">
-                                    <i class="fa fa-close"></i></button>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                    {% for key, value in systemFiles %}
-                        <div id="system_file-{{ key }}" role="tabpanel"
-                             class="tab-pane fade {{ loop.first ? 'show active' }}">
-                            <div class="row">
-                                <div class="col">
-                                    <pre class="language-{{ value.highlight ?? 'ini' }}" data-code-highlight><code
-                                            id="system_file-{{ key }}-source"
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false">{{ value.data }}</code></pre>
-                                    <input type="hidden" value="" name="system_file[{{ key }}]"
-                                           data-error-container="system_file-ini"
-                                           data-get-value-source="system_file-{{ key }}-source" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-
-                    {% for file in userFiles %}
-                        <div id="user_file-{{ file.id }}"
-                             class="tab-pane fade"
-                             role="tabpanel">
-                            <div class="row">
-                                <div class="form-group col">
-                                    <label class="form-label"
-                                           for="user_file-{{ file.id }}-filename">Filename</label>
-                                    <input type="text" class="form-control" maxlength="255"
-                                           id="user_file-{{ file.id }}-filename"
-                                           name="user_file[{{ file.id }}][filename]"
-                                           placeholder="" value="{{ file.name }}"
-                                           data-update-text="nav-user_file-{{ file.id }}-tab"
-                                           data-mask-type="filename"
-                                           data-error-container="user_file-error" />
-                                    <small class="text-muted">
-                                        Save config into this local file.
-                                    </small>
-                                </div>
-
-                                <div class="form-group col">
-                                    <label class="form-label"
-                                           for="user_file-{{ file.id }}-target">Target Path</label>
-                                    <input type="text" class="form-control" maxlength="255"
-                                           id="user_file-{{ file.id }}-target"
-                                           name="user_file[{{ file.id }}][target]"
-                                           placeholder="" value="{{ file.target }}"
-                                           data-error-container="user_file-error" />
-                                    <small class="text-muted">
-                                        Make file available inside container at this location.
-                                    </small>
-                                </div>
-
-                                <div class="col-12">
-                                    <pre class="language-ini" data-code-highlight><code
-                                            contenteditable autocorrect="off" autocapitalize="off"
-                                            spellcheck="false"
-                                            id="user_file-{{ file.id }}-data">{{ file.data }}</code></pre>
-                                    <input type="hidden" value="" name="user_file[{{ file.id }}][data]"
-                                           data-error-container="user_file-error"
-                                           data-get-value-source="user_file-{{ file.id }}-data" />
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="system_file-ini"></div>
+                <small class="text-muted">
+                    Will be installed using <code>apt-get</code>.
+                </small>
             </div>
         </div>
 
         <hr class="my-6" />
 
         <h4 class="mb-3">Additional Tools</h4>
-        <div class="row">
+
+        <div class="row mb-3">
             <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item active">
-                        <a id="nav-addons-composer-tab" class="nav-item nav-link active"
-                           data-toggle="tab" role="tab"
-                           href="#addons-composer"
-                           aria-selected="true">Composer</a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="nav-addons-xdebug-tab" class="nav-item nav-link"
-                           data-toggle="tab" role="tab"
-                           href="#addons-xdebug"
-                           aria-selected="false">Xdebug</a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="nav-addons-blackfire-tab" class="nav-item nav-link"
-                           data-toggle="tab" role="tab"
-                           href="#addons-blackfire"
-                           aria-selected="false">Blackfire</a>
-                    </li>
-                </ul>
-
-                <div id="nav-addons-content" class="tab-content">
-                    <div id="addons-composer" role="tabpanel"
-                         class="tab-pane fade show active">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1" {{ composer.install ? 'checked' }}
-                                           id="composer-install" name="composer[install]">
-                                    <label class="custom-control-label" for="composer-install">
-                                        Install Composer</label>
-                                </div>
-                                <small class="text-muted">
-                                    Composer will be available as a system service at
-                                    <code>$ composer</code>
-                                </small>
+                <label class="form-label text-uppercase"
+                       for="composer-install">Composer</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="composer-install"
+                                       {{ composer.install ? 'checked' }}
+                                       name="composer[install]" checked />
+                                <label class="custom-control-label"
+                                       for="composer-install">Install</label>
                             </div>
                         </div>
                     </div>
+                    <div class="form-control">
+                        Composer will be available as a system service at
+                        <code>$ composer</code>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <div id="addons-xdebug" role="tabpanel"
-                         class="tab-pane fade">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1" {{ xdebug.install ? 'checked' }}
-                                           id="xdebug-install" name="xdebug[install]">
-                                    <label class="custom-control-label" for="xdebug-install">
-                                        Install Xdebug</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <div class="alert alert-primary" role="alert">
-                                    On <strong>Linux</strong>? Change
-                                    <code>host.docker.internal</code> below to
-                                    <code>172.17.0.1</code>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-5">
-                            <div class="col">
-                                <h5>PHP-FPM INI</h5>
-                                <pre class="language-ini short" data-code-highlight><code
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false"
-                                        id="xdebug-ini">{{ xdebug.ini }}</code></pre>
-                                <input type="hidden" value="" name="xdebug[ini]"
-                                       data-error-container="additional-tools"
-                                       data-get-value-source="xdebug-ini" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <h5>CLI INI</h5>
-
-                                <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
-                                    For example, you can use the following to debug your programs via
-                                    CLI:</p>
-                                <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
-
-                                <pre class="language-ini short" data-code-highlight><code
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false"
-                                        id="xdebug-cli_ini">{{ xdebug.cli_ini }}</code></pre>
-                                <input type="hidden" value="" name="xdebug[cli_ini]"
-                                       data-error-container="additional-tools"
-                                       data-get-value-source="xdebug-cli_ini" />
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label text-uppercase"
+                       for="xdebug-install">Xdebug</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="xdebug-install"
+                                       {{ xdebug.install ? 'checked' }}
+                                       name="xdebug[install]" />
+                                <label class="custom-control-label"
+                                       for="xdebug-install">Install</label>
                             </div>
                         </div>
                     </div>
+                    <div class="form-control">
+                        <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
+                            For example, you can use the following to debug your programs via
+                            CLI:</p>
+                        <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
+                        <p>You can edit INI values in the <strong>Config Files</strong> section.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <div id="addons-blackfire" role="tabpanel"
-                         class="tab-pane fade">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1" {{ blackfire.install ? 'checked' }}
-                                           id="blackfire-install" name="blackfire[install]">
-                                    <label class="custom-control-label" for="blackfire-install">
-                                        Install Blackfire</label>
-                                </div>
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label text-uppercase"
+                       for="blackfire-install">Blackfire</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="blackfire-install"
+                                       {{ blackfire.install ? 'checked' }}
+                                       name="blackfire[install]" />
+                                <label class="custom-control-label"
+                                       for="blackfire-install">Install</label>
                             </div>
                         </div>
-
+                    </div>
+                    <div class="form-control">
                         <div class="row">
                             <div class="form-group col">
                                 <label class="form-label"
@@ -321,36 +190,38 @@
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_id" name="blackfire[server_id]"
                                        placeholder="" value="{{ blackfire.server_id }}"
-                                       data-error-container="additional-tools" />
+                                       data-error-container="blackfire-server_id" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_id"></div>
                             </div>
+                        </div>
 
+                        <div class="row">
                             <div class="form-group col">
                                 <label class="form-label"
                                        for="blackfire-server_token">Blackfire Server Token</label>
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_token" name="blackfire[server_token]"
                                        placeholder="" value="{{ blackfire.server_token }}"
-                                       data-error-container="additional-tools" />
+                                       data-error-container="blackfire-server_token" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_token"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="additional-tools"></div>
             </div>
         </div>
 
-        <hr class="my-6" />
-
         <input type="hidden" id="version" name="version" value="{{ version }}" />
-
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('project.view.get', {
-                'projectId': project.id
-            }) }}" class="btn btn-secondary btn-lg">Cancel</a>
-            <button class="btn btn-primary btn-lg" type="submit">Update Service</button>
-        </div>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
 </form>
 {% endblock %}

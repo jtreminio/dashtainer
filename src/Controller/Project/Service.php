@@ -4,7 +4,6 @@ namespace Dashtainer\Controller\Project;
 
 use Dashtainer\Domain;
 use Dashtainer\Entity;
-use Dashtainer\Form;
 use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 use Dashtainer\Validator;
@@ -25,14 +24,11 @@ class Service extends Controller
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;
 
-    /** @var Repository\Docker\Network */
-    protected $dNetworkRepo;
+    /** @var Domain\Docker\ServiceManager */
+    protected $dServiceManager;
 
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
-
-    /** @var Repository\Docker\Secret */
-    protected $dSecretRepo;
 
     /** @var Repository\Docker\Service */
     protected $dServiceRepo;
@@ -50,21 +46,19 @@ class Service extends Controller
         Domain\Docker\Network $dNetworkDomain,
         Domain\Docker\Secret $dSecretDomain,
         Domain\Docker\Service $dServiceDomain,
-        Repository\Docker\Network $dNetworkRepo,
+        Domain\Docker\ServiceManager $dServiceManager,
         Repository\Docker\Project $dProjectRepo,
-        Repository\Docker\Secret $dSecretRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
-        $this->dNetworkDomain = $dNetworkDomain;
-        $this->dSecretDomain  = $dSecretDomain;
-        $this->dServiceDomain = $dServiceDomain;
+        $this->dNetworkDomain  = $dNetworkDomain;
+        $this->dSecretDomain   = $dSecretDomain;
+        $this->dServiceDomain  = $dServiceDomain;
+        $this->dServiceManager = $dServiceManager;
 
-        $this->dNetworkRepo     = $dNetworkRepo;
         $this->dProjectRepo     = $dProjectRepo;
-        $this->dSecretRepo      = $dSecretRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
         $this->dServiceTypeRepo = $dServiceTypeRepo;
@@ -98,64 +92,39 @@ class Service extends Controller
 
     /**
      * @Route(name="project.service.block-add-file.get",
-     *     path="/project/{projectId}/service/block-add-file/{language}/{targetPath}",
+     *     path="/project/{projectId}/service/block-add-file/{highlight}",
      *     methods={"GET"}
      * )
-     * @param string $language
-     * @param string $targetPath
+     * @param string $highlight
      * @return AjaxResponse
      */
     public function getBlockAddFile(
-        string $language,
-        string $targetPath = null
+        string $highlight
     ) : AjaxResponse {
-        $uniqid = uniqid();
+        $volume = new Entity\Docker\ServiceVolume();
+        $volume->fromArray(['id' => uniqid()]);
+        $volume->setName($volume->getId())
+            ->setHighlight($highlight);
 
-        $id   = "user_file-{$uniqid}";
-        $name = "user_file[{$uniqid}]";
-
-        $tabTemplate = '@Dashtainer/project/service/snippets/service_user_file_tab.html.twig';
-        $blockTab    = $this->render($tabTemplate, [
-            'id'             => $id,
-            'name'           => $name,
-            'errorContainer' => 'user_file-error',
+        $template = '@Dashtainer/project/service/snippets/volume-file-add-tab.html.twig';
+        $tab      = $this->render($template, [
+            'volume'    => $volume,
+            'loopFirst' => false,
         ]);
 
-        $blockTemplate = '@Dashtainer/project/service/snippets/service_user_file_content.html.twig';
-        $blockContent  = $this->render($blockTemplate, [
-            'id'             => $id,
-            'name'           => $name,
-            'language'       => $language,
-            'targetPath'     => $targetPath ? urldecode($targetPath) : '',
-            'errorContainer' => 'user_file-error',
+        $template = '@Dashtainer/project/service/snippets/volume-file-add-content.html.twig';
+        $content  = $this->render($template, [
+            'volume'      => $volume,
+            'loopFirst'   => false,
+            'serviceName' => '',
         ]);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_SUCCESS,
             'data' => [
-                'tab'     => $blockTab->getContent(),
-                'content' => $blockContent->getContent(),
+                'tab'     => $tab->getContent(),
+                'content' => $content->getContent(),
             ],
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-secret.get",
-     *     path="/project/{projectId}/service/block-add-secret",
-     *     methods={"GET"}
-     * )
-     * @return AjaxResponse
-     */
-    public function getBlockAddSecret() : AjaxResponse
-    {
-        $template = '@Dashtainer/project/service/snippets/secret-add.html.twig';
-        $rendered = $this->render($template, [
-            'id' => uniqid(),
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => $rendered->getContent(),
         ], AjaxResponse::HTTP_OK);
     }
 
@@ -192,6 +161,72 @@ class Service extends Controller
     }
 
     /**
+     * @Route(name="project.service.block-add-secret.get",
+     *     path="/project/{projectId}/service/block-add-secret",
+     *     methods={"GET"}
+     * )
+     * @return AjaxResponse
+     */
+    public function getBlockAddSecret() : AjaxResponse
+    {
+        $template = '@Dashtainer/project/service/snippets/secret-add.html.twig';
+        $rendered = $this->render($template, [
+            'id' => uniqid(),
+        ]);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_SUCCESS,
+            'data' => $rendered->getContent(),
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.block-add-volume.get",
+     *     path="/project/{projectId}/service/block-add-volume",
+     *     methods={"GET"}
+     * )
+     * @return AjaxResponse
+     */
+    public function getBlockAddVolume() : AjaxResponse
+    {
+        $volume = new Entity\Docker\ServiceVolume();
+        $volume->fromArray(['id' => uniqid()]);
+
+        $template = '@Dashtainer/project/service/snippets/volume-add.html.twig';
+        $rendered = $this->render($template, [
+            'volume' => $volume,
+        ]);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_SUCCESS,
+            'data' => $rendered->getContent(),
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
+     * @Route(name="project.service.block-add-volume-bind.get",
+     *     path="/project/{projectId}/service/block-add-volume-bind",
+     *     methods={"GET"}
+     * )
+     * @return AjaxResponse
+     */
+    public function getBlockAddVolumeBind() : AjaxResponse
+    {
+        $volume = new Entity\Docker\ServiceVolume();
+        $volume->fromArray(['id' => uniqid()]);
+
+        $template = '@Dashtainer/project/service/snippets/volume-bind-add.html.twig';
+        $rendered = $this->render($template, [
+            'volume' => $volume,
+        ]);
+
+        return new AjaxResponse([
+            'type' => AjaxResponse::AJAX_SUCCESS,
+            'data' => $rendered->getContent(),
+        ], AjaxResponse::HTTP_OK);
+    }
+
+    /**
      * @Route(name="project.service.create.get",
      *     path="/project/{projectId}/service/create/{serviceTypeSlug}/{version}",
      *     methods={"GET"}
@@ -216,6 +251,9 @@ class Service extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
+        $worker = $this->dServiceManager->getWorkerFromType($serviceType);
+        $worker->setVersion($version);
+
         $serviceName = $this->dServiceDomain->generateName(
             $project,
             $serviceType,
@@ -226,8 +264,6 @@ class Service extends Controller
             strtolower($serviceTypeSlug)
         );
 
-        $params = $this->dServiceDomain->getCreateParams($project, $serviceType);
-
         return $this->render($template, array_merge([
             'user'              => $user,
             'project'           => $project,
@@ -235,7 +271,7 @@ class Service extends Controller
             'serviceName'       => $serviceName,
             'serviceType'       => $serviceType,
             'version'           => $version,
-        ], $params));
+        ], $worker->getCreateParams($project)));
     }
 
     /**
@@ -268,6 +304,9 @@ class Service extends Controller
 
         $form->fromArray($request->request->all());
 
+        $worker = $this->dServiceManager->getWorkerFromType($serviceType);
+        $worker->setVersion($form->version ?? null);
+
         $form->service_name_used = $this->dServiceRepo->findOneBy([
             'project' => $project,
             'name'    => $form->name,
@@ -290,7 +329,7 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $this->dServiceDomain->createService($form);
+        $worker->create($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -326,17 +365,16 @@ class Service extends Controller
         }
 
         $serviceType = $service->getType();
+        $worker      = $this->dServiceManager->getWorkerFromType($serviceType);
         $template    = sprintf('@Dashtainer/project/service/%s/view.html.twig',
             strtolower($serviceType->getSlug())
         );
-
-        $params = $this->dServiceDomain->getViewParams($service);
 
         return $this->render($template, array_merge([
             'service'           => $service,
             'project'           => $project,
             'serviceCategories' => $this->dServiceCatRepo->findAll(),
-        ], $params));
+        ], $worker->getViewParams($service)));
     }
 
     /**
@@ -365,17 +403,15 @@ class Service extends Controller
         }
 
         $serviceType = $service->getType();
+        $worker      = $this->dServiceManager->getWorkerFromType($serviceType);
         $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getSlug())
         );
 
-        $params = $this->dServiceDomain->getViewParams($service);
-
         return $this->render($template, array_merge([
-            'service'           => $service,
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->getPublic(),
-        ], $params));
+            'service' => $service,
+            'project' => $project,
+        ], $worker->getViewParams($service)));
     }
 
     /**

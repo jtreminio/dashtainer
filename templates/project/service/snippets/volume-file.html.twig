@@ -1,0 +1,50 @@
+<div class="page-header mb-0" id="file">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Config Files
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-tab"
+               data-tab-list="#volumes_file-tablist"
+               data-tab-content="#volumes_file-tab-content"
+               href="{{ path('project.service.block-add-file.get', {
+                   'projectId': project.id,
+                   'highlight': fileHighlight,
+               }) }}"><i class="fe fe-plus"></i> Create File</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col">
+                <ul id="volumes_file-tablist" class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item empty-tablist">To add a File, click "Create File" above.</li>
+                    {% for volume in volumes.files %}
+                        {% include '@Dashtainer/project/service/snippets/volume-file-add-tab.html.twig'
+                            with {'loopFirst': loop.first, 'volume': volume} %}
+                    {% endfor %}
+                </ul>
+
+                <div id="volumes_file-tab-content" class="tab-content">
+                    {% for volume in volumes.files %}
+                        {% include '@Dashtainer/project/service/snippets/volume-file-add-content.html.twig'
+                            with {
+                                'loopFirst': loop.first,
+                                'volume': volume,
+                                'serviceName': serviceName ?? service.name
+                        } %}
+                    {% endfor %}
+                </div>
+
+                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+                     data-error-container-name="volumes_file-error"></div>
+            </div>
+        </div>
+    </div>
+</div>

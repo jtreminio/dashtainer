@@ -21,7 +21,7 @@
                             <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
                                 <a class="nav-link"
                                     {% if project.services is not empty %}
-                                        href="{{ path('project.export.get', {'projectId': project.id}) }}
+                                        href="{{ path('project.download.get', {'projectId': project.id}) }}
                                     {% endif %}">Step 3<br />
                                     <span class="small">Download Project</span></a>
                             </li>

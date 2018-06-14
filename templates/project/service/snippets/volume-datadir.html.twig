@@ -1,0 +1,72 @@
+<h4 class="mb-3">Data Storage</h4>
+
+<input type="hidden" name="volumes_other[{{ volume.id }}][name]"
+       value="{{ volume.name }}" />
+<input type="hidden" name="volumes_other[{{ volume.id }}][source]"
+       value="{{ volume.source }}" />
+<input type="hidden" name="volumes_other[{{ volume.id }}][target]"
+       value="{{ volume.target }}" />
+
+<div class="row">
+    <div class="col">
+        <div class="selectgroup" role="tablist">
+            <label class="selectgroup-item">
+                <input type="radio" class="selectgroup-input"
+                       id="volumes_other-{{ volume.id }}-type-volume"
+                       name="volumes_other[{{ volume.id }}][type]"
+                       value="volume" role="tab"
+                       {{ volume.type == 'volume' ? 'checked' }}
+                       data-toggle="radio-tab"
+                       data-target="#volumes_other-{{ volume.id }}-volume-tab"
+                       data-error-container="volumes_other-{{ volume.id }}" />
+                <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                    <i class="fe fe-anchor"></i> Docker Volume</span>
+            </label>
+
+            <label class="selectgroup-item">
+                <input type="radio" class="selectgroup-input"
+                       id="volumes_other-{{ volume.id }}-type-bind"
+                       name="volumes_other[{{ volume.id }}][type]"
+                       value="bind" role="tab"
+                       {{ volume.type == 'bind' ? 'checked' }}
+                       data-toggle="radio-tab"
+                       data-target="#volumes_other-{{ volume.id }}-bind-tab"
+                       data-error-container="volumes_other-{{ volume.id }}" />
+                <span class="selectgroup-button selectgroup-button-icon px-7 py-3">
+                    <i class="fe fe-hard-drive"></i> Local</span>
+            </label>
+        </div>
+
+        <div id="volumes_other-{{ volume.id }}-tab-content" class="tab-content">
+            <div id="volumes_other-{{ volume.id }}-volume-tab" role="tabpanel"
+                 class="tab-pane show active">
+                <div class="row">
+                    <div class="form-group col">
+                        <small class="text-muted">
+                            Let Docker manage the storage of your database data.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div id="volumes_other-{{ volume.id }}-bind-tab" role="tabpanel"
+                 class="tab-pane">
+                <div class="row">
+                    <div class="form-group col">
+                        <small class="text-muted">
+                            Create a data directory on the host system.
+                            The directory will be
+                            <code><span id="service-name-tag">
+                                    {{ serviceName ?? service.name }}</span>/datadir</code>.
+                        </small>
+                    </div>
+                </div>
+
+                {% block dataDir %}{% endblock %}
+            </div>
+        </div>
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="volumes_other-{{ volume.id }}"></div>
+    </div>
+</div>

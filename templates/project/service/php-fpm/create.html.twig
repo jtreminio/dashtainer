@@ -1,10 +1,11 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form class="card" action="{{ path('project.service.create.post', {
+<form action="{{ path('project.service.create.post', {
     'projectId': project.id,
     'serviceTypeSlug': serviceType.slug,
 }) }}" method="post" data-ajax>
+<div class="card">
     <div class="card-body">
         <div class="row">
             <div class="form-group col">
@@ -28,23 +29,13 @@
 
         <hr class="my-6" />
 
-        {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/secret-owned.html.twig' %}
-        {% include '@Dashtainer/project/service/snippets/secret-grant.html.twig' %}
-
-        <hr class="my-6" />
-
-        {% include '@Dashtainer/project/service/snippets/service_files_source_create.html.twig' %}
+        {% set volume = volumes.other.remove('root') %}
+        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
         <hr class="my-6" />
 
         <h4 class="mb-3">Packages</h4>
 
-        {% set phpVersionedPackages = serviceType.meta("packages-#{version}") %}
-        {% set phpGeneralPackages = serviceType.meta('packages-general') %}
         <div class="row">
             <div class="form-group col">
                 <label class="form-label" for="php-packages">PHP Packages</label>
@@ -122,235 +113,115 @@
 
         <hr class="my-6" />
 
-        <h4 class="mb-3">Config Files</h4>
-        {% set Dockerfile = serviceType.meta("Dockerfile-#{version}") %}
-        {% set iniMeta = serviceType.meta("ini-#{version}") %}
+        <h4 class="mb-3">Additional Tools</h4>
 
-        <div class="row">
+        <div class="row mb-3">
             <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link"
-                           data-toggle="add-block"
-                           aria-controls="#nav-file-content"
-                           href="{{ path('project.service.block-add-file.get', {
-                               'projectId': project.id,
-                               'language': 'ini',
-                           }) }}">
-                            <i class="fe fe-plus"></i> Add</a>
-                    </li>
-                    <li class="nav-item active">
-                        <a id="nav-Dockerfile-tab" class="nav-link active"
-                           data-toggle="tab" role="tab"
-                           href="#system_file-Dockerfile" aria-controls="system_file-Dockerfile"
-                           aria-selected="true">Dockerfile</a>
-                    </li>
-                    {% if iniMeta %}
-                        {% for key, value in iniMeta.data %}
-                            <li class="nav-item">
-                                <a id="nav-{{ key }}-tab" class="nav-link"
-                                   data-toggle="tab" role="tab"
-                                   href="#system_file-{{ key }}" aria-controls="system_file-{{ key }}"
-                                   aria-selected="false">{{ key }}</a>
-                            </li>
-                        {% endfor %}
-                    {% endif %}
-                </ul>
-
-                <div id="nav-file-content" class="tab-content">
-                    <div id="system_file-Dockerfile" role="tabpanel"
-                         class="tab-pane fade show active">
-                        <div class="row">
-                            <div class="col">
-                                <pre class="language-docker" data-code-highlight><code
-                                        id="system_file-Dockerfile-source"
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false">{{ Dockerfile.data[0] }}</code></pre>
-                                <input type="hidden" value="" name="system_file[Dockerfile]"
-                                       data-error-container="system_file-error"
-                                       data-get-value-source="system_file-Dockerfile-source" />
+                <label class="form-label text-uppercase"
+                       for="composer-install">Composer</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="composer-install"
+                                       name="composer[install]" checked />
+                                <label class="custom-control-label"
+                                       for="composer-install">Install</label>
                             </div>
                         </div>
                     </div>
-                    {% if iniMeta %}
-                        {% for key, value in iniMeta.data %}
-                            <div id="system_file-{{ key }}" role="tabpanel"
-                                 class="tab-pane fade">
-                                <div class="row">
-                                    <div class="col">
-                                        <pre class="language-ini" data-code-highlight><code
-                                                id="system_file-{{ key }}-source"
-                                                contenteditable autocorrect="off" autocapitalize="off"
-                                                spellcheck="false">{{ value }}</code></pre>
-                                        <input type="hidden" value="" name="system_file[{{ key }}]"
-                                               data-error-container="system_file-error"
-                                               data-get-value-source="system_file-{{ key }}-source" />
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+                    <div class="form-control">
+                        Composer will be available as a system service at
+                        <code>$ composer</code>
+                    </div>
                 </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="system_file-error"></div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="user_file-error"></div>
             </div>
         </div>
 
-        <hr class="my-6" />
-
-        {% set iniXdebug = serviceType.meta('ini-xdebug') %}
-        {% set iniXdebugCli = serviceType.meta('ini-xdebug-cli') %}
-        <h4 class="mb-3">Additional Tools</h4>
-        <div class="row">
+        <div class="row mb-3">
             <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item active">
-                        <a id="nav-addons-composer-tab" class="nav-item nav-link active"
-                           data-toggle="tab" role="tab"
-                           href="#addons-composer"
-                           aria-selected="true">Composer</a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="nav-addons-xdebug-tab" class="nav-item nav-link"
-                           data-toggle="tab" role="tab"
-                           href="#addons-xdebug"
-                           aria-selected="false">Xdebug</a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="nav-addons-blackfire-tab" class="nav-item nav-link"
-                           data-toggle="tab" role="tab"
-                           href="#addons-blackfire"
-                           aria-selected="false">Blackfire</a>
-                    </li>
-                </ul>
-                <div id="nav-addons-content" class="tab-content">
-                    <div id="addons-composer" role="tabpanel"
-                         class="tab-pane fade show active">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1" checked
-                                           id="composer-install" name="composer[install]">
-                                    <label class="custom-control-label" for="composer-install">
-                                        Install Composer</label>
-                                </div>
-                                <small class="text-muted">
-                                    Composer will be available as a system service at
-                                    <code>$ composer</code>
-                                </small>
+                <label class="form-label text-uppercase"
+                       for="xdebug-install">Xdebug</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="xdebug-install"
+                                       name="xdebug[install]" />
+                                <label class="custom-control-label"
+                                       for="xdebug-install">Install</label>
                             </div>
                         </div>
                     </div>
+                    <div class="form-control">
+                        <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
+                            For example, you can use the following to debug your programs via
+                            CLI:</p>
+                        <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
+                        <p>You can edit INI values in the <strong>Config Files</strong> section.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <div id="addons-xdebug" role="tabpanel"
-                         class="tab-pane fade">
-                        <div class="row">
-                            <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1"
-                                           id="xdebug-install" name="xdebug[install]">
-                                    <label class="custom-control-label" for="xdebug-install">
-                                        Install Xdebug</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <div class="alert alert-primary" role="alert">
-                                    On <strong>Linux</strong>? Change
-                                    <code>host.docker.internal</code> below to
-                                    <code>172.17.0.1</code>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mb-5">
-                            <div class="col">
-                                <h5>PHP-FPM INI</h5>
-
-                                <pre class="language-ini short" data-code-highlight><code
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false"
-                                        id="xdebug-ini">{{ iniXdebug.data|first }}</code></pre>
-                                <input type="hidden" value="" name="xdebug[ini]"
-                                       data-error-container="additional-tools"
-                                       data-get-value-source="xdebug-ini" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col">
-                                <h5>CLI INI</h5>
-
-                                <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
-                                    For example, you can use the following to debug your programs via
-                                    CLI:</p>
-                                <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
-
-                                <pre class="language-ini short" data-code-highlight><code
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false"
-                                        id="xdebug-cli_ini">{{ iniXdebugCli.data|first }}</code></pre>
-                                <input type="hidden" value="" name="xdebug[cli_ini]"
-                                       data-error-container="additional-tools"
-                                       data-get-value-source="xdebug-cli_ini" />
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label text-uppercase"
+                       for="blackfire-install">Blackfire</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input"
+                                       value="1" id="blackfire-install"
+                                       name="blackfire[install]" />
+                                <label class="custom-control-label"
+                                       for="blackfire-install">Install</label>
                             </div>
                         </div>
                     </div>
-
-                    <div id="addons-blackfire" role="tabpanel"
-                         class="tab-pane fade">
+                    <div class="form-control">
                         <div class="row">
                             <div class="form-group col">
-                                <div class="custom-control custom-checkbox lg">
-                                    <input type="checkbox" class="custom-control-input"
-                                           value="1"
-                                           id="blackfire-install" name="blackfire[install]">
-                                    <label class="custom-control-label" for="blackfire-install">
-                                        Install Blackfire</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-12 col-xl form-group">
                                 <label class="form-label"
                                        for="blackfire-server_id">Blackfire Server ID</label>
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_id" name="blackfire[server_id]"
                                        placeholder="" value=""
-                                       data-error-container="additional-tools" />
+                                       data-error-container="blackfire-server_id" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_id"></div>
                             </div>
+                        </div>
 
-                            <div class="col-12 col-xl form-group">
+                        <div class="row">
+                            <div class="form-group col">
                                 <label class="form-label"
                                        for="blackfire-server_token">Blackfire Server Token</label>
                                 <input type="text" class="form-control" maxlength="64"
                                        id="blackfire-server_token" name="blackfire[server_token]"
                                        placeholder="" value=""
-                                       data-error-container="additional-tools" />
+                                       data-error-container="blackfire-server_token" />
+                                <div class="invalid-feedback"
+                                     data-error-container-name="blackfire-server_token"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-                     data-error-container-name="additional-tools"></div>
             </div>
         </div>
 
-        <hr class="my-6" />
-
         <input type="hidden" id="version" name="version" value="{{ version }}" />
-
-        <button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
     </div>
+</div>
+
+{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+
+<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
 </form>
 {% endblock %}

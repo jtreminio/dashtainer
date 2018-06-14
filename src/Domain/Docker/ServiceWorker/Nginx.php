@@ -7,9 +7,13 @@ use Dashtainer\Form;
 
 class Nginx extends WorkerAbstract implements WorkerInterface
 {
-    public function getServiceTypeSlug() : string
+    public function getServiceType() : Entity\Docker\ServiceType
     {
-        return 'nginx';
+        if (!$this->serviceType) {
+            $this->serviceType = $this->serviceTypeRepo->findBySlug('nginx');
+        }
+
+        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -37,8 +41,12 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
+        $this->serviceRepo->save($service);
+
         $this->networkDomain->addToPublicNetwork($service);
         $this->addToPrivateNetworks($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
         $serverNames = implode(',', $serverNames);
@@ -63,81 +71,14 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta, $service);
 
-        $dockerfile = new Entity\Docker\ServiceVolume();
-        $dockerfile->setName('Dockerfile')
-            ->setSource("\$PWD/{$service->getSlug()}/Dockerfile")
-            ->setData($form->system_file['Dockerfile'] ?? '')
-            ->setConsistency(null)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('docker')
-            ->setService($service);
-
-        $nginxConf = new Entity\Docker\ServiceVolume();
-        $nginxConf->setName('nginx.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/nginx.conf")
-            ->setTarget('/etc/nginx/nginx.conf')
-            ->setData($form->system_file['nginx.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
-            ->setService($service);
-
-        $coreConf = new Entity\Docker\ServiceVolume();
-        $coreConf->setName('core.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/core.conf")
-            ->setTarget('/etc/nginx/conf.d/core.conf')
-            ->setData($form->system_file['core.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
-            ->setService($service);
-
-        $proxyConf = new Entity\Docker\ServiceVolume();
-        $proxyConf->setName('proxy.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/proxy.conf")
-            ->setTarget('/etc/nginx/conf.d/proxy.conf')
-            ->setData($form->system_file['proxy.conf'] ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
-            ->setService($service);
-
-        $vhostConf = new Entity\Docker\ServiceVolume();
-        $vhostConf->setName('vhost.conf')
-            ->setSource("\$PWD/{$service->getSlug()}/vhost.conf")
-            ->setTarget('/etc/nginx/sites-available/default')
-            ->setData($form->vhost_conf ?? '')
-            ->setConsistency(Entity\Docker\ServiceVolume::CONSISTENCY_DELEGATED)
-            ->setOwner(Entity\Docker\ServiceVolume::OWNER_SYSTEM)
-            ->setFiletype(Entity\Docker\ServiceVolume::FILETYPE_FILE)
-            ->setHighlight('nginx')
-            ->setService($service);
-
-        $service->addVolume($dockerfile)
-            ->addVolume($nginxConf)
-            ->addVolume($coreConf)
-            ->addVolume($proxyConf)
-            ->addVolume($vhostConf);
-
-        $this->serviceRepo->save(
-            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf, $service
-        );
-
-        $this->projectFilesCreate($service, $form);
-
-        $this->userFilesCreate($service, $form);
-
         return $service;
     }
 
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'handlers' => $this->getHandlersForView($project),
+            'handlers'      => $this->getHandlersForView($project),
+            'fileHighlight' => 'nginx',
         ]);
     }
 
@@ -145,35 +86,18 @@ class Nginx extends WorkerAbstract implements WorkerInterface
     {
         $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
-        $dockerfile  = $service->getVolume('Dockerfile');
-        $nginxConf   = $service->getVolume('nginx.conf');
-        $coreConf    = $service->getVolume('core.conf');
-        $proxyConf   = $service->getVolume('proxy.conf');
-        $vhostConf   = $service->getVolume('vhost.conf');
-        $userFiles   = $service->getVolumesByOwner(
-            Entity\Docker\ServiceVolume::OWNER_USER
-        );
-
         $vhostMeta = $service->getMeta('vhost');
 
         return array_merge(parent::getViewParams($service), [
-            'projectFiles'           => $this->projectFilesViewParams($service),
             'systemPackagesSelected' => $systemPackagesSelected,
-            'systemFiles'            => [
-                'Dockerfile' => $dockerfile,
-                'nginx.conf' => $nginxConf,
-                'core.conf'  => $coreConf,
-                'proxy.conf' => $proxyConf,
-            ],
-            'userFiles'              => $userFiles,
             'vhost'                  => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'vhost_conf'             => $vhostConf,
             'handlers'               => $this->getHandlersForView($service->getProject()),
+            'fileHighlight'          => 'ini',
         ]);
     }
 
@@ -195,8 +119,6 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $service->setBuild($build);
 
-        $this->addToPrivateNetworks($service, $form);
-
         $this->serviceRepo->save($service);
 
         $serverNames = array_merge([$form->server_name], $form->server_alias);
@@ -216,28 +138,11 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta);
 
-        $dockerfile = $service->getVolume('Dockerfile');
-        $dockerfile->setData($form->system_file['Dockerfile'] ?? '');
+        $this->addToPrivateNetworks($service, $form);
+        $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $nginxConf = $service->getVolume('nginx.conf');
-        $nginxConf->setData($form->system_file['nginx.conf'] ?? '');
-
-        $coreConf = $service->getVolume('core.conf');
-        $coreConf->setData($form->system_file['core.conf'] ?? '');
-
-        $proxyConf = $service->getVolume('proxy.conf');
-        $proxyConf->setData($form->system_file['proxy.conf'] ?? '');
-
-        $vhostConf = $service->getVolume('vhost.conf');
-        $vhostConf->setData($form->vhost_conf ?? '');
-
-        $this->serviceRepo->save(
-            $dockerfile, $nginxConf, $coreConf, $proxyConf, $vhostConf
-        );
-
-        $this->projectFilesUpdate($service, $form);
-
-        $this->userFilesUpdate($service, $form);
+        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -272,6 +177,22 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         return [
             'PHP-FPM' => $phpfpm,
             'Node.js' => $nodejs,
+        ];
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'nginx-conf',
+                'core-conf',
+                'proxy-conf',
+                'vhost-conf',
+                'Dockerfile',
+            ],
+            'other' => [
+                'root',
+            ],
         ];
     }
 

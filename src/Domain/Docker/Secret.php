@@ -2,28 +2,40 @@
 
 namespace Dashtainer\Domain\Docker;
 
-use Dashtainer\Entity;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Repository\Docker as Repository;
 
 class Secret
 {
-    /** @var Repository\Docker\Secret */
+    /** @var Repository\Secret */
     protected $repo;
 
-    public function __construct(Repository\Docker\Secret $repo)
+    public function __construct(Repository\Secret $repo)
     {
         $this->repo = $repo;
     }
 
     /**
+     * Deletes all Secrets owned or assigned to Service
+     *
+     * @param Entity\Service $service
+     */
+    public function deleteAllForService(Entity\Service $service)
+    {
+        $this->repo->deleteSecrets($service);
+        $this->repo->deleteServiceSecrets($service);
+        $this->repo->deleteGrantedNotOwned($service);
+    }
+
+    /**
      * Returns array of IDs that do not belong to Project
      *
-     * @param Entity\Docker\Project $project
-     * @param int[]                 $ids
+     * @param Entity\Project $project
+     * @param int[]          $ids
      * @return int[]
      */
     public function idsNotBelongToProject(
-        Entity\Docker\Project $project,
+        Entity\Project $project,
         array $ids
     ) : array {
         if (empty($ids)) {
@@ -41,12 +53,12 @@ class Secret
     /**
      * Returns array of IDs that do not belong to Service
      *
-     * @param Entity\Docker\Service $service
-     * @param int[]                 $ids
+     * @param Entity\Service $service
+     * @param int[]          $ids
      * @return int[]
      */
     public function idsNotBelongToService(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         array $ids
     ) : array {
         if (empty($ids)) {
@@ -66,21 +78,21 @@ class Secret
     /**
      * All Project Secrets belonging to Project
      *
-     * @param Entity\Docker\Project $project
-     * @return Entity\Docker\Secret[] Keyed by Entity\Docker\Secret.name
+     * @param Entity\Project $project
+     * @return Entity\Secret[] Keyed by Entity\Secret.name
      */
-    public function getAll(Entity\Docker\Project $project) : array
+    public function getAll(Entity\Project $project) : array
     {
         return $this->sortProjectSecrets($this->repo->findAllByProject($project));
     }
 
     /**
      * All internal and not-internal ServiceSecrets owned by Service
-     *So
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\ServiceSecret[] Keyed by Entity\Docker\Secret.name
+     *
+     * @param Entity\Service $service
+     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getOwned(Entity\Docker\Service $service) : array
+    public function getOwned(Entity\Service $service) : array
     {
         return $this->sortServiceSecrets($this->repo->findOwned($service));
     }
@@ -90,10 +102,10 @@ class Secret
      *
      * ex: MySQL database, root password, username
      *
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\ServiceSecret[] Keyed by Entity\Docker\Secret.name
+     * @param Entity\Service $service
+     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getInternal(Entity\Docker\Service $service) : array
+    public function getInternal(Entity\Service $service) : array
     {
         return $this->sortServiceSecrets($this->repo->findInternal($service));
     }
@@ -101,10 +113,10 @@ class Secret
     /**
      * Owned, not internal
      *
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\ServiceSecret[] Keyed by Entity\Docker\Secret.name
+     * @param Entity\Service $service
+     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getNotInternal(Entity\Docker\Service $service) : array
+    public function getNotInternal(Entity\Service $service) : array
     {
         return $this->sortServiceSecrets($this->repo->findNotInternal($service));
     }
@@ -112,10 +124,10 @@ class Secret
     /**
      * Granted, not owned
      *
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\ServiceSecret[] Keyed by Entity\Docker\Secret.name
+     * @param Entity\Service $service
+     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getGranted(Entity\Docker\Service $service) : array
+    public function getGranted(Entity\Service $service) : array
     {
         return $this->sortServiceSecrets($this->repo->findGranted($service));
     }
@@ -123,10 +135,10 @@ class Secret
     /**
      * Not granted
      *
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\Secret[] Keyed by Entity\Docker\Secret.name
+     * @param Entity\Service $service
+     * @return Entity\Secret[] Keyed by Entity\Secret.name
      */
-    public function getNotGranted(Entity\Docker\Service $service) : array
+    public function getNotGranted(Entity\Service $service) : array
     {
         $project = $service->getProject();
 
@@ -137,27 +149,26 @@ class Secret
      * Creates Secrets owned by Service
      * Name, file, target values come from "name"
      *
-     * @param Entity\Docker\Service $service
-     * @param array                 $toCreate [ProjectSecret name => ProjectSecret contents]
-     * @param bool                  $internal Mark ServiceSecrets as internal
+     * @param Entity\Service $service
+     * @param array          $toCreate [ProjectSecret name => ProjectSecret contents]
+     * @param bool           $internal Mark ServiceSecrets as internal
      */
     public function createOwnedSecrets(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         array $toCreate,
         bool $internal = false
     ) {
         $project = $service->getProject();
 
-        $saved = [];
         foreach ($toCreate as $name => $contents) {
-            $projectSecret = new Entity\Docker\Secret();
+            $projectSecret = new Entity\Secret();
             $projectSecret->setName($name)
                 ->setFile("./secrets/{$name}")
-                ->setContents($contents)
+                ->setData($contents)
                 ->setProject($service->getProject())
                 ->setOwner($service);
 
-            $serviceSecret = new Entity\Docker\ServiceSecret();
+            $serviceSecret = new Entity\ServiceSecret();
             $serviceSecret->setProjectSecret($projectSecret)
                 ->setService($service)
                 ->setTarget($name)
@@ -168,30 +179,25 @@ class Secret
             $service->addSecret($serviceSecret);
             $project->addSecret($projectSecret);
 
-            $saved []= $projectSecret;
-            $saved []= $serviceSecret;
+            $this->repo->persist($projectSecret, $serviceSecret);
         }
 
-        $this->repo->save(
-            $service,
-            $project,
-            ...$saved
-        );
+        $this->repo->persist($service,  $project);
+        $this->repo->flush();
     }
 
     /**
      * Update internal secrets. Only ProjectSecret contents is updated.
      *
-     * @param Entity\Docker\Service $service
-     * @param string[]              $toUpdate [name => contents]
+     * @param Entity\Service $service
+     * @param string[]       $toUpdate [name => contents]
      */
     public function updateInternal(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         array $toUpdate
     ) {
         $serviceSecrets = $this->getInternal($service);
 
-        $saved = [];
         foreach ($toUpdate as $name => $contents) {
             if (empty($serviceSecrets[$name])) {
                 continue;
@@ -199,12 +205,12 @@ class Secret
 
             $serviceSecrets[$name]
                 ->getProjectSecret()
-                ->setContents($contents);
+                ->setData($contents);
 
-            $saved []= $serviceSecrets[$name];
+            $this->repo->persist($serviceSecrets[$name]);
         }
 
-        $this->repo->save(...$saved);
+        $this->repo->flush();
     }
 
     /**
@@ -213,16 +219,15 @@ class Secret
      *
      * Creates ServiceSecret if it does not previously exist
      *
-     * @param Entity\Docker\Service $service
-     * @param string[]              $toUpdate [Project Secret name, Project Secret contents]
+     * @param Entity\Service $service
+     * @param string[]       $toUpdate [Project Secret name, Project Secret contents]
      */
     public function updateOwned(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         array $toUpdate
     ) {
         $serviceSecrets = $this->getNotInternal($service);
 
-        $saved    = [];
         $toCreate = [];
         foreach ($toUpdate as $row) {
             if (empty($serviceSecrets[$row['name']])) {
@@ -239,14 +244,12 @@ class Secret
             $serviceSecret->setTarget($row['name']);
             $projectSecret->setName($row['name'])
                 ->setFile("./secrets/{$row['name']}")
-                ->setContents($row['contents']);
+                ->setData($row['contents']);
 
-            $saved []= $serviceSecret;
-            $saved []= $projectSecret;
+            $this->repo->persist($serviceSecret, $projectSecret);
         }
 
         // Delete secrets not included in $toUpdate
-        $toDelete = [];
         foreach ($serviceSecrets as $serviceSecret) {
             $projectSecret = $serviceSecret->getProjectSecret();
 
@@ -254,7 +257,7 @@ class Secret
                 $child->setProjectSecret(null);
                 $projectSecret->removeServiceSecret($child);
 
-                $toDelete []= $child;
+                $this->repo->remove($child);
             }
 
             $projectSecret->setOwner(null)
@@ -262,12 +265,10 @@ class Secret
             $serviceSecret->setProjectSecret(null);
             $service->removeSecret($serviceSecret);
 
-            $toDelete []= $projectSecret;
-            $toDelete []= $serviceSecret;
+            $this->repo->remove($projectSecret, $serviceSecret);
         }
 
-        $this->repo->save(...$saved);
-        $this->repo->delete(...$toDelete);
+        $this->repo->flush();
 
         if (!empty($toCreate)) {
             $this->createOwnedSecrets($service, $toCreate);
@@ -277,11 +278,11 @@ class Secret
     /**
      * Grants non-owned Secrets to Service
      *
-     * @param Entity\Docker\Service $service
-     * @param array                 $toGrant [Project Secret id, Service Secret target]
+     * @param Entity\Service $service
+     * @param array          $toGrant [Project Secret id, Service Secret target]
      */
     public function grantSecrets(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         array $toGrant
     ) {
         $project = $service->getProject();
@@ -300,7 +301,6 @@ class Secret
             $projectSecrets [$id]= $projectSecret;
         }
 
-        $saved = [];
         foreach ($toGrant as $row) {
             if (empty($row['id'])) {
                 continue;
@@ -312,7 +312,7 @@ class Secret
 
             $projectSecret = $projectSecrets[$row['id']];
 
-            $serviceSecret = new Entity\Docker\ServiceSecret();
+            $serviceSecret = new Entity\ServiceSecret();
             $serviceSecret->setProjectSecret($projectSecret)
                 ->setService($service)
                 ->setTarget($row['target']);
@@ -321,21 +321,18 @@ class Secret
 
             $service->addSecret($serviceSecret);
 
-            $saved []= $projectSecret;
-            $saved []= $serviceSecret;
+            $this->repo->persist($projectSecret, $serviceSecret);
         }
 
-        $this->repo->save(
-            $service,
-            ...$saved
-        );
+        $this->repo->persist($service);
+        $this->repo->flush();
     }
 
     /**
      * Sorts Project Secrets by owner Service name then Secret name
      *
-     * @param Entity\Docker\Secret[] $projectSecrets
-     * @return Entity\Docker\Secret[]
+     * @param Entity\Secret[] $projectSecrets
+     * @return Entity\Secret[]
      */
     private function sortProjectSecrets(array $projectSecrets) : array
     {
@@ -362,8 +359,8 @@ class Secret
     /**
      * Sorts Service Secrets by owner Service name then Secret name
      *
-     * @param Entity\Docker\ServiceSecret[] $serviceSecrets
-     * @return Entity\Docker\ServiceSecret[]
+     * @param Entity\ServiceSecret[] $serviceSecrets
+     * @return Entity\ServiceSecret[]
      */
     private function sortServiceSecrets(array $serviceSecrets) : array
     {

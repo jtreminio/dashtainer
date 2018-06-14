@@ -1019,14 +1019,24 @@ class Service implements
      */
     public function addVolume(ServiceVolume $volume)
     {
-        $this->volumes[] = $volume;
+        if ($this->volumes->contains($volume)) {
+            return $this;
+        }
+
+        $this->volumes->add($volume);
+        $volume->setService($this);
 
         return $this;
     }
 
     public function removeVolume(ServiceVolume $volume)
     {
+        if (!$this->volumes->contains($volume)) {
+            return;
+        }
+
         $this->volumes->removeElement($volume);
+        $volume->setService(null);
     }
 
     public function getVolume(string $name) : ?ServiceVolume
@@ -1038,23 +1048,6 @@ class Service implements
         }
 
         return null;
-    }
-
-    /**
-     * @param string $owner
-     * @return ServiceVolume[]
-     */
-    public function getVolumesByOwner(string $owner) : array
-    {
-        $volumes = [];
-
-        foreach ($this->getVolumes() as $volume) {
-            if ($volume->getOwner() === $owner) {
-                $volumes[$volume->getId()] = $volume;
-            }
-        }
-
-        return $volumes;
     }
 
     /**

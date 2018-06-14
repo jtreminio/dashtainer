@@ -11,8 +11,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class AdminerCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\ProjectFilesTrait;
-    use DashAssert\UserFileTrait;
 
     /**
      * @Assert\NotBlank()
@@ -29,7 +27,5 @@ class AdminerCreate extends CreateAbstract implements Util\HydratorInterface
     public function validate(ExecutionContextInterface $context, $payload)
     {
         parent::validate($context, $payload);
-
-        $this->validateUserFile($context);
     }
 }

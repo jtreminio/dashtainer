@@ -1,7 +1,7 @@
 version: '3.2'
 networks:
   app-internal: 
-  dashtainer-public:
+  public:
     external:
       name: traefik_webgateway
 secrets:
@@ -57,7 +57,7 @@ services:
       - 'traefik.frontend.rule=Host:dashtainer.localhost'
     networks:
       - app-internal
-      - dashtainer-public
+      - public
     volumes:
       - "$PWD/nginx/nginx.conf:/etc/nginx/nginx.conf:delegated"
       - "$PWD/nginx/core.conf:/etc/nginx/conf.d/core.conf:delegated"
@@ -102,4 +102,4 @@ services:
       - 'traefik.frontend.rule=Host:adminer.dashtainer.localhost'
     networks:
       - app-internal
-      - dashtainer-public
+      - public

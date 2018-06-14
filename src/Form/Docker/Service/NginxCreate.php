@@ -11,9 +11,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\ProjectFilesTrait;
-    use DashAssert\SystemFileTrait;
-    use DashAssert\UserFileTrait;
 
     public $system_packages = [];
 
@@ -25,8 +22,6 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 
     public $handler;
 
-    public $vhost_conf;
-
     /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
@@ -35,9 +30,5 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
     public function validate(ExecutionContextInterface $context, $payload)
     {
         parent::validate($context, $payload);
-
-        $this->validateProjectFiles($context);
-        $this->validateSystemFile($context);
-        $this->validateUserFile($context);
     }
 }

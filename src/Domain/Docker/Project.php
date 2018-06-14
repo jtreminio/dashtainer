@@ -73,15 +73,14 @@ class Project
                 $deleted[spl_object_hash($serviceSecret)]= $serviceSecret;
             }
 
-            foreach ($service->getVolumes() as $volume) {
-                $service->removeVolume($volume);
+            foreach ($service->getVolumes() as $serviceVolume) {
+                $service->removeVolume($serviceVolume);
 
-                if ($projectVolume = $volume->getProjectVolume()) {
-                    $volume->setProjectVolume(null);
-                    $projectVolume->removeServiceVolume($volume);
+                if ($projectVolume = $serviceVolume->getProjectVolume()) {
+                    $projectVolume->removeServiceVolume($serviceVolume);
                 }
 
-                $deleted[spl_object_hash($volume)]= $volume;
+                $deleted[spl_object_hash($serviceVolume)]= $serviceVolume;
             }
 
             foreach ($service->getChildren() as $child) {
@@ -111,14 +110,23 @@ class Project
             $deleted[spl_object_hash($projectSecret)]= $projectSecret;
         }
 
-        foreach ($project->getVolumes() as $volume) {
-            $project->removeVolume($volume);
+        foreach ($project->getVolumes() as $projectVolume) {
+            $project->removeVolume($projectVolume);
 
-            $deleted[spl_object_hash($volume)]= $volume;
+            $deleted[spl_object_hash($projectVolume)]= $projectVolume;
         }
 
         $deleted[spl_object_hash($project)]= $project;
 
         $this->repo->delete(...array_values($deleted));
+    }
+
+    /**
+     * @param Entity\User $user
+     * @return array [id, name, service_count]
+     */
+    public function getList(Entity\User $user)
+    {
+        return $this->repo->getNamesAndCount($user);
     }
 }

@@ -4,81 +4,58 @@
    data-toggle="tooltip" data-html="true"
    title="This will be available as a Docker Secret to other services."></i>' %}
 
+{% block breadcrumb %}
+<div class="header d-lg-flex p-0">
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent mb-0">
+                        <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">
+                                Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
+                                'projectId': project.id,
+                            }) }}">{{ project.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            Create {{ serviceType.name }} Service</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col">
-        <div class="card">
-            <div class="card-body text-wrap">
-                <div class="row">
-                    <div class="col">
-                        <ul class="nav nav-tabs mb-3" data-steps-list>
-                            <li class="col nav-item complete">
-                                <a class="nav-link" href="{{ path('project.view.get', {
-                                    'projectId': project.id
-                                }) }}">Step 1<br />
-                                    <span class="small">View Project</span></a>
-                            </li>
-                            <li class="col nav-item active">
-                                <a class="nav-link" href="#">Step 2<br />
-                                    <span class="small">Adding Service</span></a>
-                            </li>
-                            <li class="col nav-item">
-                                <a class="nav-link" href="#">Step 3<br />
-                                    <span class="small">Download Project</span></a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col pt-3 px-3 pb-0">
-                        <p>Add one or more services to your project. Each service will live
-                        in its own container and you can group services together to allow
-                            communication between each other.</p>
-
-                        {% if project.services is not empty %}
-                            <p>You may continue adding more services, or you can
-                                download your Docker-ready project.
-                            </p>
-
-                            <p class="text-right mb-0">
-                                <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-                                   class="btn btn-success btn-lg">
-                                    <span class="mr-3"><i class="fe fe-download"></i></span>
-                                    Download Project</a>
-                            </p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col">
-        <div class="list-group-transparent mb-5">
-            <div class="d-flex flex-row hor-menu">
-                {% if project.services is not empty %}
-                    <a href="{{ path('project.export.get', {'projectId': project.id}) }}"
-                       class="list-group-item text-green"><span
-                            class="icon mr-3"><i class="fe fe-download"></i></span>Download Project</a>
-                {% endif %}
-
-                <a href="{{ path('project.view.get', {
+<div class="row" data-sticky-container>
+    <div class="col-lg-3 order-lg-0 mb-4">
+        <div data-sticky>
+            <a href="{{ path('project.view.get', {
                     'projectId': project.id
-                }) }}" class="list-group-item"><span
-                        class="icon mr-3"><i class="fe fe-list"></i></span>View Services</a>
-                <a href="#" class="list-group-item"
-                   data-toggle="modal" data-target="#service-create-modal"><span
-                        class="icon mr-3"><i class="fe fe-plus"></i></span>Create New Service</a>
+                }) }}" class="btn btn-block btn-primary mb-6">
+                <i class="fe fe-arrow-left mr-2"></i>Back to Project
+            </a>
+
+            <div class="list-group list-group-transparent mb-0 text-right">
+                <a class="list-group-item list-group-item-action"
+                   href="#service">Service Settings <i class="fe fe-corner-up-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#file">Config Files <i class="fe fe-corner-down-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#network">Networks <i class="fe fe-corner-down-right"></i></a>
+                <a class="list-group-item list-group-item-action"
+                   href="#secret">Secrets <i class="fe fe-corner-down-right"></i></a>
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col">
+    <div class="col-lg-9" id="service">
+        <div class="page-header mt-0 mb-2">
+            <div class="d-flex align-items-end w-100">
+                <h1 class="page-title">Create {{ serviceType.name }} Service</h1>
+            </div>
+        </div>
+
         {% block serviceContent %}{% endblock %}
     </div>
 </div>

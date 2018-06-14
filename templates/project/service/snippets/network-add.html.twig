@@ -10,8 +10,15 @@
              data-error-container-name="networks_create-{{ id }}-name-error"></div>
     </td>
     <td>New Network. This Service is added and you can add other Services later.</td>
-    <td><a href="#" class="btn btn-outline-danger btn-sm td-action"
-           data-toggle="delete-element"
-           data-target="#networks_create-{{ id }}-row"><i class="fe fe-x"></i></a>
+    <td class="td-action">
+        <div class="selectgroup" data-toggle="delete-element"
+             data-target="#networks_create-{{ id }}-row">
+            <label class="selectgroup-item dark mb-0">
+                <span class="btn btn-outline-danger">
+                    <i class="fe fe-x-square" aria-hidden="true"></i>
+                    Delete
+                </span>
+            </label>
+        </div>
     </td>
 </tr>

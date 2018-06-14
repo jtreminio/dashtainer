@@ -1,0 +1,16 @@
+<li class="nav-item {{ loopFirst ? 'active' }}">
+    <a id="volumes_file-{{ volume.id }}-tab"
+       class="nav-link {{ loopFirst ? 'active' }}"
+       data-toggle="tab" role="tab"
+       href="#volumes_file-{{ volume.id }}-container"
+       aria-controls="volumes_file-{{ volume.id }}-container"
+       aria-selected="{{ loopFirst ? 'true' }}">{{ volume.source }}</a>
+    {% if volume.isInternal == false %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-default"
+                    data-toggle="delete-tab"
+                    data-target="#volumes_file-{{ volume.id }}-container">
+                <i class="fa fa-close"></i></button>
+        </div>
+    {% endif %}
+</li>

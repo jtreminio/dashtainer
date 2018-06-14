@@ -11,7 +11,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class NodeJsCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\ProjectFilesTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -36,7 +35,5 @@ class NodeJsCreate extends CreateAbstract implements Util\HydratorInterface
     public function validate(ExecutionContextInterface $context, $payload)
     {
         parent::validate($context, $payload);
-
-        $this->validateProjectFiles($context);
     }
 }

@@ -11,9 +11,6 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
-    use DashAssert\ProjectFilesTrait;
-    use DashAssert\SystemFileTrait;
-    use DashAssert\UserFileTrait;
 
     /**
      * @DashAssert\NonBlankString(message = "Version must be chosen")
@@ -43,9 +40,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
     {
         parent::validate($context, $payload);
 
-        $this->validateProjectFiles($context);
-        $this->validateSystemFile($context);
-        $this->validateUserFile($context);
         $this->validateXdebug($context);
         $this->validateBlackfire($context);
     }
@@ -54,18 +48,6 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
     {
         if (empty($this->xdebug['install'])) {
             return;
-        }
-
-        if (empty(trim($this->xdebug['ini'] ?? ''))) {
-            $context->buildViolation('Xdebug INI cannot be empty')
-                ->atPath('xdebug[ini]')
-                ->addViolation();
-        }
-
-        if (empty(trim($this->xdebug['cli_ini'] ?? ''))) {
-            $context->buildViolation('Xdebug CLI INI cannot be empty')
-                ->atPath('xdebug[cli_ini]')
-                ->addViolation();
         }
     }
 
