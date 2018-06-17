@@ -19,29 +19,63 @@ class Secret extends Repository\ObjectPersistAbstract
 
     /**
      * @param Entity\Project $project
-     * @return Entity\Secret[]
-     */
-    public function findAllByProject(Entity\Project $project) : array
-    {
-        return $this->repo->findBy(['project' => $project]);
-    }
-
-    /**
-     * Secrets owned by Service
-     *
-     * @param Entity\Service $service
      * @return Entity\ServiceSecret[]
      */
-    public function findOwned(Entity\Service $service) : array
+    public function findAllServiceSecretsByProject(Entity\Project $project) : array
     {
         $qb = $this->em->createQueryBuilder()
             ->select('ss')
             ->addSelect('s')
             ->from('Dashtainer:Docker\ServiceSecret', 'ss')
             ->join('ss.project_secret', 's')
-            ->andWhere('s.owner = :service')
+            ->andWhere('s.project = :project')
+            ->andWhere('ss.service = s.owner')
+            ->setParameters([
+                'project' => $project,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param Entity\Project $project
+     * @param array          $ids
+     * @return Entity\Secret[]
+     */
+    public function findByIds(Entity\Project $project, array $ids) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Secret', 's')
+            ->andWhere('s.id IN (:ids)')
+            ->andWhere('s.project = :project')
+            ->setParameters([
+                'project' => $project,
+                'ids'     => $ids,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param Entity\Service $service
+     * @param array          $names
+     * @return Entity\ServiceSecret[]
+     */
+    public function findByName(
+        Entity\Service $service,
+        array $names
+    ) : array {
+        $qb = $this->em->createQueryBuilder()
+            ->select('ss')
+            ->addSelect('s')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('ss.project_secret', 's')
+            ->andWhere('ss.service = :service')
+            ->andWhere('ss.name IN (:names)')
             ->setParameters([
                 'service' => $service,
+                'names'   => $names,
             ]);
 
         return $qb->getQuery()->getResult();
@@ -142,8 +176,10 @@ class Secret extends Repository\ObjectPersistAbstract
         }
 
         $qb = $this->em->createQueryBuilder()
-            ->select('s')
-            ->from('Dashtainer:Docker\Secret', 's')
+            ->select('ss')
+            ->addSelect('s')
+            ->from('Dashtainer:Docker\ServiceSecret', 'ss')
+            ->join('ss.project_secret', 's')
             ->andWhere('s.project = :project')
             ->andWhere('s.owner <> :service');
 

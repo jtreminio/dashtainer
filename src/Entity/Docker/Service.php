@@ -842,14 +842,24 @@ class Service implements
      */
     public function addSecret(ServiceSecret $secret)
     {
-        $this->secrets[] = $secret;
+        if ($this->secrets->contains($secret)) {
+            return $this;
+        }
+
+        $this->secrets->add($secret);
+        $secret->setService($this);
 
         return $this;
     }
 
     public function removeSecret(ServiceSecret $secret)
     {
+        if (!$this->secrets->contains($secret)) {
+            return;
+        }
+
         $this->secrets->removeElement($secret);
+        $secret->setService(null);
     }
 
     public function getSecret(string $name) : ?ServiceSecret

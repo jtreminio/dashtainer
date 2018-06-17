@@ -191,7 +191,15 @@ class Secret implements
      */
     public function setProject(Project $project)
     {
+        if ($this->project === $project) {
+            return $this;
+        }
+
         $this->project = $project;
+
+        if ($project) {
+            $project->addSecret($this);
+        }
 
         return $this;
     }
@@ -207,14 +215,27 @@ class Secret implements
      */
     public function addServiceSecret(ServiceSecret $serviceSecret)
     {
-        $this->service_secrets[] = $serviceSecret;
+        if ($this->service_secrets->contains($serviceSecret)) {
+            return $this;
+        }
+
+        $this->service_secrets->add($serviceSecret);
+        $serviceSecret->setProjectSecret($this);
 
         return $this;
     }
 
     public function removeServiceSecret(ServiceSecret $serviceSecret)
     {
+        if (!$this->service_secrets->contains($serviceSecret)) {
+            return;
+        }
+
         $this->service_secrets->removeElement($serviceSecret);
+
+        if ($serviceSecret->getProjectSecret() === $this) {
+            $serviceSecret->setProjectSecret(null);
+        }
     }
 
     /**

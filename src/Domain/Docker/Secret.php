@@ -4,6 +4,9 @@ namespace Dashtainer\Domain\Docker;
 
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker as Repository;
+use Dashtainer\Util;
+
+use Doctrine\Common\Collections;
 
 class Secret
 {
@@ -28,73 +31,94 @@ class Secret
     }
 
     /**
-     * Returns array of IDs that do not belong to Project
+     * Returns Secrets required for new Service
      *
-     * @param Entity\Project $project
-     * @param int[]          $ids
-     * @return int[]
+     * @param Entity\Project     $project
+     * @param Entity\ServiceType $serviceType
+     * @param array              $internalSecretsArray
+     * @return array
      */
-    public function idsNotBelongToProject(
+    public function getForNewService(
         Entity\Project $project,
-        array $ids
-    ) : array {
-        if (empty($ids)) {
-            return [];
+        Entity\ServiceType $serviceType,
+        array $internalSecretsArray
+    ) {
+        $internal = new Collections\ArrayCollection();
+
+        foreach ($internalSecretsArray as $metaName) {
+            $data = $serviceType->getMeta($metaName)->getData();
+
+            $projectSecret = new Entity\Secret();
+            $projectSecret->fromArray(['id' => $data['name']]);
+            $projectSecret->setName($data['name'])
+                ->setData($data['data']);
+
+            $serviceSecret = new Entity\ServiceSecret();
+            $serviceSecret->fromArray(['id' => $data['name']]);
+            $serviceSecret->setName($data['name'])
+                ->setTarget($data['name'])
+                ->setIsInternal(true)
+                ->setProjectSecret($projectSecret);
+
+            $internal->set($data['name'], $serviceSecret);
         }
 
-        $secrets = [];
-        foreach ($this->repo->findAllByProject($project) as $secret) {
-            $secrets []= $secret->getId();
-        }
-
-        return array_diff($ids, $secrets);
+        return [
+            'owned'     => $internal,
+            'granted'   => [],
+            'grantable' => $this->getAllServiceSecrets($project),
+        ];
     }
 
     /**
-     * Returns array of IDs that do not belong to Service
+     * Returns Secrets required for existing Service
      *
-     * @param Entity\Service $service
-     * @param int[]          $ids
-     * @return int[]
+     * @param Entity\Service     $service
+     * @param Entity\ServiceType $serviceType
+     * @param array              $internalSecretsArray
+     * @return array
      */
-    public function idsNotBelongToService(
+    public function getForExistingService(
         Entity\Service $service,
-        array $ids
-    ) : array {
-        if (empty($ids)) {
-            return [];
+        Entity\ServiceType $serviceType,
+        array $internalSecretsArray
+    ) {
+        $internal = new Collections\ArrayCollection();
+
+        $internalNames = [];
+        foreach ($internalSecretsArray as $metaName) {
+            if (!$meta = $serviceType->getMeta($metaName)) {
+                continue;
+            }
+
+            $data = $meta->getData();
+            $internalNames []= $data['name'];
         }
 
-        $secrets = [];
-        foreach ($this->repo->findOwned($service) as $serviceSecret) {
-            $projectSecret = $serviceSecret->getProjectSecret();
-
-            $secrets []= $projectSecret->getId();
+        foreach ($this->getInternalFromNames($service, $internalNames) as $name => $secret) {
+            $internal->set($name, $secret);
         }
 
-        return array_diff($ids, $secrets);
+        foreach ($this->getNotInternal($service) as $name => $secret) {
+            $internal->set($name, $secret);
+        }
+
+        return [
+            'owned'     => $internal,
+            'granted'   => $this->getGranted($service),
+            'grantable' => $this->getNotGranted($service),
+        ];
     }
 
     /**
-     * All Project Secrets belonging to Project
+     * All Service Secrets belonging to Project
      *
      * @param Entity\Project $project
-     * @return Entity\Secret[] Keyed by Entity\Secret.name
+     * @return Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
      */
-    public function getAll(Entity\Project $project) : array
+    public function getAllServiceSecrets(Entity\Project $project) : array
     {
-        return $this->sortProjectSecrets($this->repo->findAllByProject($project));
-    }
-
-    /**
-     * All internal and not-internal ServiceSecrets owned by Service
-     *
-     * @param Entity\Service $service
-     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
-     */
-    public function getOwned(Entity\Service $service) : array
-    {
-        return $this->sortServiceSecrets($this->repo->findOwned($service));
+        return $this->sortServiceSecrets($this->repo->findAllServiceSecretsByProject($project));
     }
 
     /**
@@ -136,152 +160,163 @@ class Secret
      * Not granted
      *
      * @param Entity\Service $service
-     * @return Entity\Secret[] Keyed by Entity\Secret.name
+     * @return Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
      */
     public function getNotGranted(Entity\Service $service) : array
     {
         $project = $service->getProject();
 
-        return $this->sortProjectSecrets($this->repo->findNotGranted($project, $service));
+        return $this->sortServiceSecrets($this->repo->findNotGranted($project, $service));
     }
 
     /**
-     * Creates Secrets owned by Service
-     * Name, file, target values come from "name"
+     * Creates and updates internal and not-internal Secrets
+     *
+     * @param Entity\Service         $service
+     * @param Entity\ServiceSecret[] $internalMetaSecrets Hydrated from ServiceTypeMeta data
+     * @param array                  $configs             User-provided data from form
+     */
+    public function save(
+        Entity\Service $service,
+        array $internalMetaSecrets,
+        array $configs
+    ) {
+        $configs = $this->saveInternal($service, $internalMetaSecrets, $configs);
+        $this->saveNotInternal($service, $configs);
+    }
+
+    /**
+     * Creates and updates internal Secrets
+     *
+     * All Services will have 0 or more internal Secrets with default data.
+     * If no user data is passed, default data is used
+     *
+     * @param Entity\Service         $service
+     * @param Entity\ServiceSecret[] $serviceSecrets Hydrated from ServiceTypeMeta data
+     * @param array                  $configs        User-provided data from form
+     * @return array Array without internal Secrets, containing only non-internal User Secrets
+     */
+    protected function saveInternal(
+        Entity\Service $service,
+        array $serviceSecrets,
+        array $configs
+    ) : array {
+        $project = $service->getProject();
+
+        foreach ($serviceSecrets as $serviceSecret) {
+            if (!$serviceSecret->getIsInternal()) {
+                continue;
+            }
+
+            $id   = $serviceSecret->getId();
+            $data = $configs[$id] ?? [];
+
+            $projectSecret = $serviceSecret->getProjectSecret();
+
+            $name = $projectSecret->getName();
+            $file = $projectSecret->getFile();
+
+            // If new Secret, id and name will be identical
+            if ($projectSecret->getId() === $projectSecret->getName()) {
+                $name = Util\Strings::filename("{$service->getSlug()}-{$data['name']}");
+                $file = "./secrets/{$name}";
+            }
+
+            $projectSecret->setName($name)
+                ->setFile($file)
+                ->setData($data['data'] ?? '')
+                ->setProject($project)
+                ->setOwner($service);
+
+            $serviceSecret->setName($data['name'] ?? $serviceSecret->getName())
+                ->setTarget($data['name'] ?? $serviceSecret->getTarget())
+                ->setService($service);
+
+            $this->repo->persist($projectSecret, $serviceSecret);
+
+            unset($configs[$id]);
+        }
+
+        $this->repo->persist($project, $service);
+        $this->repo->flush();
+
+        return $configs;
+    }
+
+    /**
+     * Creates and updates not-internal Secrets
      *
      * @param Entity\Service $service
-     * @param array          $toCreate [ProjectSecret name => ProjectSecret contents]
-     * @param bool           $internal Mark ServiceSecrets as internal
+     * @param array          $configs User-provided data from form
      */
-    public function createOwnedSecrets(
+    protected function saveNotInternal(
         Entity\Service $service,
-        array $toCreate,
-        bool $internal = false
+        array $configs
     ) {
         $project = $service->getProject();
 
-        foreach ($toCreate as $name => $contents) {
-            $projectSecret = new Entity\Secret();
-            $projectSecret->setName($name)
-                ->setFile("./secrets/{$name}")
-                ->setData($contents)
-                ->setProject($service->getProject())
-                ->setOwner($service);
+        $serviceSecrets = [];
+        foreach ($this->getNotInternal($service) as $serviceSecret) {
+            $serviceSecrets [$serviceSecret->getId()] = $serviceSecret;
+        }
 
-            $serviceSecret = new Entity\ServiceSecret();
-            $serviceSecret->setProjectSecret($projectSecret)
-                ->setService($service)
-                ->setTarget($name)
-                ->setIsInternal($internal);
+        foreach ($configs as $id => $data) {
+            if (!array_key_exists($id, $serviceSecrets)) {
+                $serviceSecret = new Entity\ServiceSecret();
+                $serviceSecret->setService($service);
 
-            $projectSecret->addServiceSecret($serviceSecret);
+                $projectSecret = new Entity\Secret();
+                $projectSecret->addServiceSecret($serviceSecret)
+                    ->setProject($project)
+                    ->setOwner($service);
 
-            $service->addSecret($serviceSecret);
-            $project->addSecret($projectSecret);
+                $serviceSecrets [$id]= $serviceSecret;
+            }
+
+            $projectSecretName = Util\Strings::filename("{$service->getSlug()}-{$data['name']}");
+            $serviceSecretName = Util\Strings::filename($data['name']);
+
+            /** @var Entity\ServiceSecret $serviceSecret */
+            $serviceSecret = $serviceSecrets[$id];
+            $serviceSecret->setName($serviceSecretName)
+                ->setTarget($serviceSecretName);
+
+            $projectSecret = $serviceSecret->getProjectSecret();
+            $projectSecret->setName($projectSecretName)
+                ->setFile("./secrets/{$projectSecretName}")
+                ->setData($data['data'] ?? '');
 
             $this->repo->persist($projectSecret, $serviceSecret);
+            unset($serviceSecrets[$id]);
         }
 
-        $this->repo->persist($service,  $project);
-        $this->repo->flush();
-    }
-
-    /**
-     * Update internal secrets. Only ProjectSecret contents is updated.
-     *
-     * @param Entity\Service $service
-     * @param string[]       $toUpdate [name => contents]
-     */
-    public function updateInternal(
-        Entity\Service $service,
-        array $toUpdate
-    ) {
-        $serviceSecrets = $this->getInternal($service);
-
-        foreach ($toUpdate as $name => $contents) {
-            if (empty($serviceSecrets[$name])) {
-                continue;
-            }
-
-            $serviceSecrets[$name]
-                ->getProjectSecret()
-                ->setData($contents);
-
-            $this->repo->persist($serviceSecrets[$name]);
-        }
-
-        $this->repo->flush();
-    }
-
-    /**
-     * Update owned, not internal secrets. ProjectSecret name, file, contents
-     * and ServiceSecret target updated.
-     *
-     * Creates ServiceSecret if it does not previously exist
-     *
-     * @param Entity\Service $service
-     * @param string[]       $toUpdate [Project Secret name, Project Secret contents]
-     */
-    public function updateOwned(
-        Entity\Service $service,
-        array $toUpdate
-    ) {
-        $serviceSecrets = $this->getNotInternal($service);
-
-        $toCreate = [];
-        foreach ($toUpdate as $row) {
-            if (empty($serviceSecrets[$row['name']])) {
-                $toCreate [$row['name']]= $row['contents'];
-
-                continue;
-            }
-
-            $serviceSecret = $serviceSecrets[$row['name']];
-            $projectSecret = $serviceSecret->getProjectSecret();
-
-            unset($serviceSecrets[$row['name']]);
-
-            $serviceSecret->setTarget($row['name']);
-            $projectSecret->setName($row['name'])
-                ->setFile("./secrets/{$row['name']}")
-                ->setData($row['contents']);
-
-            $this->repo->persist($serviceSecret, $projectSecret);
-        }
-
-        // Delete secrets not included in $toUpdate
+        // No longer wanted by user
         foreach ($serviceSecrets as $serviceSecret) {
             $projectSecret = $serviceSecret->getProjectSecret();
 
-            foreach ($projectSecret->getServiceSecrets() as $child) {
-                $child->setProjectSecret(null);
-                $projectSecret->removeServiceSecret($child);
-
-                $this->repo->remove($child);
-            }
-
-            $projectSecret->setOwner(null)
-                ->removeServiceSecret($serviceSecret);
-            $serviceSecret->setProjectSecret(null);
             $service->removeSecret($serviceSecret);
+            $projectSecret->removeServiceSecret($serviceSecret);
+
+            foreach ($projectSecret->getServiceSecrets() as $schild) {
+                $projectSecret->removeServiceSecret($schild);
+
+                $this->repo->remove($schild);
+            }
 
             $this->repo->remove($projectSecret, $serviceSecret);
         }
 
+        $this->repo->persist($service);
         $this->repo->flush();
-
-        if (!empty($toCreate)) {
-            $this->createOwnedSecrets($service, $toCreate);
-        }
     }
 
     /**
      * Grants non-owned Secrets to Service
      *
      * @param Entity\Service $service
-     * @param array          $toGrant [Project Secret id, Service Secret target]
+     * @param array          $toGrant [Project Secret id, Owner Service Secret name, Service Secret target]
      */
-    public function grantSecrets(
+    public function grant(
         Entity\Service $service,
         array $toGrant
     ) {
@@ -295,31 +330,29 @@ class Secret
         }
 
         $projectSecrets = [];
-        foreach ($this->repo->findAllByProject($project) as $projectSecret) {
+        foreach ($this->repo->findByIds($project, array_column($toGrant, 'id')) as $projectSecret) {
             $id = $projectSecret->getId() ?? $projectSecret->getSlug();
 
             $projectSecrets [$id]= $projectSecret;
         }
 
-        foreach ($toGrant as $row) {
-            if (empty($row['id'])) {
+        foreach ($toGrant as $data) {
+            if (empty($data['id'])) {
                 continue;
             }
 
-            if (empty($projectSecrets[$row['id']])) {
+            if (empty($projectSecrets[$data['id']])) {
                 continue;
             }
 
-            $projectSecret = $projectSecrets[$row['id']];
+            /** @var Entity\Secret $projectSecret */
+            $projectSecret = $projectSecrets[$data['id']];
 
             $serviceSecret = new Entity\ServiceSecret();
-            $serviceSecret->setProjectSecret($projectSecret)
-                ->setService($service)
-                ->setTarget($row['target']);
-
-            $projectSecret->addServiceSecret($serviceSecret);
-
-            $service->addSecret($serviceSecret);
+            $serviceSecret->setName(Util\Strings::filename($data['name'])) // should be from owner
+                ->setTarget(Util\Strings::filename($data['target']))
+                ->setProjectSecret($projectSecret)
+                ->setService($service);
 
             $this->repo->persist($projectSecret, $serviceSecret);
         }
@@ -329,31 +362,26 @@ class Secret
     }
 
     /**
-     * Sorts Project Secrets by owner Service name then Secret name
-     *
-     * @param Entity\Secret[] $projectSecrets
-     * @return Entity\Secret[]
+     * @param Entity\Service $service
+     * @param array          $names
+     * @return Entity\ServiceSecret[]
      */
-    private function sortProjectSecrets(array $projectSecrets) : array
-    {
-        $arr = [];
+    protected function getInternalFromNames(
+        Entity\Service $service,
+        array $names
+    ) : array {
+        $secrets = $this->repo->findByName(
+            $service,
+            $names
+        );
 
-        foreach ($projectSecrets as $projectSecret) {
-            $owner = $projectSecret->getOwner();
+        $sorted = array_fill_keys($names, null);
 
-            $arr [$owner->getSlug()][$projectSecret->getName()]= $projectSecret;
+        foreach ($secrets as $secret) {
+            $sorted [$secret->getName()]= $secret;
         }
 
-        ksort($arr);
-
-        $sorted = [];
-        foreach ($arr as $key => $secrets) {
-            ksort($arr[$key]);
-
-            $sorted = array_merge($sorted, $arr[$key]);
-        }
-
-        return $sorted;
+        return array_filter($sorted);
     }
 
     /**

@@ -328,8 +328,8 @@ class Export
                 $current['restart'] = $service->getRestart();
             }
 
-            foreach ($service->getSecrets() as $secret) {
-                $current['secrets'] []= $secret->getProjectSecret()->getSlug();
+            if ($secrets = $this->serviceSecrets($service)) {
+                $current['secrets'] = $secrets;
             }
 
             if (!empty($service->getStopGracePeriod())) {
@@ -465,6 +465,23 @@ class Export
         $arr['restart_policy']['window'] = $restartPolicy->getWindow();
 
         return $arr;
+    }
+
+    protected function serviceSecrets(Entity\Docker\Service $service) : ?array
+    {
+        $arr = [];
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            $arr []= [
+                'source' => $serviceSecret->getSource(),
+                'target' => $serviceSecret->getTarget(),
+                'uid'    => Util\YamlTag::doubleQuotes($serviceSecret->getUid()),
+                'gid'    => Util\YamlTag::doubleQuotes($serviceSecret->getGid()),
+                'mode'   => Util\YamlTag::noQuotes($serviceSecret->getMode()),
+            ];
+        }
+
+        return !empty($arr) ? $arr : null;
     }
 
     protected function serviceVolumes(Entity\Docker\Service $service) : ?array

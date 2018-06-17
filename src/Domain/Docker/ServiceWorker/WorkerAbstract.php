@@ -218,29 +218,15 @@ abstract class WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) {
-        $internalSecrets = $this->internalSecretsArray($service, $form);
+        $secrets = $this->getCreateSecrets($service->getProject());
 
-        $ownedSecrets = [];
-        foreach ($form->owned_secrets as $ownedSecret) {
-            // Don't create Secrets that have id (already exist)
-            if (!empty($ownedSecret['id'])) {
-                continue;
-            }
+        $this->secretDomain->save(
+            $service,
+            $secrets['owned']->toArray(),
+            $form->secrets
+        );
 
-            $ownedSecrets [$ownedSecret['name']]= $ownedSecret['contents'];
-        }
-
-        // Create internal secrets
-        $this->secretDomain->createOwnedSecrets($service, $internalSecrets, true);
-
-        // Don't allow ownedSecrets to override internalSecrets
-        $ownedSecrets = array_diff_key($ownedSecrets, $internalSecrets);
-
-        // Create owned secrets
-        $this->secretDomain->createOwnedSecrets($service, $ownedSecrets);
-
-        // Create granted secrets
-        $this->secretDomain->grantSecrets($service, $form->grant_secrets);
+        $this->secretDomain->grant($service, $form->secrets_granted);
     }
 
     /**
@@ -251,54 +237,36 @@ abstract class WorkerAbstract implements WorkerInterface
         Entity\Docker\Service $service,
         $form
     ) {
-        // Update internal secrets
-        $this->secretDomain->updateInternal(
+        $secrets = $this->getViewSecrets($service);
+
+        $this->secretDomain->save(
             $service,
-            $this->internalSecretsArray($service, $form)
+            $secrets['owned']->toArray(),
+            $form->secrets
         );
 
-        // Update owned secrets
-        $this->secretDomain->updateOwned($service, $form->owned_secrets);
-
-        // Update granted secrets
-        $this->secretDomain->grantSecrets($service, $form->grant_secrets);
+        $this->secretDomain->grant($service, $form->secrets_granted);
     }
 
     protected function getCreateSecrets(Entity\Docker\Project $project) : array
     {
-        $allSecrets = $this->secretDomain->getAll($project);
-
-        return [
-            'all'       => $allSecrets,
-            'internal'  => [],
-            'owned'     => [],
-            'granted'   => [],
-            'grantable' => $allSecrets,
-        ];
+        return $this->secretDomain->getForNewService(
+            $project,
+            $this->serviceType,
+            $this->internalSecretsArray()
+        );
     }
 
     protected function getViewSecrets(Entity\Docker\Service $service) : array
     {
-        return [
-            'all'       => $this->secretDomain->getAll($service->getProject()),
-            'internal'  => $this->secretDomain->getInternal($service),
-            'owned'     => $this->secretDomain->getNotInternal($service),
-            'granted'   => $this->secretDomain->getGranted($service),
-            'grantable' => $this->secretDomain->getNotGranted($service),
-        ];
+        return $this->secretDomain->getForExistingService(
+            $service,
+            $this->serviceType,
+            $this->internalSecretsArray()
+        );
     }
 
     abstract protected function internalVolumesArray() : array;
 
-    /**
-     * Returns array of [secret name => contents]
-     *
-     * @param Entity\Docker\Service $service
-     * @param $form
-     * @return array
-     */
-    abstract protected function internalSecretsArray(
-        Entity\Docker\Service $service,
-        $form
-    ) : array;
+    abstract protected function internalSecretsArray() : array;
 }

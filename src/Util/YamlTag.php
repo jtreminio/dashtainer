@@ -5,12 +5,14 @@ namespace Dashtainer\Util;
 abstract class YamlTag
 {
     protected const DBL_QUOTES = '__SPECIAL_DBL_QUOTES__';
+    protected const NO_QUOTES  = '__SPECIAL_NO_QUOTES__';
     protected const EMPTY_HASH = '__SPECIAL_EMPTY_HASH';
     protected const NIL        = '__SPECIAL_NIL__';
 
     public static function parse(string $string) : string
     {
         $string = static::doubleQuotesParse($string);
+        $string = static::noQuotesParse($string);
         $string = static::nilValueParse($string);
         $string = static::emptyHashParse($string);
 
@@ -28,6 +30,19 @@ abstract class YamlTag
         $string = str_replace(static::DBL_QUOTES . "'", '"', $string);
 
         return str_replace(static::DBL_QUOTES, '"', $string);
+    }
+
+    public static function noQuotes(string $string) : string
+    {
+        return static::NO_QUOTES . $string . static::NO_QUOTES;
+    }
+
+    protected static function noQuotesParse(string $string) : string
+    {
+        $string = str_replace("'" . static::NO_QUOTES, '', $string);
+        $string = str_replace(static::NO_QUOTES . "'", '', $string);
+
+        return str_replace(static::NO_QUOTES, '', $string);
     }
 
     public static function nilValue() : string

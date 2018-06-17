@@ -10,6 +10,7 @@ class Version1_0_7 extends FixtureMigrationAbstract
     {
         $this->addSql('
             ALTER TABLE docker_service_secret
+                ADD name VARCHAR(64) NOT NULL AFTER service_id,
                 CHANGE is_internal is_internal TINYINT(1) NOT NULL;
         ');
 
@@ -60,7 +61,6 @@ class Version1_0_7 extends FixtureMigrationAbstract
             ALTER TABLE docker_secret
                 CHANGE contents data LONGBLOB DEFAULT NULL COMMENT '(DC2Type:enc_blob)';
         ");
-
     }
 
     public function down(Schema $schema)

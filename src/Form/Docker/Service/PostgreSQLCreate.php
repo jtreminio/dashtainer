@@ -24,24 +24,6 @@ class PostgreSQLCreate extends CreateAbstract implements Util\HydratorInterface
     public $port_used = false;
 
     /**
-     * @DashAssert\NonBlankString(message = "Please enter a database name")
-     * @DashAssert\Hostname
-     */
-    public $postgres_db;
-
-    /**
-     * @DashAssert\NonBlankString(message = "Please enter a Postgres user")
-     * @DashAssert\Hostname
-     */
-    public $postgres_user;
-
-    /**
-     * @DashAssert\NonBlankString(message = "Please enter a user password")
-     * @DashAssert\Hostname
-     */
-    public $postgres_password;
-
-    /**
      * @Assert\Callback
      * @param ExecutionContextInterface $context
      * @param $payload

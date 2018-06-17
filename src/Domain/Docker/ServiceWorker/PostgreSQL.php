@@ -37,14 +37,15 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         $service->setImage("postgres:{$version}")
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
 
-        $secretPrepend = "/run/secrets/{$service->getSlug()}";
         $service->setEnvironments([
-            'POSTGRES_DB_FILE'       => "{$secretPrepend}-postgres_db",
-            'POSTGRES_USER_FILE'     => "{$secretPrepend}-postgres_user",
-            'POSTGRES_PASSWORD_FILE' => "{$secretPrepend}-postgres_password",
+            'POSTGRES_DB_FILE'       => '/run/secrets/postgres_db',
+            'POSTGRES_USER_FILE'     => '/run/secrets/postgres_user',
+            'POSTGRES_PASSWORD_FILE' => '/run/secrets/postgres_password',
         ]);
 
         $this->serviceRepo->save($service);
+
+        $form->secrets['postgres_host']['data'] = $service->getSlug();
 
         $this->addToPrivateNetworks($service, $form);
         $this->createSecrets($service, $form);
@@ -91,26 +92,11 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             ?? $this->getOpenBindPort($service->getProject());
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
-        $secrets = $this->getViewSecrets($service);
-
-        /** @var Entity\Docker\ServiceSecret[] $internal */
-        $internal = $secrets['internal'];
-        $slug     = $service->getSlug();
-        $postgres_db       = $internal["{$slug}-postgres_db"]
-            ->getProjectSecret()->getData();
-        $postgres_user     = $internal["{$slug}-postgres_user"]
-            ->getProjectSecret()->getData();
-        $postgres_password = $internal["{$slug}-postgres_password"]
-            ->getProjectSecret()->getData();
-
         return array_merge(parent::getViewParams($service), [
-            'version'           => $version,
-            'bindPort'          => $bindPort,
-            'portConfirm'       => $portConfirm,
-            'postgres_db'       => $postgres_db,
-            'postgres_user'     => $postgres_user,
-            'postgres_password' => $postgres_password,
-            'fileHighlight'     => 'ini',
+            'version'       => $version,
+            'bindPort'      => $bindPort,
+            'portConfirm'   => $portConfirm,
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -176,22 +162,13 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         ];
     }
 
-    /**
-     * @param Entity\Docker\Service                $service
-     * @param Form\Docker\Service\PostgreSQLCreate $form
-     * @return array [secret name => contents]
-     */
-    protected function internalSecretsArray(
-        Entity\Docker\Service $service,
-        $form
-    ) : array {
-        $slug = $service->getSlug();
-
+    protected function internalSecretsArray() : array
+    {
         return [
-            "{$slug}-postgres_host"     => $slug,
-            "{$slug}-postgres_db"       => $form->postgres_db,
-            "{$slug}-postgres_user"     => $form->postgres_user,
-            "{$slug}-postgres_password" => $form->postgres_password,
+            'postgres_host',
+            'postgres_db',
+            'postgres_user',
+            'postgres_password',
         ];
     }
 }

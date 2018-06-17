@@ -25,6 +25,11 @@ class ServiceSecret implements
      */
 
     /**
+     * @ORM\Column(name="name", type="string", length=64)
+     */
+    protected $name;
+
+    /**
      * @ORM\Column(name="target", type="string", length=64)
      */
     protected $target;
@@ -69,6 +74,22 @@ class ServiceSecret implements
         }
 
         return $this->getProjectSecret()->getName();
+    }
+
+    public function getName() : ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string $name
+     * @return $this
+     */
+    public function setName(string $name)
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     public function getTarget() : ?string
@@ -162,7 +183,15 @@ class ServiceSecret implements
      */
     public function setProjectSecret(Secret $project_secret = null)
     {
+        if ($this->project_secret === $project_secret) {
+            return $this;
+        }
+
         $this->project_secret = $project_secret;
+
+        if ($project_secret) {
+            $project_secret->addServiceSecret($this);
+        }
 
         return $this;
     }
@@ -178,7 +207,15 @@ class ServiceSecret implements
      */
     public function setService(Service $service = null)
     {
+        if ($this->service === $service) {
+            return $this;
+        }
+
         $this->service = $service;
+
+        if ($service) {
+            $service->addSecret($this);
+        }
 
         return $this;
     }

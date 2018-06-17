@@ -149,14 +149,24 @@ class Project implements
      */
     public function addSecret(Secret $secret)
     {
-        $this->secrets[] = $secret;
+        if ($this->secrets->contains($secret)) {
+            return $this;
+        }
+
+        $this->secrets->add($secret);
+        $secret->setProject($this);
 
         return $this;
     }
 
     public function removeSecret(Secret $secret)
     {
+        if (!$this->secrets->contains($secret)) {
+            return;
+        }
+
         $this->secrets->removeElement($secret);
+        $secret->setProject(null);
     }
 
     /**

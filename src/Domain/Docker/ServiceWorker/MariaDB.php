@@ -37,15 +37,16 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         $service->setImage("mariadb:{$version}")
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
 
-        $secretPrepend = "/run/secrets/{$service->getSlug()}";
         $service->setEnvironments([
-            'MYSQL_ROOT_PASSWORD_FILE' => "{$secretPrepend}-mysql_root_password",
-            'MYSQL_DATABASE_FILE'      => "{$secretPrepend}-mysql_database",
-            'MYSQL_USER_FILE'          => "{$secretPrepend}-mysql_user",
-            'MYSQL_PASSWORD_FILE'      => "{$secretPrepend}-mysql_password",
+            'MYSQL_ROOT_PASSWORD_FILE' => '/run/secrets/mysql_root_password',
+            'MYSQL_DATABASE_FILE'      => '/run/secrets/mysql_database',
+            'MYSQL_USER_FILE'          => '/run/secrets/mysql_user',
+            'MYSQL_PASSWORD_FILE'      => '/run/secrets/mysql_password',
         ]);
 
         $this->serviceRepo->save($service);
+
+        $form->secrets['mysql_host']['data'] = $service->getSlug();
 
         $this->addToPrivateNetworks($service, $form);
         $this->createSecrets($service, $form);
@@ -84,37 +85,19 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $version   = $service->getMeta('version')->getData()[0];
-        $version   = (string) number_format($version, 1);
+        $version = $service->getMeta('version')->getData()[0];
+        $version = (string) number_format($version, 1);
 
         $bindPortMeta = $service->getMeta('bind-port');
         $bindPort     = $bindPortMeta->getData()[0]
             ?? $this->getOpenBindPort($service->getProject());
         $portConfirm  = $bindPortMeta->getData()[0] ?? false;
 
-        $secrets = $this->getViewSecrets($service);
-
-        /** @var Entity\Docker\ServiceSecret[] $internal */
-        $internal = $secrets['internal'];
-        $slug     = $service->getSlug();
-        $mysql_root_password = $internal["{$slug}-mysql_root_password"]
-            ->getProjectSecret()->getData();
-        $mysql_database      = $internal["{$slug}-mysql_database"]
-            ->getProjectSecret()->getData();
-        $mysql_user          = $internal["{$slug}-mysql_user"]
-            ->getProjectSecret()->getData();
-        $mysql_password      = $internal["{$slug}-mysql_password"]
-            ->getProjectSecret()->getData();
-
         return array_merge(parent::getViewParams($service), [
-            'version'             => $version,
-            'bindPort'            => $bindPort,
-            'portConfirm'         => $portConfirm,
-            'mysql_root_password' => $mysql_root_password,
-            'mysql_database'      => $mysql_database,
-            'mysql_user'          => $mysql_user,
-            'mysql_password'      => $mysql_password,
-            'fileHighlight'       => 'ini',
+            'version'       => $version,
+            'bindPort'      => $bindPort,
+            'portConfirm'   => $portConfirm,
+            'fileHighlight' => 'ini',
         ]);
     }
 
@@ -180,23 +163,14 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         ];
     }
 
-    /**
-     * @param Entity\Docker\Service             $service
-     * @param Form\Docker\Service\MariaDBCreate $form
-     * @return array [secret name => contents]
-     */
-    protected function internalSecretsArray(
-        Entity\Docker\Service $service,
-        $form
-    ) : array {
-        $slug = $service->getSlug();
-
+    protected function internalSecretsArray() : array
+    {
         return [
-            "{$slug}-mysql_host"          => $slug,
-            "{$slug}-mysql_root_password" => $form->mysql_root_password,
-            "{$slug}-mysql_database"      => $form->mysql_database,
-            "{$slug}-mysql_user"          => $form->mysql_user,
-            "{$slug}-mysql_password"      => $form->mysql_password,
+            'mysql_host',
+            'mysql_root_password',
+            'mysql_database',
+            'mysql_user',
+            'mysql_password',
         ];
     }
 }

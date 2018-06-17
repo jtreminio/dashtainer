@@ -130,10 +130,8 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         ];
     }
 
-    protected function internalSecretsArray(
-        Entity\Docker\Service $service,
-        $form
-    ) : array {
+    protected function internalSecretsArray() : array
+    {
         return [];
     }
 }

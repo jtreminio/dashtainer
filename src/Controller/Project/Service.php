@@ -169,9 +169,16 @@ class Service extends Controller
      */
     public function getBlockAddSecret() : AjaxResponse
     {
+        $projectSecret = new Entity\Docker\Secret();
+        $projectSecret->fromArray(['id' => uniqid()]);
+
+        $serviceSecret = new Entity\Docker\ServiceSecret();
+        $serviceSecret->fromArray(['id' => uniqid()]);
+        $serviceSecret->setProjectSecret($projectSecret);
+
         $template = '@Dashtainer/project/service/snippets/secret-add.html.twig';
         $rendered = $this->render($template, [
-            'id' => uniqid(),
+            'secret' => $serviceSecret,
         ]);
 
         return new AjaxResponse([
@@ -315,11 +322,6 @@ class Service extends Controller
         $form->project = $project;
         $form->type    = $serviceType;
 
-        $form->grant_secrets_not_belong = $this->dSecretDomain->idsNotBelongToProject(
-            $project,
-            array_column($form->grant_secrets, 'id')
-        );
-
         $this->validator->setSource($form);
 
         if (!$this->validator->isValid()) {
@@ -460,15 +462,6 @@ class Service extends Controller
         $form->name    = $service->getName();
         $form->project = $project;
         $form->type    = $serviceType;
-
-        $form->owned_secrets_not_belong = $this->dSecretDomain->idsNotBelongToService(
-            $service,
-            array_column($form->owned_secrets, 'id')
-        );
-        $form->grant_secrets_not_belong = $this->dSecretDomain->idsNotBelongToProject(
-            $project,
-            array_column($form->grant_secrets, 'id')
-        );
 
         $this->validator->setSource($form);
 

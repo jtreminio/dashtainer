@@ -471,7 +471,60 @@ EOD
 
         $type->addMeta($datastore);
 
-        $this->serviceTypeRepo->save($conf, $datastore, $type);
+        $secretHost = new Entity\ServiceTypeMeta();
+        $secretHost->setName('mysql_host')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_host',
+                'data' => '',
+        ]);
+
+        $type->addMeta($secretHost);
+
+        $secretRootPw = new Entity\ServiceTypeMeta();
+        $secretRootPw->setName('mysql_root_password')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_root_password',
+                'data' => '123',
+        ]);
+
+        $type->addMeta($secretRootPw);
+
+        $secretDb = new Entity\ServiceTypeMeta();
+        $secretDb->setName('mysql_database')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_database',
+                'data' => 'dbname',
+        ]);
+
+        $type->addMeta($secretDb);
+
+        $secretUser = new Entity\ServiceTypeMeta();
+        $secretUser->setName('mysql_user')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_user',
+                'data' => 'dbuser',
+        ]);
+
+        $type->addMeta($secretUser);
+
+        $secretPw = new Entity\ServiceTypeMeta();
+        $secretPw->setName('mysql_password')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_password',
+                'data' => 'dbpassword',
+        ]);
+
+        $type->addMeta($secretPw);
+
+        $this->serviceTypeRepo->save(
+            $conf, $datastore, $secretHost, $secretRootPw,
+            $secretDb, $secretUser, $secretPw, $type
+        );
     }
 
     protected function migrateMongoDB()
@@ -606,7 +659,61 @@ EOD
 
         $type->addMeta($datastore);
 
-        $this->serviceTypeRepo->save($type, $conf55, $conf56, $conf57, $datastore);
+        $secretHost = new Entity\ServiceTypeMeta();
+        $secretHost->setName('mysql_host')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_host',
+                'data' => '',
+        ]);
+
+        $type->addMeta($secretHost);
+
+        $secretRootPw = new Entity\ServiceTypeMeta();
+        $secretRootPw->setName('mysql_root_password')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_root_password',
+                'data' => '123',
+        ]);
+
+        $type->addMeta($secretRootPw);
+
+        $secretDb = new Entity\ServiceTypeMeta();
+        $secretDb->setName('mysql_database')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_database',
+                'data' => 'dbname',
+        ]);
+
+        $type->addMeta($secretDb);
+
+        $secretUser = new Entity\ServiceTypeMeta();
+        $secretUser->setName('mysql_user')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_user',
+                'data' => 'dbuser',
+        ]);
+
+        $type->addMeta($secretUser);
+
+        $secretPw = new Entity\ServiceTypeMeta();
+        $secretPw->setName('mysql_password')
+            ->setType($type)
+            ->setData([
+                'name' => 'mysql_password',
+                'data' => 'dbpassword',
+        ]);
+
+        $type->addMeta($secretPw);
+
+        $this->serviceTypeRepo->save(
+            $type, $conf55, $conf56, $conf57, $datastore,
+            $secretHost, $secretRootPw, $secretDb, $secretUser,
+            $secretPw
+        );
     }
 
     protected function migrateNginx()
@@ -4221,7 +4328,50 @@ EOD
 
         $type->addMeta($datastore);
 
-        $this->serviceTypeRepo->save($type, $conf93, $conf94, $conf95, $conf96, $conf103, $datastore);
+        $secretHost = new Entity\ServiceTypeMeta();
+        $secretHost->setName('postgres_host')
+            ->setType($type)
+            ->setData([
+                'name' => 'postgres_host',
+                'data' => '',
+        ]);
+
+        $type->addMeta($secretHost);
+
+        $secretDb = new Entity\ServiceTypeMeta();
+        $secretDb->setName('postgres_db')
+            ->setType($type)
+            ->setData([
+                'name' => 'postgres_db',
+                'data' => 'dbname',
+        ]);
+
+        $type->addMeta($secretDb);
+
+        $secretUser = new Entity\ServiceTypeMeta();
+        $secretUser->setName('postgres_user')
+            ->setType($type)
+            ->setData([
+                'name' => 'postgres_user',
+                'data' => 'dbuser',
+        ]);
+
+        $type->addMeta($secretUser);
+
+        $secretPw = new Entity\ServiceTypeMeta();
+        $secretPw->setName('postgres_password')
+            ->setType($type)
+            ->setData([
+                'name' => 'postgres_password',
+                'data' => 'dbpassword',
+        ]);
+
+        $type->addMeta($secretPw);
+
+        $this->serviceTypeRepo->save(
+            $type, $conf93, $conf94, $conf95, $conf96, $conf103, $datastore,
+            $secretHost, $secretDb, $secretUser, $secretPw
+        );
     }
 
     protected function migrateRedis()

@@ -45,80 +45,116 @@
             </div>
         </div>
 
+        {% set secret = secrets.owned.remove('mysql_host') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][data]"
+               value="{{ secret.projectSecret.data }}" />
+
+        {% set secret = secrets.owned.remove('mysql_root_password') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
         <div class="row">
             <div class="col form-group">
-                <label class="form-label" for="mysql_root_password">Root Password</label>
+                <label class="form-label"
+                       for="secrets-{{ secret.id }}-data">Root Password</label>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">{{ availableAsSecret|raw }}</span>
                     </div>
-                    <input type="text" class="form-control" maxlength="64"
-                       id="mysql_root_password" name="mysql_root_password" placeholder=""
-                       value="123" required
-                       data-error-container="mysql_root_password" />
+                    <input type="text" class="form-control" maxlength="255"
+                           id="secrets-{{ secret.id }}-data"
+                           name="secrets[{{ secret.id }}][data]" placeholder=""
+                           value="{{ secret.projectSecret.data }}" required
+                           data-error-container="secrets-{{ secret.id }}-data" />
                 </div>
                 <div class="invalid-feedback"
-                     data-error-container-name="mysql_root_password"></div>
+                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
                 <small class="text-muted">
                     Password for the <code>root</code> user.
                 </small>
             </div>
         </div>
 
+        {% set secret = secrets.owned.remove('mysql_database') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
         <div class="row">
             <div class="col form-group">
-                <label class="form-label" for="mysql_database">Database</label>
+                <label class="form-label"
+                       for="secrets-{{ secret.id }}-data">Database</label>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">{{ availableAsSecret|raw }}</span>
                     </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="mysql_database" name="mysql_database" placeholder=""
-                           value="dbname" required
-                           data-error-container="mysql_database" />
+                    <input type="text" class="form-control" maxlength="255"
+                           id="secrets-{{ secret.id }}-data"
+                           name="secrets[{{ secret.id }}][data]" placeholder=""
+                           value="{{ secret.projectSecret.data }}" required
+                           data-error-container="secrets-{{ secret.id }}-data" />
                 </div>
                 <div class="invalid-feedback"
-                     data-error-container-name="mysql_database"></div>
+                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
                 <small class="text-muted">
                     Database to create on init.
                 </small>
             </div>
         </div>
 
+        {% set secret = secrets.owned.remove('mysql_user') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
         <div class="row">
             <div class="col form-group">
-                <label class="form-label" for="mysql_user">User</label>
+                <label class="form-label"
+                       for="secrets-{{ secret.id }}-data">User</label>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">{{ availableAsSecret|raw }}</span>
                     </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="mysql_user" name="mysql_user" placeholder=""
-                           value="dbuser" required
-                           data-error-container="mysql_user" />
+                    <input type="text" class="form-control" maxlength="255"
+                           id="secrets-{{ secret.id }}-data"
+                           name="secrets[{{ secret.id }}][data]" placeholder=""
+                           value="{{ secret.projectSecret.data }}" required
+                           data-error-container="secrets-{{ secret.id }}-data" />
                 </div>
                 <div class="invalid-feedback"
-                     data-error-container-name="mysql_user"></div>
+                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
                 <small class="text-muted">
                     Non-root user.
                 </small>
             </div>
         </div>
 
+        {% set secret = secrets.owned.remove('mysql_password') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
         <div class="row">
             <div class="col form-group">
-                <label class="form-label" for="mysql_password">User Password</label>
+                <label class="form-label"
+                       for="secrets-{{ secret.id }}-data">User Password</label>
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
                         <span class="input-group-text">{{ availableAsSecret|raw }}</span>
                     </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="mysql_password" name="mysql_password" placeholder=""
-                           value="dbpassword" required
-                           data-error-container="mysql_password" />
+                    <input type="text" class="form-control" maxlength="255"
+                           id="secrets-{{ secret.id }}-data"
+                           name="secrets[{{ secret.id }}][data]" placeholder=""
+                           value="{{ secret.projectSecret.data }}" required
+                           data-error-container="secrets-{{ secret.id }}-data" />
                 </div>
                 <div class="invalid-feedback"
-                     data-error-container-name="mysql_password"></div>
+                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
                 <small class="text-muted">
                     Password for User.
                 </small>
