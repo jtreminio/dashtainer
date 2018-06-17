@@ -6,7 +6,7 @@ use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-class PhpFpm extends WorkerAbstract implements WorkerInterface
+class PhpFpm extends WorkerAbstract
 {
     /** @var Blackfire */
     protected $blackfireWorker;

@@ -5,7 +5,7 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-class MySQL extends WorkerAbstract implements WorkerInterface
+class MySQL extends WorkerAbstract
 {
     public function getServiceType() : Entity\Docker\ServiceType
     {

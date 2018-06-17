@@ -5,7 +5,7 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-class MariaDB extends WorkerAbstract implements WorkerInterface
+class MariaDB extends WorkerAbstract
 {
     public function getServiceType() : Entity\Docker\ServiceType
     {

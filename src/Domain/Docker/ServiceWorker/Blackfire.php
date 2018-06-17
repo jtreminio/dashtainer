@@ -5,7 +5,7 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-class Blackfire extends WorkerAbstract implements WorkerInterface
+class Blackfire extends WorkerAbstract
 {
     public function getServiceType() : Entity\Docker\ServiceType
     {

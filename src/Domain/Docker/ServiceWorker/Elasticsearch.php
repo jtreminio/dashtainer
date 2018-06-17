@@ -5,7 +5,7 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 
-class Elasticsearch extends WorkerAbstract implements WorkerInterface
+class Elasticsearch extends WorkerAbstract
 {
     public function getServiceType() : Entity\Docker\ServiceType
     {
