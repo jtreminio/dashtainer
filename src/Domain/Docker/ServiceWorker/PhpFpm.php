@@ -5,23 +5,18 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 
 class PhpFpm extends WorkerAbstract implements WorkerInterface
 {
     /** @var Blackfire */
     protected $blackfireWorker;
 
-    public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Domain\Docker\Network $networkDomain,
-        Domain\Docker\Secret $secretDomain,
-        Domain\Docker\Volume $volume,
-        Blackfire $blackfireWorker
-    ) {
-        parent::__construct($serviceRepo, $serviceTypeRepo, $networkDomain, $secretDomain, $volume);
-
+    /**
+     * @required
+     * @param Blackfire $blackfireWorker
+     */
+    public function setBlackfireWorker(Blackfire $blackfireWorker)
+    {
         $this->blackfireWorker = $blackfireWorker;
     }
 
