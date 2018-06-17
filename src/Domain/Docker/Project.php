@@ -2,53 +2,54 @@
 
 namespace Dashtainer\Domain\Docker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
-use Dashtainer\Repository;
-use Dashtainer\Util;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Entity\User;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Repository\Docker as Repository;
 
 class Project
 {
-    /** @var Repository\Docker\Project */
+    /** @var Repository\Project */
     protected $repo;
 
-    public function __construct(
-        Repository\Docker\Project $repo
-    ) {
+    public function __construct(Repository\Project $repo)
+    {
         $this->repo = $repo;
     }
 
     public function createProjectFromForm(
-        Form\Docker\ProjectCreateUpdate $form,
-        Entity\User $user
-    ) : Entity\Docker\Project {
-        $project = new Entity\Docker\Project();
+        Form\ProjectCreateUpdate $form,
+        User $user
+    ) : Entity\Project {
+        $project = new Entity\Project();
         $project->fromArray($form->toArray());
-        $project->setUser($user);
 
-        $this->repo->save($project);
-
-        $hostname = Util\Strings::hostname($project->getSlug());
-
-        $publicNetwork = new Entity\Docker\Network();
-        $publicNetwork->setName("{$hostname}-public")
+        $public = new Entity\Network();
+        $public->setName('public')
             ->setIsEditable(false)
             ->setIsPublic(true)
             ->setExternal('traefik_webgateway')
             ->setProject($project);
 
-        $project->addNetwork($publicNetwork);
+        $private = new Entity\Network();
+        $private->setName('private')
+            ->setIsEditable(false)
+            ->setProject($project);
 
-        $this->repo->save($publicNetwork, $project);
+        $project->setUser($user)
+            ->addNetwork($public)
+            ->addNetwork($private);
+
+        $this->repo->save($public, $private, $project);
 
         return $project;
     }
 
-    public function delete(Entity\Docker\Project $project)
+    public function delete(Entity\Project $project)
     {
         $deleted = [];
 
-        $deleteServices = function(Entity\Docker\Service $service)
+        $deleteServices = function(Entity\Service $service)
             use (&$deleteServices, $project)
         {
             $deleted = [];
@@ -122,10 +123,10 @@ class Project
     }
 
     /**
-     * @param Entity\User $user
+     * @param User $user
      * @return array [id, name, service_count]
      */
-    public function getList(Entity\User $user)
+    public function getList(User $user)
     {
         return $this->repo->getNamesAndCount($user);
     }

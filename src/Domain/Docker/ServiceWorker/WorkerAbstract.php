@@ -54,10 +54,9 @@ abstract class WorkerAbstract implements WorkerInterface
     public function getCreateParams(Entity\Docker\Project $project): array
     {
         return [
-            'networkName' => $this->networkDomain->generateName($project),
-            'networks'    => $this->getCreateNetworks($project),
-            'secrets'     => $this->getCreateSecrets($project),
-            'volumes'     => $this->getCreateVolumes($project),
+            'networks' => $this->getCreateNetworks($project),
+            'secrets'  => $this->getCreateSecrets($project),
+            'volumes'  => $this->getCreateVolumes($project),
         ];
     }
 
@@ -101,31 +100,89 @@ abstract class WorkerAbstract implements WorkerInterface
         $this->serviceRepo->delete($service);
     }
 
-    /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
-     */
-    protected function addToPrivateNetworks(Entity\Docker\Service $service, $form)
-    {
-        $this->networkDomain->joinNetworks($service, $form->networks_join);
-        $this->networkDomain->createNetworksForService($service, $form->networks_create);
-        $this->networkDomain->deleteEmptyNetworks($service->getProject());
-    }
-
     protected function getCreateNetworks(Entity\Docker\Project $project) : array
     {
-        return [
-            'joined'   => [],
-            'unjoined' => $this->networkDomain->getPrivateNetworks($project),
-        ];
+        return $this->networkDomain->getForNewService($project, $this->internalNetworksArray());
     }
 
     protected function getViewNetworks(Entity\Docker\Service $service) : array
     {
-        return [
-            'joined'   => $this->networkDomain->findByService($service),
-            'unjoined' => $this->networkDomain->findByNotService($service),
-        ];
+        return $this->networkDomain->getForExistingService($service, $this->internalNetworksArray());
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function createNetworks(Entity\Docker\Service $service, $form)
+    {
+        $this->networkDomain->save($service, $form->networks);
+        $this->networkDomain->deleteEmptyNetworks($service->getProject());
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function updateNetworks(Entity\Docker\Service $service, $form)
+    {
+        $this->createNetworks($service, $form);
+    }
+
+    protected function getCreateSecrets(Entity\Docker\Project $project) : array
+    {
+        return $this->secretDomain->getForNewService(
+            $project,
+            $this->serviceType,
+            $this->internalSecretsArray()
+        );
+    }
+
+    protected function getViewSecrets(Entity\Docker\Service $service) : array
+    {
+        return $this->secretDomain->getForExistingService(
+            $service,
+            $this->serviceType,
+            $this->internalSecretsArray()
+        );
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function createSecrets(
+        Entity\Docker\Service $service,
+        $form
+    ) {
+        $secrets = $this->getCreateSecrets($service->getProject());
+
+        $this->secretDomain->save(
+            $service,
+            $secrets['owned']->toArray(),
+            $form->secrets
+        );
+
+        $this->secretDomain->grant($service, $form->secrets_granted);
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function updateSecrets(
+        Entity\Docker\Service $service,
+        $form
+    ) {
+        $secrets = $this->getViewSecrets($service);
+
+        $this->secretDomain->save(
+            $service,
+            $secrets['owned']->toArray(),
+            $form->secrets
+        );
+
+        $this->secretDomain->grant($service, $form->secrets_granted);
     }
 
     /**
@@ -210,63 +267,9 @@ abstract class WorkerAbstract implements WorkerInterface
         $this->volumeDomain->grant($service, $form->volumes_granted);
     }
 
-    /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
-     */
-    protected function createSecrets(
-        Entity\Docker\Service $service,
-        $form
-    ) {
-        $secrets = $this->getCreateSecrets($service->getProject());
-
-        $this->secretDomain->save(
-            $service,
-            $secrets['owned']->toArray(),
-            $form->secrets
-        );
-
-        $this->secretDomain->grant($service, $form->secrets_granted);
-    }
-
-    /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
-     */
-    protected function updateSecrets(
-        Entity\Docker\Service $service,
-        $form
-    ) {
-        $secrets = $this->getViewSecrets($service);
-
-        $this->secretDomain->save(
-            $service,
-            $secrets['owned']->toArray(),
-            $form->secrets
-        );
-
-        $this->secretDomain->grant($service, $form->secrets_granted);
-    }
-
-    protected function getCreateSecrets(Entity\Docker\Project $project) : array
-    {
-        return $this->secretDomain->getForNewService(
-            $project,
-            $this->serviceType,
-            $this->internalSecretsArray()
-        );
-    }
-
-    protected function getViewSecrets(Entity\Docker\Service $service) : array
-    {
-        return $this->secretDomain->getForExistingService(
-            $service,
-            $this->serviceType,
-            $this->internalSecretsArray()
-        );
-    }
-
-    abstract protected function internalVolumesArray() : array;
+    abstract protected function internalNetworksArray() : array;
 
     abstract protected function internalSecretsArray() : array;
+
+    abstract protected function internalVolumesArray() : array;
 }

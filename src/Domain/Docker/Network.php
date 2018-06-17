@@ -2,187 +2,177 @@
 
 namespace Dashtainer\Domain\Docker;
 
-use Dashtainer\Entity;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Repository\Docker as Repository;
+
+use Doctrine\Common\Collections;
 
 class Network
 {
-    /** @var Repository\Docker\Network */
+    /** @var Repository\Network */
     protected $repo;
 
-    protected $wordsListFile;
-
-    public function __construct(
-        Repository\Docker\Network $repo,
-        string $wordListFile
-    ) {
+    public function __construct(Repository\Network $repo)
+    {
         $this->repo = $repo;
-
-        $this->wordsListFile = $wordListFile;
     }
 
     /**
-     * Deletes Network from Project.
+     * Returns Networks required for new Service
      *
-     * Removes association between Services and Network.
-     *
-     * @param Entity\Docker\Network $network
+     * @param Entity\Project $project
+     * @param array          $internalNetworksArray
+     * @return array
      */
-    public function delete(Entity\Docker\Network $network)
-    {
-        $services = [];
-        foreach ($network->getServices() as $service) {
-            $network->removeService($service);
-            $service->removeNetwork($network);
+    public function getForNewService(
+        Entity\Project $project,
+        array $internalNetworksArray
+    ) {
+        $joined   = new Collections\ArrayCollection();
+        $unjoined = new Collections\ArrayCollection();
 
-            $services []= $service;
+        // Always show private network on new Service
+        $internalNetworksArray []= 'private';
+        $internalNetworksArray = array_unique($internalNetworksArray);
+
+        foreach ($this->repo->findByNames($project, $internalNetworksArray) as $network) {
+            $joined->set($network->getName(), $network);
         }
 
-        $this->repo->save($network, ...$services);
-        $this->repo->delete($network);
-    }
+        foreach ($this->repo->findByProject($project) as $network) {
+            if ($joined->contains($network)) {
+                continue;
+            }
 
-    /**
-     * Picks random string from word list file for a Network name.
-     *
-     * Does a diff between existing Network names and possible results.
-     *
-     * @param Entity\Docker\Project $project
-     * @return string
-     */
-    public function generateName(Entity\Docker\Project $project) : string
-    {
-        $existingNetworks = $this->repo->findAllByProject($project);
-
-        $existingNames = [];
-        foreach ($existingNetworks as $network) {
-            $existingNames []= $network->getName();
+            $unjoined->set($network->getName(), $network);
         }
 
-        $file = file($this->wordsListFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-        $diff = array_diff($file, $existingNames);
-
-        return trim($diff[array_rand($diff)]);
-    }
-
-    public function addToPublicNetwork(Entity\Docker\Service $service)
-    {
-        $publicNetwork = $this->repo->getPublicNetwork(
-            $service->getProject()
-        );
-
-        $service->addNetwork($publicNetwork);
-    }
-
-    public function getPublicNetwork(
-        Entity\Docker\Project $project
-    ) : ?Entity\Docker\Network {
-        return $this->repo->getPublicNetwork($project);
+        return [
+            'joined'   => $joined,
+            'unjoined' => $unjoined,
+        ];
     }
 
     /**
-     * @param Entity\Docker\Project $project
-     * @return Entity\Docker\Network[]
+     * Returns Networks required for existing Service
+     *
+     * @param Entity\Service $service
+     * @param array          $internalNetworksArray
+     * @return array
      */
-    public function getPrivateNetworks(Entity\Docker\Project $project) : array
-    {
-        return $this->repo->getPrivateNetworks($project);
+    public function getForExistingService(
+        Entity\Service $service,
+        array $internalNetworksArray
+    ) {
+        $project = $service->getProject();
+
+        $joined   = new Collections\ArrayCollection();
+        $unjoined = new Collections\ArrayCollection();
+
+        foreach ($this->repo->findByNames($project, $internalNetworksArray) as $network) {
+            $joined->set($network->getName(), $network);
+        }
+
+        foreach ($this->repo->findByService($service) as $network) {
+            if ($joined->contains($network)) {
+                continue;
+            }
+
+            $joined->set($network->getName(), $network);
+        }
+
+        foreach ($this->repo->findByProject($project) as $network) {
+            if ($joined->contains($network)) {
+                continue;
+            }
+
+            $unjoined->set($network->getName(), $network);
+        }
+
+        return [
+            'joined'   => $joined,
+            'unjoined' => $unjoined,
+        ];
     }
 
     /**
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\Network[]
+     * @param Entity\Service $service
+     * @return Entity\Network[]
      */
-    public function findByService(Entity\Docker\Service $service) : array
+    public function findByService(Entity\Service $service) : array
     {
         return $this->repo->findByService($service);
     }
 
     /**
-     * @param Entity\Docker\Service $service
-     * @return Entity\Docker\Network[]
+     * @param Entity\Service $service
+     * @return Entity\Network[]
      */
-    public function findByNotService(Entity\Docker\Service $service) : array
+    public function findByNotService(Entity\Service $service) : array
     {
         return $this->repo->findByNotService($service);
     }
 
     /**
-     * IN TEST VERSION SET ID!
-     *
-     * Create new Networks and assign Service to it
-     *
-     * @param Entity\Docker\Service $service
-     * @param string[]              $networkNames
+     * @param Entity\Service $service
+     * @param array          $configs
      */
-    public function createNetworksForService(Entity\Docker\Service $service, array $networkNames)
+    public function save(Entity\Service $service, array $configs)
     {
-        if (empty($networkNames)) {
+        $project = $service->getProject();
+
+        if (empty($configs)) {
             return;
         }
 
-        $project = $service->getProject();
-
-        $created = [];
-
-        foreach ($networkNames as $networkName) {
-            $network = new Entity\Docker\Network();
-            $network->setName($networkName)
-                ->setProject($project)
-                ->setIsEditable(true)
-                ->addService($service);
-
-            $service->addNetwork($network);
-
-            $created []= $network;
+        $networks = [];
+        foreach ($this->repo->findByProject($project) as $network) {
+            $networks [$network->getId()] = $network;
         }
 
-        $this->repo->save($project, $service, ...$created);
-    }
-
-    /**
-     * Clears Networks from Service, then adds Service to Networks by ID
-     *
-     * @param Entity\Docker\Service $service
-     * @param string[]              $networkIds
-     */
-    public function joinNetworks(Entity\Docker\Service $service, array $networkIds)
-    {
-        $project = $service->getProject();
-
-        // Clear all existing Networks from Service
-        $saved = [];
-        foreach ($this->repo->findByService($service) as $network) {
-            if ($network->getIsPublic()) {
+        foreach ($configs as $id => $data) {
+            if (empty($data['id'])) {
                 continue;
             }
 
-            $network->removeService($service);
-            $service->removeNetwork($network);
+            if (!array_key_exists($id, $networks)) {
+                $network = new Entity\Network();
+                $network->setName($data['name'])
+                    ->setProject($project);
 
-            $saved []= $network;
-        }
+                $networks [$id]= $network;
+            }
 
-        foreach ($this->repo->findByProjectMultipleIds($project, $networkIds) as $network) {
+            /** @var Entity\Network $network */
+            $network = $networks[$id];
             $network->addService($service);
-            $service->addNetwork($network);
 
-            $saved []= $network;
+            $this->repo->persist($network);
+            unset($networks[$id]);
         }
 
-        $this->repo->save($service, ...$saved);
+        // No longer wanted by user
+        foreach ($networks as $network) {
+            $network->removeService($service);
+
+            $this->repo->persist($network);
+        }
+
+        $this->repo->persist($service);
+        $this->repo->flush();
     }
 
     /**
      * Delete Networks that have no Services attached to them
      *
-     * @param Entity\Docker\Project $project
+     * @param Entity\Project $project
      */
-    public function deleteEmptyNetworks(Entity\Docker\Project $project)
+    public function deleteEmptyNetworks(Entity\Project $project)
     {
-        $networks = $this->repo->findWithNoServices($project);
+        foreach ($this->repo->findWithNoServices($project) as $network) {
+            $this->repo->remove($network);
+        }
 
-        $this->repo->delete(...$networks);
+        $this->repo->flush();
     }
 }

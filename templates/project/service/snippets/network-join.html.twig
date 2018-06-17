@@ -1,21 +1,30 @@
-<tr id="networks_join-{{ network.id }}-row">
-    <td>{{ network.name }}</td>
+<tr id="networks-{{ network.id }}-row">
     <td>
-        <div class="tags">
-            {% for networkService in network.services if networkService.parent is empty %}
-                <a href="{{ path('project.service.view.get', {
-                    'projectId': project.id,
-                    'serviceId': networkService.id,
-                }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
-            {% endfor %}
-        </div>
+        <input type="hidden" name="networks[{{ network.id }}][name]"
+               value="{{ network.name }}" />
+        <i class="fa fa-{{ network.isPublic ? 'unlock' : 'lock' }}"></i> {{ network.name }}
+    </td>
+    <td>
+        {% if not network.isPublic %}
+            <div class="tags">
+                {% for networkService in network.services if networkService.parent is empty %}
+                    <a href="{{ path('project.service.view.get', {
+                        'projectId': project.id,
+                        'serviceId': networkService.id,
+                    }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
+                {% endfor %}
+            </div>
+        {% else %}
+            Adding this Service to the <code>public</code> Network will make the Service accessible
+            from outside Docker Containers through the Traefik proxy. Choose wisely!
+        {% endif %}
     </td>
     <td class="td-action">
         <div class="selectgroup">
             <label class="selectgroup-item dark mb-0">
                 <input type="checkbox" class="selectgroup-input"
-                       id="networks_join-{{ network.id }}-id"
-                       name="networks_join[]"
+                       id="networks-{{ network.id }}-id"
+                       name="networks[{{ network.id }}][id]"
                        value="{{ network.id }}" {{ checked ? 'checked' }} />
                 <span class="btn btn-outline-primary">
                     <i class="fe fe-square" aria-hidden="true"></i>

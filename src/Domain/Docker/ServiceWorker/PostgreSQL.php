@@ -47,7 +47,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $form->secrets['postgres_host']['data'] = $service->getSlug();
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -119,7 +119,7 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -150,16 +150,9 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
         return 5432;
     }
 
-    protected function internalVolumesArray() : array
+    protected function internalNetworksArray() : array
     {
-        return [
-            'files' => [
-                "conf-{$this->version}",
-            ],
-            'other' => [
-                'datadir',
-            ],
-        ];
+        return [];
     }
 
     protected function internalSecretsArray() : array
@@ -169,6 +162,18 @@ class PostgreSQL extends WorkerAbstract implements WorkerInterface
             'postgres_db',
             'postgres_user',
             'postgres_password',
+        ];
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                "conf-{$this->version}",
+            ],
+            'other' => [
+                'datadir',
+            ],
         ];
     }
 }

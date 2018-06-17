@@ -67,7 +67,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -202,7 +202,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $this->deleteBlackfireChild($service);
         }
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -220,10 +220,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
 
         $blackfireForm->fromArray($form->blackfire);
         $blackfireForm->project  = $form->project;
-
-        foreach ($this->networkDomain->findByService($parent) as $network) {
-            $blackfireForm->networks_join []= $network->getId();
-        }
+        $blackfireForm->networks = $form->networks;
 
         if (!$blackfireService = $this->getBlackfireChild($parent)) {
             $blackfireType = $this->blackfireWorker->getServiceType();
@@ -239,32 +236,7 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             $blackfireService->setParent($parent);
             $parent->addChild($blackfireService);
 
-            foreach ($parent->getNetworks() as $network) {
-                $blackfireService->addNetwork($network);
-                $network->addService($blackfireService);
-            }
-
             $this->serviceRepo->save($blackfireService, $parent);
-
-            $networkName = "{$parent->getName()}-blackfire";
-            $network = new Entity\Docker\Network();
-            $network->setName($networkName)
-                ->setProject($parent->getProject())
-                ->setIsEditable(false)
-                ->addService($parent)
-                ->addService($blackfireService);
-
-            $parent->addNetwork($network);
-            $blackfireService->addNetwork($network);
-
-            $blackfireNetwork = new Entity\Docker\ServiceMeta();
-            $blackfireNetwork->setName('blackfire-network')
-                ->setData([$networkName])
-                ->setService($parent);
-
-            $parent->addMeta($blackfireNetwork);
-
-            $this->serviceRepo->save($network, $blackfireService, $blackfireNetwork, $parent);
 
             return $blackfireService;
         }
@@ -294,27 +266,19 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
             return;
         }
 
-        $blackfireService->setParent(null);
         $parent->removeChild($blackfireService);
 
-        $blackfireNetworkMeta = $parent->getMeta('blackfire-network');
-        foreach ($blackfireService->getNetworks() as $network) {
-            $blackfireService->removeNetwork($network);
-            $network->removeService($blackfireService);
+        $this->delete($blackfireService);
+    }
 
-            if ($network->getName() === $blackfireNetworkMeta->getData()[0]) {
-                $network->removeService($parent);
-                $parent->removeNetwork($network);
-            }
-        }
+    protected function internalNetworksArray() : array
+    {
+        return [];
+    }
 
-        $this->serviceRepo->save($parent);
-        $this->serviceRepo->delete(
-            $blackfireService,
-            $blackfireNetworkMeta
-        );
-
-        $this->networkDomain->deleteEmptyNetworks($parent->getProject());
+    protected function internalSecretsArray() : array
+    {
+        return [];
     }
 
     protected function internalVolumesArray() : array
@@ -334,10 +298,5 @@ class PhpFpm extends WorkerAbstract implements WorkerInterface
                 'root',
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }

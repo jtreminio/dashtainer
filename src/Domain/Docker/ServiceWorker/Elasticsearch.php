@@ -43,7 +43,7 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -66,8 +66,6 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
         $service->addMeta($heapsizeMeta);
 
         $this->serviceRepo->save($versionMeta, $heapsizeMeta, $service);
-
-        $this->serviceRepo->save($service);
 
         return $service;
     }
@@ -109,13 +107,23 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($heapsizeMeta);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
         $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalNetworksArray() : array
+    {
+        return [];
+    }
+
+    protected function internalSecretsArray() : array
+    {
+        return [];
     }
 
     protected function internalVolumesArray() : array
@@ -128,10 +136,5 @@ class Elasticsearch extends WorkerAbstract implements WorkerInterface
                 'datadir',
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }

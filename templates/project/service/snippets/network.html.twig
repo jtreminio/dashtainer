@@ -19,14 +19,10 @@
 
 <div class="card">
     <div class="card-body">
-        {% if networks.joined is empty and networks.unjoined is empty %}
-            <div class="alert alert-icon alert-warning mb-6" role="alert">
-                <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-                This is the first Service in this Project.
-                You must create an initial Network. You may add more Services to this Network
-                later. Services must share a Network to speak to each other.
-            </div>
-        {% endif %}
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            Services must be in the same Network to talk to each other.
+        </div>
 
         <div id="networks" data-error-container="networks"
              class="table-responsive scrollable-container">

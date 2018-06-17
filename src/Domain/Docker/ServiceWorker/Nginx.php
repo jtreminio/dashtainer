@@ -43,8 +43,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->networkDomain->addToPublicNetwork($service);
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -138,7 +137,7 @@ class Nginx extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($vhostMeta);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -180,6 +179,18 @@ class Nginx extends WorkerAbstract implements WorkerInterface
         ];
     }
 
+    protected function internalNetworksArray() : array
+    {
+        return [
+            'public',
+        ];
+    }
+
+    protected function internalSecretsArray() : array
+    {
+        return [];
+    }
+
     protected function internalVolumesArray() : array
     {
         return [
@@ -194,10 +205,5 @@ class Nginx extends WorkerAbstract implements WorkerInterface
                 'root',
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }

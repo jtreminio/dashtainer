@@ -148,10 +148,12 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
+        $network = new Entity\Docker\Network();
+        $network->fromArray(['id' => uniqid()]);
+
         $template = '@Dashtainer/project/service/snippets/network-add.html.twig';
         $rendered = $this->render($template, [
-            'id'          => uniqid(),
-            'networkName' => $this->dNetworkDomain->generateName($project),
+            'network' => $network,
         ]);
 
         return new AjaxResponse([

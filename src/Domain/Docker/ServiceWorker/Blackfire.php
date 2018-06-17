@@ -40,7 +40,7 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
 
         $this->serviceRepo->save($service);
@@ -76,12 +76,22 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
 
         $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalNetworksArray() : array
+    {
+        return [];
+    }
+
+    protected function internalSecretsArray() : array
+    {
+        return [];
     }
 
     protected function internalVolumesArray() : array
@@ -92,10 +102,5 @@ class Blackfire extends WorkerAbstract implements WorkerInterface
             'other' => [
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }

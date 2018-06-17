@@ -39,7 +39,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -111,7 +111,7 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -142,6 +142,16 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
         return 27017;
     }
 
+    protected function internalNetworksArray() : array
+    {
+        return [];
+    }
+
+    protected function internalSecretsArray() : array
+    {
+        return [];
+    }
+
     protected function internalVolumesArray() : array
     {
         return [
@@ -151,10 +161,5 @@ class MongoDB extends WorkerAbstract implements WorkerInterface
                 'datadir'
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }

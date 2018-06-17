@@ -1,18 +1,21 @@
-<tr id="networks_create-{{ id }}-row">
+<tr id="networks-{{ network.id }}-row">
     <td>
-        <input type="text" class="form-control" maxlength="255"
-               id="networks_create-{{ id }}-name"
-               name="networks_create[{{ id }}]"
-               placeholder="" value="{{ networkName }}"
-               data-error-container="networks_create-{{ id }}-name-error" />
+        <input type="text" class="form-control" maxlength="255" required
+               id="networks-{{ network.id }}-name"
+               name="networks[{{ network.id }}][name]"
+               placeholder="" value="{{ network.name }}"
+               data-error-container="networks-{{ network.id }}-name-error" />
 
         <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
-             data-error-container-name="networks_create-{{ id }}-name-error"></div>
+             data-error-container-name="networks-{{ network.id }}-name-error"></div>
     </td>
     <td>New Network. This Service is added and you can add other Services later.</td>
     <td class="td-action">
+        <input type="hidden" name="networks[{{ network.id }}][id]"
+               value="{{ network.id }}" />
+
         <div class="selectgroup" data-toggle="delete-element"
-             data-target="#networks_create-{{ id }}-row">
+             data-target="#networks-{{ network.id }}-row">
             <label class="selectgroup-item dark mb-0">
                 <span class="btn btn-outline-danger">
                     <i class="fe fe-x-square" aria-hidden="true"></i>

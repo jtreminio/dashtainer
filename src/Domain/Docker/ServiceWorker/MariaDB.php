@@ -48,7 +48,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $form->secrets['mysql_host']['data'] = $service->getSlug();
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -120,7 +120,7 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
 
         $service->setPorts($servicePort);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -151,16 +151,9 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
         return 3306;
     }
 
-    protected function internalVolumesArray() : array
+    protected function internalNetworksArray() : array
     {
-        return [
-            'files' => [
-                'my-cnf',
-            ],
-            'other' => [
-                'datadir',
-            ],
-        ];
+        return [];
     }
 
     protected function internalSecretsArray() : array
@@ -171,6 +164,18 @@ class MariaDB extends WorkerAbstract implements WorkerInterface
             'mysql_database',
             'mysql_user',
             'mysql_password',
+        ];
+    }
+
+    protected function internalVolumesArray() : array
+    {
+        return [
+            'files' => [
+                'my-cnf',
+            ],
+            'other' => [
+                'datadir',
+            ],
         ];
     }
 }

@@ -41,8 +41,7 @@ class Adminer extends WorkerAbstract implements WorkerInterface
 
         $this->serviceRepo->save($service);
 
-        $this->networkDomain->addToPublicNetwork($service);
-        $this->addToPrivateNetworks($service, $form);
+        $this->createNetworks($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -118,13 +117,25 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'ADMINER_PLUGINS' => join(' ', $form->plugins),
         ]);
 
-        $this->addToPrivateNetworks($service, $form);
+        $this->updateNetworks($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
         $this->serviceRepo->save($service);
 
         return $service;
+    }
+
+    protected function internalNetworksArray() : array
+    {
+        return [
+            'public',
+        ];
+    }
+
+    protected function internalSecretsArray() : array
+    {
+        return [];
     }
 
     protected function internalVolumesArray() : array
@@ -135,10 +146,5 @@ class Adminer extends WorkerAbstract implements WorkerInterface
             'other' => [
             ],
         ];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
     }
 }
