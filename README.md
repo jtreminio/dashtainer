@@ -17,8 +17,9 @@ steps will get you up and running within minutes.
 
 ### App configuration
 
-* Run `./bin/composer-install` to install Composer requirements
-* Run `./bin/db-reset` to create and seed database
+* Run `./bin/php composer install` to install Composer requirements
+* Run `./bin/php ./bin/console dashtainer:db:create` to create and seed database
+* Run `./bin/node npm install` to install NPM dependencies
 * Run `./bin/webpack` to begin the 
     [Encore](https://symfony.com/doc/3.4/frontend.html) daemon
 

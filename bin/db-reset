@@ -1,9 +1,0 @@
-#!/bin/bash
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-FILE=${1:-'/var/www/assets/files/db-v1.0.4.sql.tar.gz'}
-
-docker container exec -it \
-    -w /var/www \
-    -u "$(id -u $USER):$(id -g $USER)" \
-    dash_php_1 ./bin/console dashtainer:db:create \
