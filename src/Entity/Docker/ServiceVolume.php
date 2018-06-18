@@ -116,7 +116,7 @@ class ServiceVolume implements
      * @param string $data
      * @return $this
      */
-    public function setData(string $data)
+    public function setData(string $data = null)
     {
         $this->data = $data;
 
@@ -281,7 +281,7 @@ class ServiceVolume implements
      * @param string $target
      * @return $this
      */
-    public function setTarget(string $target)
+    public function setTarget(string $target = null)
     {
         $this->target = $target;
 
