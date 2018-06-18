@@ -10,7 +10,7 @@
             <a class="btn btn-outline-success"
                data-toggle="add-element"
                data-target="#volumes_bind-container"
-               href="{{ path('project.service.block-add-volume-bind.get', {
+               href="{{ path('project.service.add.volume-bind.get', {
                   'projectId': project.id,
                }) }}"><i class="fe fe-plus"></i> Create Local Volume</a>
         </div>
@@ -60,7 +60,7 @@
             <a class="btn btn-outline-success"
                data-toggle="add-element"
                data-target="#volumes-container"
-               href="{{ path('project.service.block-add-volume.get', {
+               href="{{ path('project.service.add.volume.get', {
                   'projectId': project.id,
                }) }}"><i class="fe fe-plus"></i> Create Docker Volume</a>
         </div>

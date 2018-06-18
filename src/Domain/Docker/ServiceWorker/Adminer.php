@@ -42,6 +42,7 @@ class Adminer extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -118,6 +119,7 @@ class Adminer extends WorkerAbstract
         ]);
 
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -133,6 +135,11 @@ class Adminer extends WorkerAbstract
         ];
     }
 
+    protected function internalPortsArray() : array
+    {
+        return [];
+    }
+
     protected function internalSecretsArray() : array
     {
         return [];
@@ -141,10 +148,8 @@ class Adminer extends WorkerAbstract
     protected function internalVolumesArray() : array
     {
         return [
-            'files' => [
-            ],
-            'other' => [
-            ],
+            'files' => [],
+            'other' => [],
         ];
     }
 }

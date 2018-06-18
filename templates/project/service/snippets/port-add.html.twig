@@ -1,0 +1,51 @@
+<tr id="ports-{{ port.id }}-row">
+    <td>
+        <input type="text" class="form-control"
+               id="ports-{{ port.id }}-published"
+               name="ports[{{ port.id }}][published]"
+               placeholder="Port on Host" value="{{ port.published }}"
+               data-error-container="ports-{{ port.id }}-published-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="ports-{{ port.id }}-published-error"></div>
+    </td>
+    <td>
+        <input type="text" class="form-control"
+               id="ports-{{ port.id }}-target"
+               name="ports[{{ port.id }}][target]"
+               placeholder="Port on Container" value="{{ port.target }}"
+               data-error-container="ports-{{ port.id }}-target-error" />
+
+        <div class="invalid-feedback p-3 mb-2 bg-danger text-white"
+             data-error-container-name="ports-{{ port.id }}-target-error"></div>
+    </td>
+    <td>
+            <div class="selectgroup">
+                <label class="selectgroup-item mb-0">
+                    <input type="radio"
+                           id="ports-{{ port.id }}-protocol-tcp"
+                           name="ports[{{ port.id }}][protocol]"
+                           value="tcp" class="selectgroup-input" {{ port.protocol == 'tcp' ? 'checked' }} />
+                    <span class="selectgroup-button">TCP</span>
+                </label>
+                <label class="selectgroup-item mb-0">
+                    <input type="radio"
+                           id="ports-{{ port.id }}-protocol-udp"
+                           name="ports[{{ port.id }}][protocol]"
+                           value="udp" class="selectgroup-input" {{ port.protocol == 'udp' ? 'checked' }} />
+                    <span class="selectgroup-button">UDP</span>
+                </label>
+            </div>
+    </td>
+    <td class="td-action">
+        <div class="selectgroup" data-toggle="delete-element"
+             data-target="#ports-{{ port.id }}-row">
+            <label class="selectgroup-item dark mb-0">
+                <span class="btn btn-outline-danger">
+                    <i class="fe fe-x-square" aria-hidden="true"></i>
+                    Delete
+                </span>
+            </label>
+        </div>
+    </td>
+</tr>

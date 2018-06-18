@@ -46,6 +46,7 @@ class Apache extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -128,9 +129,9 @@ class Apache extends WorkerAbstract
         $build->setContext("./{$service->getSlug()}")
             ->setDockerfile('Dockerfile')
             ->setArgs([
-                'SYSTEM_PACKAGES'       => array_unique($form->system_packages),
-                'APACHE_MODULES_ENABLE' => array_unique($form->enabled_modules),
-                'APACHE_MODULES_DISABLE'=> array_unique($form->disabled_modules),
+                'SYSTEM_PACKAGES'        => array_unique($form->system_packages),
+                'APACHE_MODULES_ENABLE'  => array_unique($form->enabled_modules),
+                'APACHE_MODULES_DISABLE' => array_unique($form->disabled_modules),
             ]);
 
         $service->setBuild($build);
@@ -155,6 +156,7 @@ class Apache extends WorkerAbstract
         $this->serviceRepo->save($vhostMeta);
 
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -201,6 +203,11 @@ class Apache extends WorkerAbstract
         return [
             'public',
         ];
+    }
+
+    protected function internalPortsArray() : array
+    {
+        return [];
     }
 
     protected function internalSecretsArray() : array

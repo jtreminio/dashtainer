@@ -40,6 +40,7 @@ class NodeJs extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -100,6 +101,7 @@ class NodeJs extends WorkerAbstract
         $this->serviceRepo->save($portMeta);
 
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -113,6 +115,11 @@ class NodeJs extends WorkerAbstract
         return [];
     }
 
+    protected function internalPortsArray() : array
+    {
+        return [];
+    }
+
     protected function internalSecretsArray() : array
     {
         return [];
@@ -121,8 +128,7 @@ class NodeJs extends WorkerAbstract
     protected function internalVolumesArray() : array
     {
         return [
-            'files' => [
-            ],
+            'files' => [],
             'other' => [
                 'root',
             ],

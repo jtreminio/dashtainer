@@ -132,4 +132,19 @@ class Service
 
         return array_diff($servicesList, $servicesFound);
     }
+
+    public function getUsedPublishedPorts(
+        Entity\Docker\Project $project,
+        Entity\Docker\Service $service = null
+    ) : array {
+        $ports = [
+            'tcp' => [],
+            'udp' => [],
+        ];
+        foreach ($this->repo->getProjectPorts($project, $service) as $port) {
+            $ports [$port->getProtocol()] []= $port->getPublished();
+        }
+
+        return $ports;
+    }
 }

@@ -15,12 +15,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Service extends Controller
 {
-    /** @var Domain\Docker\Network */
-    protected $dNetworkDomain;
-
-    /** @var Domain\Docker\Secret */
-    protected $dSecretDomain;
-
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;
 
@@ -43,8 +37,6 @@ class Service extends Controller
     protected $validator;
 
     public function __construct(
-        Domain\Docker\Network $dNetworkDomain,
-        Domain\Docker\Secret $dSecretDomain,
         Domain\Docker\Service $dServiceDomain,
         Domain\Docker\ServiceManager $dServiceManager,
         Repository\Docker\Project $dProjectRepo,
@@ -53,8 +45,6 @@ class Service extends Controller
         Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
-        $this->dNetworkDomain  = $dNetworkDomain;
-        $this->dSecretDomain   = $dSecretDomain;
         $this->dServiceDomain  = $dServiceDomain;
         $this->dServiceManager = $dServiceManager;
 
@@ -64,175 +54,6 @@ class Service extends Controller
         $this->dServiceTypeRepo = $dServiceTypeRepo;
 
         $this->validator = $validator;
-    }
-
-    /**
-     * @Route(name="project.service.index.get",
-     *     path="/project/{projectId}/service",
-     *     methods={"GET"}
-     * )
-     * @param Entity\User $user
-     * @param string      $projectId
-     * @return Response
-     */
-    public function getIndex(
-        Entity\User $user,
-        string $projectId
-    ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
-            return $this->render('@Dashtainer/project/not-found.html.twig');
-        }
-
-        return $this->render('@Dashtainer/project/service/index.html.twig', [
-            'user'              => $user,
-            'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
-        ]);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-file.get",
-     *     path="/project/{projectId}/service/block-add-file/{highlight}",
-     *     methods={"GET"}
-     * )
-     * @param string $highlight
-     * @return AjaxResponse
-     */
-    public function getBlockAddFile(
-        string $highlight
-    ) : AjaxResponse {
-        $volume = new Entity\Docker\ServiceVolume();
-        $volume->fromArray(['id' => uniqid()]);
-        $volume->setName($volume->getId())
-            ->setHighlight($highlight);
-
-        $template = '@Dashtainer/project/service/snippets/volume-file-add-tab.html.twig';
-        $tab      = $this->render($template, [
-            'volume'    => $volume,
-            'loopFirst' => false,
-        ]);
-
-        $template = '@Dashtainer/project/service/snippets/volume-file-add-content.html.twig';
-        $content  = $this->render($template, [
-            'volume'      => $volume,
-            'loopFirst'   => false,
-            'serviceName' => '',
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => [
-                'tab'     => $tab->getContent(),
-                'content' => $content->getContent(),
-            ],
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-network.get",
-     *     path="/project/{projectId}/service/block-add-network",
-     *     methods={"GET"}
-     * )
-     * @param Entity\User $user
-     * @param string      $projectId
-     * @return AjaxResponse
-     */
-    public function getBlockAddNetwork(
-        Entity\User $user,
-        string $projectId
-    ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
-            return new AjaxResponse([
-                'type' => AjaxResponse::AJAX_REDIRECT,
-                'data' => '',
-            ], AjaxResponse::HTTP_BAD_REQUEST);
-        }
-
-        $network = new Entity\Docker\Network();
-        $network->fromArray(['id' => uniqid()]);
-
-        $template = '@Dashtainer/project/service/snippets/network-add.html.twig';
-        $rendered = $this->render($template, [
-            'network' => $network,
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => $rendered->getContent(),
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-secret.get",
-     *     path="/project/{projectId}/service/block-add-secret",
-     *     methods={"GET"}
-     * )
-     * @return AjaxResponse
-     */
-    public function getBlockAddSecret() : AjaxResponse
-    {
-        $projectSecret = new Entity\Docker\Secret();
-        $projectSecret->fromArray(['id' => uniqid()]);
-
-        $serviceSecret = new Entity\Docker\ServiceSecret();
-        $serviceSecret->fromArray(['id' => uniqid()]);
-        $serviceSecret->setProjectSecret($projectSecret);
-
-        $template = '@Dashtainer/project/service/snippets/secret-add.html.twig';
-        $rendered = $this->render($template, [
-            'secret' => $serviceSecret,
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => $rendered->getContent(),
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-volume.get",
-     *     path="/project/{projectId}/service/block-add-volume",
-     *     methods={"GET"}
-     * )
-     * @return AjaxResponse
-     */
-    public function getBlockAddVolume() : AjaxResponse
-    {
-        $volume = new Entity\Docker\ServiceVolume();
-        $volume->fromArray(['id' => uniqid()]);
-
-        $template = '@Dashtainer/project/service/snippets/volume-add.html.twig';
-        $rendered = $this->render($template, [
-            'volume' => $volume,
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => $rendered->getContent(),
-        ], AjaxResponse::HTTP_OK);
-    }
-
-    /**
-     * @Route(name="project.service.block-add-volume-bind.get",
-     *     path="/project/{projectId}/service/block-add-volume-bind",
-     *     methods={"GET"}
-     * )
-     * @return AjaxResponse
-     */
-    public function getBlockAddVolumeBind() : AjaxResponse
-    {
-        $volume = new Entity\Docker\ServiceVolume();
-        $volume->fromArray(['id' => uniqid()]);
-
-        $template = '@Dashtainer/project/service/snippets/volume-bind-add.html.twig';
-        $rendered = $this->render($template, [
-            'volume' => $volume,
-        ]);
-
-        return new AjaxResponse([
-            'type' => AjaxResponse::AJAX_SUCCESS,
-            'data' => $rendered->getContent(),
-        ], AjaxResponse::HTTP_OK);
     }
 
     /**
@@ -320,6 +141,8 @@ class Service extends Controller
             'project' => $project,
             'name'    => $form->name,
         ]);
+
+        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project);
 
         $form->project = $project;
         $form->type    = $serviceType;
@@ -460,6 +283,8 @@ class Service extends Controller
         }
 
         $form->fromArray($request->request->all());
+
+        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project, $service);
 
         $form->name    = $service->getName();
         $form->project = $project;

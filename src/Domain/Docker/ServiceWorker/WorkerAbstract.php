@@ -55,6 +55,7 @@ abstract class WorkerAbstract implements WorkerInterface
     {
         return [
             'networks' => $this->getCreateNetworks($project),
+            'ports'    => $this->getCreatePorts(),
             'secrets'  => $this->getCreateSecrets($project),
             'volumes'  => $this->getCreateVolumes($project),
         ];
@@ -64,6 +65,7 @@ abstract class WorkerAbstract implements WorkerInterface
     {
         return [
             'networks' => $this->getViewNetworks($service),
+            'ports'    => $this->getViewPorts($service),
             'secrets'  => $this->getViewSecrets($service),
             'volumes'  => $this->getViewVolumes($service),
         ];
@@ -127,6 +129,80 @@ abstract class WorkerAbstract implements WorkerInterface
     protected function updateNetworks(Entity\Docker\Service $service, $form)
     {
         $this->createNetworks($service, $form);
+    }
+
+    protected function getCreatePorts() : Collections\ArrayCollection
+    {
+        $ports = new Collections\ArrayCollection();
+        foreach ($this->internalPortsArray() as $data) {
+            $port = new Entity\Docker\ServicePort();
+            $port->fromArray(['id' => uniqid()]);
+            $port->setPublished($data[0])
+                ->setTarget($data[1])
+                ->setProtocol($data[2]);
+
+            $ports->set($port->getId(), $port);
+        }
+
+        return $ports;
+    }
+
+    protected function getViewPorts(Entity\Docker\Service $service) : iterable
+    {
+        return $service->getPorts();
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function createPorts(
+        Entity\Docker\Service $service,
+        $form
+    ) {
+        $saved = [];
+        foreach ($form->ports as $data) {
+            $port = new Entity\Docker\ServicePort();
+            $port->setPublished($data['published'])
+                ->setTarget($data['target'])
+                ->setProtocol($data['protocol'])
+                ->setService($service);
+
+            $saved []= $port;
+        }
+
+        $this->serviceRepo->save($service, ...$saved);
+    }
+
+    /**
+     * @param Entity\Docker\Service              $service
+     * @param Form\Docker\Service\CreateAbstract $form
+     */
+    protected function updatePorts(
+        Entity\Docker\Service $service,
+        $form
+    ) {
+        $saved  = [];
+        $delete = [];
+
+        foreach ($service->getPorts() as $port) {
+            $service->removePort($port);
+
+            $delete []= $port;
+        }
+
+        foreach ($form->ports as $data) {
+            $port = new Entity\Docker\ServicePort();
+            $port->setPublished($data['published'])
+                ->setTarget($data['target'])
+                ->setProtocol($data['protocol'])
+                ->setService($service);
+
+            $saved []= $port;
+        }
+
+        $this->serviceRepo->save($service, ...$saved);
+        $this->serviceRepo->delete(...$delete);
     }
 
     protected function getCreateSecrets(Entity\Docker\Project $project) : array
@@ -268,6 +344,8 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     abstract protected function internalNetworksArray() : array;
+
+    abstract protected function internalPortsArray() : array;
 
     abstract protected function internalSecretsArray() : array;
 

@@ -33,6 +33,15 @@ abstract class CreateAbstract implements Util\HydratorInterface
     // [id, name]
     public $networks = [];
 
+    // [id => [published, target, protocol]]
+    public $ports = [];
+
+    // [tcp => [], udp => []]
+    public $ports_used = [
+        'tcp' => [],
+        'udp' => [],
+    ];
+
     // [serviceSecret.id, serviceSecret.name, projectSecret.data]
     public $secrets = [];
 
@@ -61,6 +70,7 @@ abstract class CreateAbstract implements Util\HydratorInterface
         }
 
         $this->validateNetworks($context);
+        $this->validatePorts($context);
         $this->validateSecrets($context);
         $this->validateVolumes($context);
     }
@@ -91,6 +101,66 @@ abstract class CreateAbstract implements Util\HydratorInterface
             }
 
             $names []= $name;
+        }
+    }
+
+    protected function validatePorts(ExecutionContextInterface $context)
+    {
+        $publisheds = [
+            'tcp' => [],
+            'udp' => [],
+        ];
+        $targets    = [
+            'tcp' => [],
+            'udp' => [],
+        ];
+
+        /*
+         * Fields:
+         *      published
+         *      target
+         *      protocol
+         *      mode
+         * Unique:
+         *      published (per protocol)
+         *      target (per protocol)
+         */
+        foreach ($this->ports as $id => $port) {
+            $published = trim($port['published'] ?? '');
+            $target    = trim($port['target'] ?? '');
+            $protocol  = trim($port['protocol'] ?? 'tcp');
+
+            if (empty($published)) {
+                unset($this->ports[$id]);
+
+                continue;
+            }
+
+            if (empty($target)) {
+                unset($this->ports[$id]);
+
+                continue;
+            }
+
+            if (in_array($published, $publisheds[$protocol])) {
+                $context->buildViolation('Ensure all Host Ports are unique per protocol')
+                    ->atPath("ports[{$id}][published]")
+                    ->addViolation();
+            }
+            elseif (in_array($published, $this->ports_used[$protocol])) {
+                $context->buildViolation('Host Port already used in a different Service')
+                    ->atPath("ports[{$id}][published]")
+                    ->addViolation();
+            }
+
+            if (in_array($target, $targets[$protocol])) {
+                $context->buildViolation('Ensure all Container Ports values are unique per protocol')
+                    ->atPath("ports[{$id}][target]")
+                    ->addViolation();
+            }
+
+            $publisheds[$protocol] []= $published;
+            $targets[$protocol]    []= $target;
         }
     }
 

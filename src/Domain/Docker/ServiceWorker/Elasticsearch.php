@@ -44,6 +44,7 @@ class Elasticsearch extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -108,6 +109,7 @@ class Elasticsearch extends WorkerAbstract
         $this->serviceRepo->save($heapsizeMeta);
 
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -117,6 +119,11 @@ class Elasticsearch extends WorkerAbstract
     }
 
     protected function internalNetworksArray() : array
+    {
+        return [];
+    }
+
+    protected function internalPortsArray() : array
     {
         return [];
     }

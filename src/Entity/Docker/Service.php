@@ -152,7 +152,7 @@ class Service implements
 
     /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceMeta",
-     *     mappedBy="service"
+     *     mappedBy="service", orphanRemoval=true
      * )
      */
     protected $meta;
@@ -183,10 +183,12 @@ class Service implements
     protected $pid;
 
     /**
-     * @ORM\Column(name="ports", type="simple_array", nullable=true)
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServicePort",
+     *     mappedBy="service", orphanRemoval=true
+     * )
      * @see https://docs.docker.com/compose/compose-file/#ports
      */
-    protected $ports = [];
+    protected $ports;
 
     /**
      * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Project", inversedBy="services")
@@ -258,6 +260,7 @@ class Service implements
         $this->children = new Collections\ArrayCollection();
         $this->meta     = new Collections\ArrayCollection();
         $this->networks = new Collections\ArrayCollection();
+        $this->ports    = new Collections\ArrayCollection();
         $this->secrets  = new Collections\ArrayCollection();
         $this->volumes  = new Collections\ArrayCollection();
     }
@@ -784,20 +787,38 @@ class Service implements
         return $this;
     }
 
-    public function getPorts() : array
+    /**
+     * @param ServicePort $port
+     * @return $this
+     */
+    public function addPort(ServicePort $port)
     {
-        return $this->ports;
+        if ($this->ports->contains($port)) {
+            return $this;
+        }
+
+        $this->ports->add($port);
+        $port->setService($this);
+
+        return $this;
+    }
+
+    public function removePort(ServicePort $port)
+    {
+        if (!$this->ports->contains($port)) {
+            return;
+        }
+
+        $this->ports->removeElement($port);
+        $port->setService(null);
     }
 
     /**
-     * @param array $ports
-     * @return $this
+     * @return ServicePort[]|Collections\ArrayCollection
      */
-    public function setPorts(array $ports)
+    public function getPorts()
     {
-        $this->ports = $ports;
-
-        return $this;
+        return $this->ports;
     }
 
     public function getProject() : ?Project

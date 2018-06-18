@@ -41,6 +41,7 @@ class Blackfire extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
 
         $this->serviceRepo->save($service);
@@ -77,6 +78,7 @@ class Blackfire extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
 
         $this->serviceRepo->save($service);
@@ -89,6 +91,11 @@ class Blackfire extends WorkerAbstract
         return [];
     }
 
+    protected function internalPortsArray() : array
+    {
+        return [];
+    }
+
     protected function internalSecretsArray() : array
     {
         return [];
@@ -97,10 +104,8 @@ class Blackfire extends WorkerAbstract
     protected function internalVolumesArray() : array
     {
         return [
-            'files' => [
-            ],
-            'other' => [
-            ],
+            'files' => [],
+            'other' => [],
         ];
     }
 }

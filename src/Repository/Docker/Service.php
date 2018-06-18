@@ -173,20 +173,34 @@ class Service implements Repository\ObjectPersistInterface
 
     /**
      * @param Entity\Docker\Project $project
-     * @return Entity\Docker\ServiceMeta[]
+     * @param Entity\Docker\Service $excludeService
+     * @return Entity\Docker\ServicePort[]
      */
-    public function getProjectBindPorts(Entity\Docker\Project $project) : array
-    {
+    public function getProjectPorts(
+        Entity\Docker\Project $project,
+        Entity\Docker\Service $excludeService = null
+    ) : array {
         $qb = $this->em->createQueryBuilder()
-            ->select('sm')
-            ->from('Dashtainer:Docker\ServiceMeta', 'sm')
-            ->join('Dashtainer:Docker\Service', 's', Expr\Join::WITH, 'sm.service = s')
-            ->where('sm.name = :sm_name')
-            ->andWhere('s.project = :project')
-            ->setParameters([
-                'sm_name' => 'bind-port',
+            ->select('sp')
+            ->from('Dashtainer:Docker\ServicePort', 'sp')
+            ->join('sp.service', 's')
+            ->join('s.project', 'p')
+            ->andWhere('s.project = :project');
+
+        $params = [
+            'project' => $project,
+        ];
+
+        if ($excludeService) {
+            $qb->andWhere('sp.service <> :service');
+
+            $params = [
                 'project' => $project,
-            ]);
+                'service' => $excludeService,
+            ];
+        }
+
+        $qb->setParameters($params);
 
         return $qb->getQuery()->getResult();
     }

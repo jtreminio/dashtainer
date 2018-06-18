@@ -1,0 +1,51 @@
+<div class="page-header mb-0" id="volume">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Mapped Ports
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-element"
+               data-target="#ports-container"
+               href="{{ path('project.service.add.port.get', {
+                  'projectId': project.id,
+               }) }}"><i class="fe fe-plus"></i> Add Mapped Port</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-icon alert-info mb-6" role="alert">
+            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+            Bind ports on your localhost to ports on your Service.
+            Only persisted if both Host and Container ports are defined.
+        </div>
+
+        <div class="table-responsive scrollable-container">
+            <table class="table table-striped table-vcenter table-scroll">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-50">Host</th>
+                    <th class="w-50">Container</th>
+                    <th class="w-auto">Protocol</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="ports-container">
+                <tr class="empty-table">
+                    <td colspan="3">
+                        To add a Mapped Port, click "Add Mapped Port" above.
+                    </td>
+                </tr>
+                {% for port in ports %}
+                    {% include '@Dashtainer/project/service/snippets/port-add.html.twig' with {'port': port} %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -39,6 +39,7 @@ class Redis extends WorkerAbstract
         $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
@@ -49,20 +50,7 @@ class Redis extends WorkerAbstract
 
         $service->addMeta($versionMeta);
 
-        $portMetaData = $form->port_confirm ? [$form->port] : [];
-        $servicePort  = $form->port_confirm ? ["{$form->port}:6379"] : [];
-
-        $portMeta = new Entity\Docker\ServiceMeta();
-        $portMeta->setName('bind-port')
-            ->setData($portMetaData)
-            ->setService($service);
-
-        $service->addMeta($portMeta)
-            ->setPorts($servicePort);
-
-        $this->serviceRepo->save($versionMeta, $portMeta, $service);
-
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->save($versionMeta, $service);
 
         return $service;
     }
@@ -70,7 +58,6 @@ class Redis extends WorkerAbstract
     public function getCreateParams(Entity\Docker\Project $project) : array
     {
         return array_merge(parent::getCreateParams($project), [
-            'bindPort'      => $this->getOpenBindPort($project),
             'fileHighlight' => 'ini',
         ]);
     }
@@ -80,15 +67,8 @@ class Redis extends WorkerAbstract
         $version = $service->getMeta('version')->getData()[0];
         $version = (string) number_format($version, 1);
 
-        $bindPortMeta = $service->getMeta('bind-port');
-        $bindPort     = $bindPortMeta->getData()[0]
-            ?? $this->getOpenBindPort($service->getProject());
-        $portConfirm  = $bindPortMeta->getData()[0] ?? false;
-
         return array_merge(parent::getViewParams($service), [
             'version'       => $version,
-            'bindPort'      => $bindPort,
-            'portConfirm'   => $portConfirm,
             'fileHighlight' => 'ini',
         ]);
     }
@@ -102,17 +82,8 @@ class Redis extends WorkerAbstract
         Entity\Docker\Service $service,
         $form
     ) : Entity\Docker\Service {
-        $portMetaData = $form->port_confirm ? [$form->port] : [];
-        $servicePort  = $form->port_confirm ? ["{$form->port}:6379"] : [];
-
-        $portMeta = $service->getMeta('bind-port');
-        $portMeta->setData($portMetaData);
-
-        $this->serviceRepo->save($portMeta);
-
-        $service->setPorts($servicePort);
-
         $this->updateNetworks($service, $form);
+        $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
@@ -121,31 +92,16 @@ class Redis extends WorkerAbstract
         return $service;
     }
 
-    protected function getOpenBindPort(Entity\Docker\Project $project) : int
-    {
-        $bindPortMetas = $this->serviceRepo->getProjectBindPorts($project);
-
-        $ports = [];
-        foreach ($bindPortMetas as $meta) {
-            if (!$data = $meta->getData()) {
-                continue;
-            }
-
-            $ports []= $data[0];
-        }
-
-        for ($i = 6380; $i < 65535; $i++) {
-            if (!in_array($i, $ports)) {
-                return $i;
-            }
-        }
-
-        return 6379;
-    }
-
     protected function internalNetworksArray() : array
     {
         return [];
+    }
+
+    protected function internalPortsArray() : array
+    {
+        return [
+            [null, 6379, 'tcp']
+        ];
     }
 
     protected function internalSecretsArray() : array

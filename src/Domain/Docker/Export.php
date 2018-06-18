@@ -320,8 +320,8 @@ class Export
                 $current['pid'] = $service->getPid();
             }
 
-            if (!empty($service->getPorts())) {
-                $current['ports'] = $service->getPorts();
+            if ($ports = $this->servicePorts($service)) {
+                $current['ports'] = $ports;
             }
 
             if (!empty($service->getRestart())) {
@@ -465,6 +465,22 @@ class Export
         $arr['restart_policy']['window'] = $restartPolicy->getWindow();
 
         return $arr;
+    }
+
+    protected function servicePorts(Entity\Docker\Service $service) : ?array
+    {
+        $arr = [];
+
+        foreach ($service->getPorts() as $port) {
+            $arr []= [
+                'published' => $port->getPublished(),
+                'target'    => $port->getTarget(),
+                'protocol'  => $port->getProtocol(),
+                'mode'      => $port->getMode(),
+            ];
+        }
+
+        return !empty($arr) ? $arr : null;
     }
 
     protected function serviceSecrets(Entity\Docker\Service $service) : ?array
