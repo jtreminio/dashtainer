@@ -3,7 +3,7 @@
 {% if form.server_alias %}
     ServerAlias {{ form.server_alias|join(' ') }}
 {% endif %}
-    DocumentRoot {{ form.document_root }}
+    DocumentRoot {{ form.document_root }}/web
 
     <FilesMatch "\.php$">
         SetHandler proxy:fcgi://{{ form.handler }}
