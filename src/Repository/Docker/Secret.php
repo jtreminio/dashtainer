@@ -5,17 +5,9 @@ namespace Dashtainer\Repository\Docker;
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository;
 
-use Doctrine\ORM;
-
 class Secret extends Repository\ObjectPersistAbstract
 {
     protected const ENTITY_CLASS = Entity\Secret::class;
-
-    public function __construct(ORM\EntityManagerInterface $em)
-    {
-        $this->em   = $em;
-        $this->repo = $em->getRepository(self::ENTITY_CLASS);
-    }
 
     /**
      * @param Entity\Project $project
