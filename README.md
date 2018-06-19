@@ -53,6 +53,19 @@ You may also access the database using Sequel Pro or any other MySQL-compatible 
 * Database User: `dashtainer`
 * Database Password: `dashtainer`
 
+### Linux users
+If spinning up Docker on a Linux host, the `xdebug.remote_host` value in
+[xdebug.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug.ini#L5) and
+[xdebug-cli.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-cli.ini#L5)
+use `host.docker.internal` which does not currently work on Linux hosts (only Windows and MacOS for now).
+
+To fix this, simply copy the
+[docker-compose.override.yml.dist](https://github.com/jtreminio/dashtainer/blob/master/docker/docker-compose.override.yml.dist)
+file to `docker-compose.override.yml`. You can then edit the
+[xdebug-linux.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-linux.ini) and
+[xdebug-cli-linux.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-cli-linux.ini)
+files to suit your needs, but the default values should be what you need to get Xdebug working.
+
 ### Unit tests
 
-* Run `./bin/phpunit` to run unit tests
+* Run `./bin/php ./vendor/bin/phpunit` to run unit tests
