@@ -2,78 +2,23 @@
 
 namespace Dashtainer\Domain\Docker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Repository\Docker as Repository;
 use Dashtainer\Util;
 
 class Service
 {
-    /** @var Repository\Docker\Service */
+    /** @var Repository\Service */
     protected $repo;
 
-    /** @var ServiceManager */
-    protected $manager;
-
-    public function __construct(
-        Repository\Docker\Service $repo,
-        ServiceManager $manager
-    ) {
+    public function __construct(Repository\Service $repo)
+    {
         $this->repo    = $repo;
-        $this->manager = $manager;
-    }
-
-    public function createService(
-        Form\Docker\Service\CreateAbstract $form
-    ) : Entity\Docker\Service {
-        $handler = $this->manager->getWorkerFromForm($form);
-
-        return $handler->create($form);
-    }
-
-    public function deleteService(Entity\Docker\Service $service)
-    {
-        $handler = $this->manager->getWorkerFromType($service->getType());
-
-        $handler->delete($service);
-    }
-
-    public function updateService(
-        Entity\Docker\Service $service,
-        Form\Docker\Service\CreateAbstract $form
-    ) : Entity\Docker\Service {
-        $handler = $this->manager->getWorkerFromForm($form);
-
-        return $handler->update($service, $form);
-    }
-
-    public function getCreateForm(
-        Entity\Docker\ServiceType $serviceType
-    ) : Form\Docker\Service\CreateAbstract {
-        $handler = $this->manager->getWorkerFromType($serviceType);
-
-        return $handler->getCreateForm();
-    }
-
-    public function getCreateParams(
-        Entity\Docker\Project $project,
-        Entity\Docker\ServiceType $serviceType
-    ) : array {
-        $handler = $this->manager->getWorkerFromType($serviceType);
-
-        return $handler->getCreateParams($project);
-    }
-
-    public function getViewParams(Entity\Docker\Service $service) : array
-    {
-        $handler = $this->manager->getWorkerFromType($service->getType());
-
-        return $handler->getViewParams($service);
     }
 
     public function generateName(
-        Entity\Docker\Project $project,
-        Entity\Docker\ServiceType $serviceType,
+        Entity\Project $project,
+        Entity\ServiceType $serviceType,
         string $version = null
     ) : string {
         $services = $this->repo->findBy([
@@ -104,44 +49,16 @@ class Service
         return "{$hostname}-" . uniqid();
     }
 
-    /**
-     * Takes list of service names and returns names that
-     * are not valid services in this project.
-     *
-     * @param Entity\Docker\Project $project
-     * @param string[]              $servicesList
-     * @return array
-     */
-    public function validateByName(
-        Entity\Docker\Project $project,
-        array $servicesList
-    ) : array {
-        $services = $this->repo->findBy([
-            'project' => $project,
-            'name'    => $servicesList,
-        ]);
-
-        if (count($services) === count($servicesList)) {
-            return [];
-        }
-
-        $servicesFound = [];
-        foreach ($services as $service) {
-            $servicesFound []= $service->getName();
-        }
-
-        return array_diff($servicesList, $servicesFound);
-    }
-
     public function getUsedPublishedPorts(
-        Entity\Docker\Project $project,
-        Entity\Docker\Service $service = null
+        Entity\Project $project,
+        Entity\Service $excludeService = null
     ) : array {
         $ports = [
             'tcp' => [],
             'udp' => [],
         ];
-        foreach ($this->repo->getProjectPorts($project, $service) as $port) {
+
+        foreach ($this->repo->getProjectPorts($project, $excludeService) as $port) {
             $ports [$port->getProtocol()] []= $port->getPublished();
         }
 
