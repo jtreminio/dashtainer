@@ -1820,6 +1820,12 @@
         filetype: other
         type: volume
         prepend: true
+-
+    type: MongoDB
+    name: mongodb_host
+    data:
+        name: mongodb_host
+        data: ~
 
 -
     type: MySQL

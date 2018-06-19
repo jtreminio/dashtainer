@@ -30,6 +30,8 @@ class MongoDB extends WorkerAbstract
             ->setVersion($version)
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
 
+        $form->secrets['mongodb_host']['data'] = $service->getSlug();
+
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
@@ -84,7 +86,9 @@ class MongoDB extends WorkerAbstract
 
     protected function internalSecretsArray() : array
     {
-        return [];
+        return [
+            'mongodb_host',
+        ];
     }
 
     protected function internalVolumesArray() : array
