@@ -30,9 +30,9 @@ class ServiceType extends Repository\ObjectPersistAbstract
     {
         $qb = $this->em->createQueryBuilder()
             ->select('st')
-            ->addSelect('st')
+            ->addSelect('m')
             ->from('Dashtainer:Docker\ServiceType', 'st')
-            ->join('st.meta', 'm')
+            ->leftJoin('st.meta', 'm')
             ->andWhere('st.slug IN (:slug)')
             ->setParameters([
                 'slug' => $slugs,
