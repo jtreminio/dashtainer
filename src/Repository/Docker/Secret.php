@@ -219,8 +219,6 @@ class Secret extends Repository\ObjectPersistAbstract
 
             $this->em->remove($projectSecret);
         }
-
-        $this->em->flush();
     }
 
     public function deleteServiceSecrets(Entity\Service $service)
@@ -237,8 +235,6 @@ class Secret extends Repository\ObjectPersistAbstract
         foreach ($qb->getQuery()->getResult() as $serviceSecret) {
             $this->em->remove($serviceSecret);
         }
-
-        $this->em->flush();
     }
 
     public function deleteGrantedNotOwned(Entity\Service $service)
@@ -257,7 +253,5 @@ class Secret extends Repository\ObjectPersistAbstract
         foreach ($qb->getQuery()->getResult() as $item) {
             $this->em->remove($item);
         }
-
-        $this->em->flush();
     }
 }

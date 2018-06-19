@@ -69,8 +69,6 @@ class ServiceCategory implements Repository\ObjectPersistInterface
         foreach ($entity as $ent) {
             $this->em->persist($ent);
         }
-
-        $this->em->flush();
     }
 
     public function delete(object ...$entity)
@@ -78,8 +76,6 @@ class ServiceCategory implements Repository\ObjectPersistInterface
         foreach ($entity as $ent) {
             $this->em->remove($ent);
         }
-
-        $this->em->flush();
     }
 
     public function getClassName() : string

@@ -213,8 +213,6 @@ class Volume extends Repository\ObjectPersistAbstract
 
             $this->em->remove($projectVolume);
         }
-
-        $this->em->flush();
     }
 
     public function deleteServiceVolumes(Entity\Service $service)
@@ -231,8 +229,6 @@ class Volume extends Repository\ObjectPersistAbstract
         foreach ($qb->getQuery()->getResult() as $serviceVolume) {
             $this->em->remove($serviceVolume);
         }
-
-        $this->em->flush();
     }
 
     public function deleteGrantedNotOwned(Entity\Service $service)
@@ -250,8 +246,6 @@ class Volume extends Repository\ObjectPersistAbstract
         foreach ($qb->getQuery()->getResult() as $item) {
             $this->em->remove($item);
         }
-
-        $this->em->flush();
     }
 
     /**
