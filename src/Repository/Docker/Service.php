@@ -116,7 +116,7 @@ class Service extends Repository\ObjectPersistAbstract
                 'type'   => $childType,
             ]);
 
-        return $qb->getQuery()->getResult();
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     /**
