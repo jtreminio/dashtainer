@@ -2,6 +2,7 @@
 
 namespace Dashtainer\Form\Docker;
 
+use Dashtainer\Entity;
 use Dashtainer\Util;
 use Dashtainer\Validator\Constraints as DashAssert;
 
@@ -18,6 +19,9 @@ class ProjectCreateUpdate implements Util\HydratorInterface
     public $name;
 
     public $project_name_used = false;
+
+    /** @var Entity\User */
+    public $user;
 
     /**
      * @Assert\Callback

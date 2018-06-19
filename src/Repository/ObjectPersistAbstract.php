@@ -21,16 +21,16 @@ abstract class ObjectPersistAbstract
         $this->repo = $em->getRepository(static::ENTITY_CLASS);
     }
 
+    public function flush()
+    {
+        $this->em->flush();
+    }
+
     public function remove(object ...$entity)
     {
         foreach ($entity as $ent) {
             $this->em->remove($ent);
         }
-    }
-
-    public function flush()
-    {
-        $this->em->flush();
     }
 
     public function persist(object ...$entity)

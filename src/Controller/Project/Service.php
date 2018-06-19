@@ -21,8 +21,8 @@ class Service extends Controller
     /** @var Domain\Docker\WorkerBag */
     protected $workerBag;
 
-    /** @var Repository\Docker\Project */
-    protected $dProjectRepo;
+    /** @var Domain\Docker\Project */
+    protected $dProjectDomain;
 
     /** @var Repository\Docker\Service */
     protected $dServiceRepo;
@@ -34,17 +34,17 @@ class Service extends Controller
     protected $validator;
 
     public function __construct(
+        Domain\Docker\Project $dProjectDomain,
         Domain\Docker\Service $dServiceDomain,
         Domain\Docker\WorkerBag $workerBag,
-        Repository\Docker\Project $dProjectRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
     ) {
-        $this->dServiceDomain  = $dServiceDomain;
-        $this->workerBag       = $workerBag;
+        $this->dProjectDomain = $dProjectDomain;
+        $this->dServiceDomain = $dServiceDomain;
+        $this->workerBag      = $workerBag;
 
-        $this->dProjectRepo     = $dProjectRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
 
@@ -68,7 +68,7 @@ class Service extends Controller
         string $serviceTypeSlug,
         string $version = null
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -108,7 +108,7 @@ class Service extends Controller
         string $projectId,
         string $serviceTypeSlug
     ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -171,7 +171,7 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -212,7 +212,7 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -255,7 +255,7 @@ class Service extends Controller
         string $serviceId
     ) : AjaxResponse {
         ;
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -317,7 +317,7 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),

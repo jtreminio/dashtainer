@@ -2,9 +2,9 @@
 
 namespace Dashtainer\Controller\Project\Service;
 
+use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -13,13 +13,12 @@ use Symfony\Component\HttpFoundation\Request;
 
 class Apache extends Controller
 {
-    /** @var Repository\Docker\Project */
-    protected $dProjectRepo;
+    /** @var Domain\Docker\Project */
+    protected $dProjectDomain;
 
-    public function __construct(
-        Repository\Docker\Project $dProjectRepo
-    ) {
-        $this->dProjectRepo = $dProjectRepo;
+    public function __construct(Domain\Docker\Project $dProjectDomain)
+    {
+        $this->dProjectDomain = $dProjectDomain;
     }
 
     /**
@@ -39,7 +38,7 @@ class Apache extends Controller
         string $projectId,
         string $type
     ) : AjaxResponse {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',

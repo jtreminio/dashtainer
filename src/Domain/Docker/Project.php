@@ -17,12 +17,11 @@ class Project
         $this->repo = $repo;
     }
 
-    public function createProjectFromForm(
-        Form\ProjectCreateUpdate $form,
-        User $user
-    ) : Entity\Project {
+    public function create(Form\ProjectCreateUpdate $form) : Entity\Project
+    {
         $project = new Entity\Project();
         $project->fromArray($form->toArray());
+        $project->setUser($form->user);
 
         $public = new Entity\Network();
         $public->setName('public')
@@ -36,98 +35,95 @@ class Project
             ->setIsEditable(false)
             ->setProject($project);
 
-        $project->setUser($user)
-            ->addNetwork($public)
-            ->addNetwork($private);
-
-        $this->repo->save($public, $private, $project);
+        $this->repo->persist($public, $private, $project);
+        $this->repo->flush();
 
         return $project;
     }
 
-    public function delete(Entity\Project $project)
+    public function update(Entity\Project $project)
     {
-        $deleted = [];
+        $this->repo->persist($project);
+        $this->repo->flush();
+    }
 
-        $deleteServices = function(Entity\Service $service)
-            use (&$deleteServices, $project)
-        {
-            $deleted = [];
+    public function getByUserAndId(User $user, string $projectId) : ?Entity\Project
+    {
+        return $this->repo->findByUserAndId($user, $projectId);
+    }
 
-            foreach ($service->getMetas() as $meta) {
-                $service->removeMeta($meta);
-
-                $deleted[spl_object_hash($meta)]= $meta;
-            }
-
-            foreach ($service->getNetworks() as $network) {
-                $service->removeNetwork($network);
-                $network->removeService($service);
-
-                $deleted[spl_object_hash($network)]= $network;
-            }
-
-            foreach ($service->getSecrets() as $serviceSecret) {
-                $service->removeSecret($serviceSecret);
-                $serviceSecret->setService(null);
-
-                $deleted[spl_object_hash($serviceSecret)]= $serviceSecret;
-            }
-
-            foreach ($service->getVolumes() as $serviceVolume) {
-                $service->removeVolume($serviceVolume);
-
-                if ($projectVolume = $serviceVolume->getProjectVolume()) {
-                    $projectVolume->removeServiceVolume($serviceVolume);
-                }
-
-                $deleted[spl_object_hash($serviceVolume)]= $serviceVolume;
-            }
-
-            foreach ($service->getChildren() as $child) {
-                $deleted = array_merge($deleted, $deleteServices($child));
-            }
-
-            $project->removeService($service);
-
-            $deleted[spl_object_hash($service)]= $service;
-
-            return $deleted;
-        };
-
-        foreach ($project->getServices() as $service) {
-            $deleted = array_merge($deleted, $deleteServices($service));
-        }
-
-        foreach ($project->getNetworks() as $network) {
-            $project->removeNetwork($network);
-
-            $deleted[spl_object_hash($network)]= $network;
-        }
-
-        foreach ($project->getSecrets() as $projectSecret) {
-            $project->removeSecret($projectSecret);
-
-            $deleted[spl_object_hash($projectSecret)]= $projectSecret;
-        }
-
-        foreach ($project->getVolumes() as $projectVolume) {
-            $project->removeVolume($projectVolume);
-
-            $deleted[spl_object_hash($projectVolume)]= $projectVolume;
-        }
-
-        $deleted[spl_object_hash($project)]= $project;
-
-        $this->repo->delete(...array_values($deleted));
+    public function getByUserAndName(User $user, string $projectName) : ?Entity\Project
+    {
+        return $this->repo->findByUserAndName($user, $projectName);
     }
 
     /**
      * @param User $user
      * @return array [id, name, service_count]
      */
-    public function getList(User $user)
+    public function getList(User $user) : array
     {
         return $this->repo->getNamesAndCount($user);
+    }
+
+    public function delete(Entity\Project $project)
+    {
+        foreach ($project->getServices() as $service) {
+            $this->deleteService($service);
+            $this->repo->remove($service);
+        }
+
+        foreach ($project->getNetworks() as $network) {
+            $project->removeNetwork($network);
+            $this->repo->remove($network);
+        }
+
+        foreach ($project->getSecrets() as $projectSecret) {
+            $project->removeSecret($projectSecret);
+            $this->repo->remove($projectSecret);
+        }
+
+        foreach ($project->getVolumes() as $projectVolume) {
+            $project->removeVolume($projectVolume);
+            $this->repo->remove($projectVolume);
+        }
+
+        $this->repo->remove($project);
+        $this->repo->flush();
+    }
+
+    protected function deleteService(Entity\Service $service)
+    {
+        foreach ($service->getChildren() as $child) {
+            $this->deleteService($child);
+
+            $service->removeChild($child);
+            $this->repo->remove($child);
+        }
+
+        foreach ($service->getMetas() as $meta) {
+            $service->removeMeta($meta);
+            $this->repo->remove($meta);
+        }
+
+        // Do not remove Network here, done later
+        foreach ($service->getNetworks() as $network) {
+            $service->removeNetwork($network);
+        }
+
+        foreach ($service->getPorts() as $port) {
+            $service->removePort($port);
+            $this->repo->remove($port);
+        }
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            $service->removeSecret($serviceSecret);
+            $this->repo->remove($serviceSecret);
+        }
+
+        foreach ($service->getVolumes() as $serviceVolume) {
+            $service->removeVolume($serviceVolume);
+            $this->repo->remove($serviceVolume);
+        }
     }
 }

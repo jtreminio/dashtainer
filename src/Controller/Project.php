@@ -28,9 +28,6 @@ class Project extends Controller
     /** @var Repository\Docker\Network */
     protected $dNetworkRepo;
 
-    /** @var Repository\Docker\Project */
-    protected $dProjectRepo;
-
     /** @var Repository\Docker\Service */
     protected $dServiceRepo;
 
@@ -44,7 +41,6 @@ class Project extends Controller
         Domain\Docker\Export $dExportDomain,
         Domain\Docker\Project $dProjectDomain,
         Repository\Docker\Network $dNetworkRepo,
-        Repository\Docker\Project $dProjectRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
@@ -53,7 +49,6 @@ class Project extends Controller
         $this->dProjectDomain = $dProjectDomain;
 
         $this->dNetworkRepo    = $dNetworkRepo;
-        $this->dProjectRepo    = $dProjectRepo;
         $this->dServiceRepo    = $dServiceRepo;
         $this->dServiceCatRepo = $dServiceCatRepo;
 
@@ -90,10 +85,8 @@ class Project extends Controller
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($request->request->all());
 
-        $form->project_name_used = $this->dProjectRepo->findOneBy([
-            'user' => $user,
-            'name' => $form->name,
-        ]);
+        $form->project_name_used = $this->dProjectDomain->getByUserAndName($user, $form->name);
+        $form->user = $user;
 
         $this->validator->setSource($form);
 
@@ -104,7 +97,7 @@ class Project extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $project = $this->dProjectDomain->createProjectFromForm($form, $user);
+        $project = $this->dProjectDomain->create($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -127,7 +120,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -159,7 +152,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -183,16 +176,19 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findByUser($user, $projectId);
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+            return new AjaxResponse([
+                'type' => AjaxResponse::AJAX_REDIRECT,
+                'data' => $this->generateUrl('project.index.get'),
+            ], AjaxResponse::HTTP_OK);
+        }
 
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($project->toArray());
         $form->fromArray($request->request->all());
+        $form->user = $user;
 
-        $existingProject = $this->dProjectRepo->findOneBy([
-            'user' => $user,
-            'name' => $form->name,
-        ]);
+        $existingProject = $this->dProjectDomain->getByUserAndName($user, $form->name);
 
         if ($existingProject && $existingProject->getId() !== $project->getId()) {
             $form->project_name_used = true;
@@ -209,7 +205,7 @@ class Project extends Controller
 
         $project->fromArray($form->toArray());
 
-        $this->dProjectRepo->save($project);
+        $this->dProjectDomain->update($project);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -232,7 +228,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if ($project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if ($project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             $this->dProjectDomain->delete($project);
         }
 
@@ -255,7 +251,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -279,7 +275,7 @@ class Project extends Controller
         string $projectId,
         string $traefik
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -312,7 +308,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
+        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
