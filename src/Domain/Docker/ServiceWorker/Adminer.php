@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class Adminer extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('adminer');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'adminer';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -30,32 +23,29 @@ class Adminer extends WorkerAbstract
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
-
-        $service->setImage('adminer');
-
-        $service->setEnvironments([
-            'ADMINER_DESIGN'  => $form->design,
-            'ADMINER_PLUGINS' => join(' ', $form->plugins),
-        ]);
-
-        $this->serviceRepo->save($service);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
+            ->setProject($form->project)
+            ->setImage('adminer')
+            ->setEnvironments([
+                'ADMINER_DESIGN'  => $form->design,
+                'ADMINER_PLUGINS' => join(' ', $form->plugins),
+            ])
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+            ->addLabel('traefik.docker.network', 'traefik_webgateway');
 
         $frontendRule = sprintf('Host:%s.%s.localhost',
             $service->getSlug(),
             $service->getProject()->getSlug()
         );
 
-        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', $frontendRule);
+        $service->addLabel('traefik.frontend.rule', $frontendRule);
 
-        $this->serviceRepo->save($service);
+        $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
+
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -107,12 +97,9 @@ class Adminer extends WorkerAbstract
     /**
      * @param Entity\Docker\Service             $service
      * @param Form\Docker\Service\AdminerCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $service->setEnvironments([
             'ADMINER_DESIGN'  => $form->design,
             'ADMINER_PLUGINS' => join(' ', $form->plugins),
@@ -123,9 +110,8 @@ class Adminer extends WorkerAbstract
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array

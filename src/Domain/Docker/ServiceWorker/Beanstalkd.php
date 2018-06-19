@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class Beanstalkd extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('beanstalkd');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'beanstalkd';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -38,14 +31,13 @@ class Beanstalkd extends WorkerAbstract
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
-
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -67,20 +59,16 @@ class Beanstalkd extends WorkerAbstract
     /**
      * @param Entity\Docker\Service                $service
      * @param Form\Docker\Service\BeanstalkdCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array

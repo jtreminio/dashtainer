@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class MySQL extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('mysql');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'mysql';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -27,24 +20,21 @@ class MySQL extends WorkerAbstract
      */
     public function create($form) : Entity\Docker\Service
     {
+        $version = (string) number_format($form->version, 1);
+
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
-
-        $version = (string) number_format($form->version, 1);
-
-        $service->setImage("mysql:{$version}")
-            ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
-
-        $service->setEnvironments([
-            'MYSQL_ROOT_PASSWORD_FILE' => '/run/secrets/mysql_root_password',
-            'MYSQL_DATABASE_FILE'      => '/run/secrets/mysql_database',
-            'MYSQL_USER_FILE'          => '/run/secrets/mysql_user',
-            'MYSQL_PASSWORD_FILE'      => '/run/secrets/mysql_password',
-        ]);
-
-        $this->serviceRepo->save($service);
+            ->setProject($form->project)
+            ->setImage("mysql:{$version}")
+            ->setVersion($version)
+            ->setRestart(Entity\Docker\Service::RESTART_ALWAYS)
+            ->setEnvironments([
+                'MYSQL_ROOT_PASSWORD_FILE' => '/run/secrets/mysql_root_password',
+                'MYSQL_DATABASE_FILE'      => '/run/secrets/mysql_database',
+                'MYSQL_USER_FILE'          => '/run/secrets/mysql_user',
+                'MYSQL_PASSWORD_FILE'      => '/run/secrets/mysql_password',
+            ]);
 
         $form->secrets['mysql_host']['data'] = $service->getSlug();
 
@@ -53,14 +43,8 @@ class MySQL extends WorkerAbstract
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
-        $versionMeta = new Entity\Docker\ServiceMeta();
-        $versionMeta->setName('version')
-            ->setData([$form->version])
-            ->setService($service);
-
-        $service->addMeta($versionMeta);
-
-        $this->serviceRepo->save($versionMeta, $service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -74,11 +58,7 @@ class MySQL extends WorkerAbstract
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $version = $service->getMeta('version')->getData()[0];
-        $version = (string) number_format($version, 1);
-
         return array_merge(parent::getViewParams($service), [
-            'version'       => $version,
             'fileHighlight' => 'ini',
         ]);
     }
@@ -86,20 +66,16 @@ class MySQL extends WorkerAbstract
     /**
      * @param Entity\Docker\Service           $service
      * @param Form\Docker\Service\MySQLCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array

@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class Apache extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('apache');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'apache';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -27,10 +20,16 @@ class Apache extends WorkerAbstract
      */
     public function create($form) : Entity\Docker\Service
     {
+        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
+            ->setProject($form->project)
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+            ->addLabel('traefik.docker.network', 'traefik_webgateway')
+            ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
         $build = $service->getBuild();
         $build->setContext("./{$service->getSlug()}")
@@ -42,20 +41,6 @@ class Apache extends WorkerAbstract
             ]);
 
         $service->setBuild($build);
-
-        $this->serviceRepo->save($service);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
-        $serverNames = implode(',', $serverNames);
-
-        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
         $vhost = [
             'server_name'   => $form->server_name,
@@ -69,9 +54,13 @@ class Apache extends WorkerAbstract
             ->setData($vhost)
             ->setService($service);
 
-        $service->addMeta($vhostMeta);
+        $this->createNetworks($service, $form);
+        $this->createPorts($service, $form);
+        $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
-        $this->serviceRepo->save($vhostMeta, $service);
+        $this->serviceRepo->persist($service, $vhostMeta);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -119,12 +108,14 @@ class Apache extends WorkerAbstract
     /**
      * @param Entity\Docker\Service            $service
      * @param Form\Docker\Service\ApacheCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
+        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
+        $service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
+
         $build = $service->getBuild();
         $build->setContext("./{$service->getSlug()}")
             ->setDockerfile('Dockerfile')
@@ -136,13 +127,6 @@ class Apache extends WorkerAbstract
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
-
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
-        $serverNames = implode(',', $serverNames);
-
-        $service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
-
         $vhost = [
             'server_name'   => $form->server_name,
             'server_alias'  => $form->server_alias,
@@ -153,24 +137,21 @@ class Apache extends WorkerAbstract
         $vhostMeta = $service->getMeta('vhost');
         $vhostMeta->setData($vhost);
 
-        $this->serviceRepo->save($vhostMeta);
-
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service, $vhostMeta);
+        $this->serviceRepo->flush();
     }
 
     protected function getHandlersForView(Entity\Docker\Project $project) : array
     {
-        $phpFpmType     = $this->serviceTypeRepo->findBySlug('php-fpm');
+        $phpFpmWorker   = $this->workerBag->getWorkerFromType(PhpFpm::SERVICE_TYPE_SLUG);
         $phpFpmServices = $this->serviceRepo->findByProjectAndType(
             $project,
-            $phpFpmType
+            $phpFpmWorker->getServiceType()
         );
 
         $phpfpm = [];
@@ -178,10 +159,10 @@ class Apache extends WorkerAbstract
             $phpfpm []= "{$service->getName()}:9000";
         }
 
-        $nodeJsType     = $this->serviceTypeRepo->findBySlug('node-js');
+        $nodeJsWorker   = $this->workerBag->getWorkerFromType(NodeJs::SERVICE_TYPE_SLUG);
         $nodeJsServices = $this->serviceRepo->findByProjectAndType(
             $project,
-            $nodeJsType
+            $nodeJsWorker->getServiceType()
         );
 
         $nodejs = [];

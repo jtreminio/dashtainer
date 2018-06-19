@@ -8,6 +8,8 @@ use Dashtainer\Form;
 
 class PhpFpm extends WorkerAbstract
 {
+    public const SERVICE_TYPE_SLUG = 'php-fpm';
+
     /** @var Blackfire */
     protected $blackfireWorker;
 
@@ -18,15 +20,6 @@ class PhpFpm extends WorkerAbstract
     public function setBlackfireWorker(Blackfire $blackfireWorker)
     {
         $this->blackfireWorker = $blackfireWorker;
-    }
-
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('php-fpm');
-        }
-
-        return $this->serviceType;
     }
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
@@ -43,7 +36,8 @@ class PhpFpm extends WorkerAbstract
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
+            ->setProject($form->project)
+            ->setVersion($form->version);
 
         $phpPackages = $form->php_packages;
 
@@ -65,27 +59,19 @@ class PhpFpm extends WorkerAbstract
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
-
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
-        $versionMeta = new Entity\Docker\ServiceMeta();
-        $versionMeta->setName('version')
-            ->setData([$form->version])
-            ->setService($service);
-
-        $service->addMeta($versionMeta);
-
-        $this->serviceRepo->save($versionMeta, $service);
+        $this->serviceRepo->persist($service);
 
         if (!empty($form->blackfire['install'])) {
             $this->createUpdateBlackfireChild($service, $form);
         }
 
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -103,14 +89,14 @@ class PhpFpm extends WorkerAbstract
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $this->version = $service->getMeta('version')->getData()[0];
+        $version = $service->getVersion();
 
         $build = $service->getBuild()->getArgs();
 
         $phpPackagesSelected = $build['PHP_PACKAGES'];
 
         $phpPackagesAvailable = [];
-        if ($phpVersionedPackages = $service->getType()->getMeta("packages-{$this->version}")) {
+        if ($phpVersionedPackages = $service->getType()->getMeta("packages-{$version}")) {
             $phpPackagesAvailable += $phpVersionedPackages->getData()['default'];
             $phpPackagesAvailable += $phpVersionedPackages->getData()['available'];
         }
@@ -149,7 +135,6 @@ class PhpFpm extends WorkerAbstract
         }
 
         return array_merge(parent::getViewParams($service), [
-            'version'                => $this->version,
             'phpPackagesSelected'    => $phpPackagesSelected,
             'phpPackagesAvailable'   => $phpPackagesAvailable,
             'pearPackagesSelected'   => $pearPackagesSelected,
@@ -165,12 +150,9 @@ class PhpFpm extends WorkerAbstract
     /**
      * @param Entity\Docker\Service            $service
      * @param Form\Docker\Service\PhpFpmCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $phpPackages = $form->php_packages;
 
         if ($form->xdebug['install'] ?? false) {
@@ -191,7 +173,7 @@ class PhpFpm extends WorkerAbstract
 
         $service->setBuild($build);
 
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->persist($service);
 
         // create or update blackfire service
         if (!empty($form->blackfire['install'])) {
@@ -208,9 +190,8 @@ class PhpFpm extends WorkerAbstract
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function createUpdateBlackfireChild(
@@ -229,16 +210,14 @@ class PhpFpm extends WorkerAbstract
             $blackfireSlug = $blackfireType->getSlug();
 
             $blackfireForm->name = "{$blackfireSlug}-{$form->name}";
-            $blackfireForm->type = $this->serviceTypeRepo->findBySlug(
-                $blackfireSlug
-            );
+            $blackfireForm->type = $blackfireType;
 
             $blackfireService = $this->blackfireWorker->create($blackfireForm);
 
             $blackfireService->setParent($parent);
             $parent->addChild($blackfireService);
 
-            $this->serviceRepo->save($blackfireService, $parent);
+            $this->serviceRepo->persist($blackfireService, $parent);
 
             return $blackfireService;
         }

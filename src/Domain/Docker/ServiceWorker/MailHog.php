@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class MailHog extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('mailhog');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'mailhog';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -30,23 +23,20 @@ class MailHog extends WorkerAbstract
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
-
-        $service->setImage('mailhog/mailhog:latest');
-
-        $this->serviceRepo->save($service);
+            ->setProject($form->project)
+            ->setImage('mailhog/mailhog:latest')
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+            ->addLabel('traefik.docker.network', 'traefik_webgateway')
+            ->addLabel('traefik.frontend.rule', "Host:{$service->getName()}.localhost")
+            ->addLabel('traefik.port', 8025);
 
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
-        $service->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
-            ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', "Host:{$service->getName()}.localhost")
-            ->addLabel('traefik.port', 8025);
-
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -68,20 +58,16 @@ class MailHog extends WorkerAbstract
     /**
      * @param Entity\Docker\Service             $service
      * @param Form\Docker\Service\MailHogCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array

@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class Blackfire extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('blackfire');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'blackfire';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -31,20 +24,19 @@ class Blackfire extends WorkerAbstract
         $service->setName($form->name)
             ->setType($form->type)
             ->setProject($form->project)
-            ->setImage('blackfire/blackfire');
-
-        $service->setEnvironments([
-            'BLACKFIRE_SERVER_ID'    => $form->server_id,
-            'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
-        ]);
-
-        $this->serviceRepo->save($service);
+            ->setImage('blackfire/blackfire')
+            ->setEnvironments([
+                'BLACKFIRE_SERVER_ID'    => $form->server_id,
+                'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
+            ]);
 
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
+        $this->createVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -64,26 +56,20 @@ class Blackfire extends WorkerAbstract
     /**
      * @param Entity\Docker\Service               $service
      * @param Form\Docker\Service\BlackfireCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $service->setEnvironments([
             'BLACKFIRE_SERVER_ID'    => $form->server_id,
             'BLACKFIRE_SERVER_TOKEN' => $form->server_token,
         ]);
-
-        $this->serviceRepo->save($service);
-
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
+        $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array

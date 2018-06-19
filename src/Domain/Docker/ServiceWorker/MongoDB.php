@@ -7,14 +7,7 @@ use Dashtainer\Form;
 
 class MongoDB extends WorkerAbstract
 {
-    public function getServiceType() : Entity\Docker\ServiceType
-    {
-        if (!$this->serviceType) {
-            $this->serviceType = $this->serviceTypeRepo->findBySlug('mongodb');
-        }
-
-        return $this->serviceType;
-    }
+    public const SERVICE_TYPE_SLUG = 'mongodb';
 
     public function getCreateForm() : Form\Docker\Service\CreateAbstract
     {
@@ -27,31 +20,23 @@ class MongoDB extends WorkerAbstract
      */
     public function create($form) : Entity\Docker\Service
     {
+        $version = (string) number_format($form->version, 1);
+
         $service = new Entity\Docker\Service();
         $service->setName($form->name)
             ->setType($form->type)
-            ->setProject($form->project);
-
-        $version = (string) number_format($form->version, 1);
-
-        $service->setImage("mongo:{$version}")
+            ->setProject($form->project)
+            ->setImage("mongo:{$version}")
+            ->setVersion($version)
             ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
-
-        $this->serviceRepo->save($service);
 
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
         $this->createVolumes($service, $form);
 
-        $versionMeta = new Entity\Docker\ServiceMeta();
-        $versionMeta->setName('version')
-            ->setData([$form->version])
-            ->setService($service);
-
-        $service->addMeta($versionMeta);
-
-        $this->serviceRepo->save($versionMeta, $service);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
 
         return $service;
     }
@@ -65,11 +50,7 @@ class MongoDB extends WorkerAbstract
 
     public function getViewParams(Entity\Docker\Service $service) : array
     {
-        $version   = $service->getMeta('version')->getData()[0];
-        $version   = (string) number_format($version, 1);
-
         return array_merge(parent::getViewParams($service), [
-            'version'       => $version,
             'fileHighlight' => 'ini',
         ]);
     }
@@ -77,20 +58,16 @@ class MongoDB extends WorkerAbstract
     /**
      * @param Entity\Docker\Service             $service
      * @param Form\Docker\Service\MongoDBCreate $form
-     * @return Entity\Docker\Service
      */
-    public function update(
-        Entity\Docker\Service $service,
-        $form
-    ) : Entity\Docker\Service {
+    public function update(Entity\Docker\Service $service, $form)
+    {
         $this->updateNetworks($service, $form);
         $this->updatePorts($service, $form);
         $this->updateSecrets($service, $form);
         $this->updateVolumes($service, $form);
 
-        $this->serviceRepo->save($service);
-
-        return $service;
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->flush();
     }
 
     protected function internalNetworksArray() : array
