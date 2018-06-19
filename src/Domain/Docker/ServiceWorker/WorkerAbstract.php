@@ -221,7 +221,7 @@ abstract class WorkerAbstract implements WorkerInterface
         }
 
         $this->serviceRepo->persist($service);
-        $this->serviceRepo->delete($delete);
+        $this->serviceRepo->remove($delete);
         $this->serviceRepo->flush();
     }
 
