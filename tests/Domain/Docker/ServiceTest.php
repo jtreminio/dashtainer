@@ -3,7 +3,7 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Domain\Docker\Service;
-use Dashtainer\Domain\Docker\ServiceManager;
+use Dashtainer\Domain\Docker\WorkerBag;
 use Dashtainer\Entity;
 use Dashtainer\Form;
 use Dashtainer\Repository;
@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ServiceTest extends KernelTestCase
 {
-    /** @var ServiceManager */
+    /** @var WorkerBag */
     protected $manager;
 
     /** @var Service */
@@ -32,7 +32,7 @@ class ServiceTest extends KernelTestCase
             ->setConstructorArgs([$em])
             ->getMock();
 
-        $this->manager = $this->getMockBuilder(ServiceManager::class)
+        $this->manager = $this->getMockBuilder(WorkerBag::class)
             ->disableOriginalConstructor()
             ->getMock();
 

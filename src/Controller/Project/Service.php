@@ -18,8 +18,8 @@ class Service extends Controller
     /** @var Domain\Docker\Service */
     protected $dServiceDomain;
 
-    /** @var Domain\Docker\ServiceManager */
-    protected $dServiceManager;
+    /** @var Domain\Docker\WorkerBag */
+    protected $workerBag;
 
     /** @var Repository\Docker\Project */
     protected $dProjectRepo;
@@ -30,28 +30,23 @@ class Service extends Controller
     /** @var Repository\Docker\ServiceCategory */
     protected $dServiceCatRepo;
 
-    /** @var Repository\Docker\ServiceType */
-    protected $dServiceTypeRepo;
-
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
         Domain\Docker\Service $dServiceDomain,
-        Domain\Docker\ServiceManager $dServiceManager,
+        Domain\Docker\WorkerBag $workerBag,
         Repository\Docker\Project $dProjectRepo,
         Repository\Docker\Service $dServiceRepo,
         Repository\Docker\ServiceCategory $dServiceCatRepo,
-        Repository\Docker\ServiceType $dServiceTypeRepo,
         Validator\Validator $validator
     ) {
         $this->dServiceDomain  = $dServiceDomain;
-        $this->dServiceManager = $dServiceManager;
+        $this->workerBag       = $workerBag;
 
         $this->dProjectRepo     = $dProjectRepo;
         $this->dServiceRepo     = $dServiceRepo;
         $this->dServiceCatRepo  = $dServiceCatRepo;
-        $this->dServiceTypeRepo = $dServiceTypeRepo;
 
         $this->validator = $validator;
     }
@@ -77,18 +72,11 @@ class Service extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug)) {
+        if (!$worker = $this->workerBag->getWorkerFromType($serviceTypeSlug)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $worker = $this->dServiceManager->getWorkerFromType($serviceType);
         $worker->setVersion($version);
-
-        $serviceName = $this->dServiceDomain->generateName(
-            $project,
-            $serviceType,
-            $version
-        );
 
         $template = sprintf('@Dashtainer/project/service/%s/create.html.twig',
             strtolower($serviceTypeSlug)
@@ -98,9 +86,8 @@ class Service extends Controller
             'user'              => $user,
             'project'           => $project,
             'serviceCategories' => $this->dServiceCatRepo->findAll(),
-            'serviceName'       => $serviceName,
-            'serviceType'       => $serviceType,
-            'version'           => $version,
+            'serviceType'       => $worker->getServiceType(),
+
         ], $worker->getCreateParams($project)));
     }
 
@@ -121,21 +108,27 @@ class Service extends Controller
         string $projectId,
         string $serviceTypeSlug
     ) : AjaxResponse {
-        $project = $this->dProjectRepo->findByUser($user, $projectId);
-
-        $serviceType = $this->dServiceTypeRepo->findBySlug($serviceTypeSlug);
-
-        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
+        if (!$project = $this->dProjectRepo->findByUser($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
+        if (!$worker = $this->workerBag->getWorkerFromType($serviceTypeSlug)) {
+            return new AjaxResponse([
+                'type' => AjaxResponse::AJAX_REDIRECT,
+                'data' => '',
+            ], AjaxResponse::HTTP_BAD_REQUEST);
+        }
+
+        $form = $worker->getCreateForm();
         $form->fromArray($request->request->all());
 
-        $worker = $this->dServiceManager->getWorkerFromType($serviceType);
         $worker->setVersion($form->version ?? null);
+
+        $form->project = $project;
+        $form->type    = $worker->getServiceType();
 
         $form->service_name_used = $this->dServiceRepo->findOneBy([
             'project' => $project,
@@ -143,9 +136,6 @@ class Service extends Controller
         ]);
 
         $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project);
-
-        $form->project = $project;
-        $form->type    = $serviceType;
 
         $this->validator->setSource($form);
 
@@ -192,8 +182,11 @@ class Service extends Controller
         }
 
         $serviceType = $service->getType();
-        $worker      = $this->dServiceManager->getWorkerFromType($serviceType);
-        $template    = sprintf('@Dashtainer/project/service/%s/view.html.twig',
+
+        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
+        $worker->setVersion($service->getVersion());
+
+        $template = sprintf('@Dashtainer/project/service/%s/view.html.twig',
             strtolower($serviceType->getSlug())
         );
 
@@ -230,8 +223,11 @@ class Service extends Controller
         }
 
         $serviceType = $service->getType();
-        $worker      = $this->dServiceManager->getWorkerFromType($serviceType);
-        $template    = sprintf('@Dashtainer/project/service/%s/update.html.twig',
+
+        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
+        $worker->setVersion($service->getVersion());
+
+        $template = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getSlug())
         );
 
@@ -275,20 +271,16 @@ class Service extends Controller
 
         $serviceType = $service->getType();
 
-        if (!$form = $this->dServiceDomain->getCreateForm($serviceType)) {
-            return new AjaxResponse([
-                'type' => AjaxResponse::AJAX_REDIRECT,
-                'data' => '',
-            ], AjaxResponse::HTTP_BAD_REQUEST);
-        }
+        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
+        $worker->setVersion($form->version ?? null);
 
+        $form = $worker->getCreateForm();
         $form->fromArray($request->request->all());
-
-        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project, $service);
-
-        $form->name    = $service->getName();
         $form->project = $project;
         $form->type    = $serviceType;
+        $form->name    = $service->getName();
+
+        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project, $service);
 
         $this->validator->setSource($form);
 
@@ -299,7 +291,7 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $service = $this->dServiceDomain->updateService($service, $form);
+        $worker->update($service, $form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -339,7 +331,11 @@ class Service extends Controller
             ], AjaxResponse::HTTP_OK);
         }
 
-        $this->dServiceDomain->deleteService($service);
+        $serviceType = $service->getType();
+
+        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
+
+        $worker->delete($service);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,

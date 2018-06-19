@@ -37,7 +37,7 @@ services:
         tags:
             - { name: controller.argument_value_resolver, priority: 50 }
 
-    Dashtainer\Domain\Docker\ServiceManager:
+    Dashtainer\Domain\Docker\WorkerBag:
         arguments:
             - !tagged dashtainer.docker.service_worker
 
