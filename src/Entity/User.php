@@ -56,14 +56,24 @@ class User extends BaseUser implements Util\HydratorInterface, EntityBaseInterfa
      */
     public function addProject(Docker\Project $project)
     {
-        $this->projects[] = $project;
+        if ($this->projects->contains($project)) {
+            return $this;
+        }
+
+        $this->projects->add($project);
+        $project->setUser($this);
 
         return $this;
     }
 
     public function removeProject(Docker\Project $project)
     {
+        if (!$this->projects->contains($project)) {
+            return;
+        }
+
         $this->projects->removeElement($project);
+        $project->setUser(null);
     }
 
     /**
