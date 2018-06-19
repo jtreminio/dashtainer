@@ -5195,6 +5195,12 @@
         filetype: other
         type: volume
         prepend: true
+-
+    type: Elasticsearch
+    name: elasticsearch_host
+    data:
+        name: elasticsearch_host
+        data: ~
 
 -
     type: Redis
@@ -5206,6 +5212,12 @@
         filetype: other
         type: volume
         prepend: true
+-
+    type: Redis
+    name: redis_host
+    data:
+        name: redis_host
+        data: ~
 
 -
     type: Beanstalkd

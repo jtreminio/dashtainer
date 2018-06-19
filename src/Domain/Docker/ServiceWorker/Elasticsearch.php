@@ -42,6 +42,8 @@ class Elasticsearch extends WorkerAbstract
             ->setData([$form->heap_size])
             ->setService($service);
 
+        $form->secrets['elasticsearch_host']['data'] = $service->getSlug();
+
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
@@ -104,7 +106,9 @@ class Elasticsearch extends WorkerAbstract
 
     protected function internalSecretsArray() : array
     {
-        return [];
+        return [
+            'elasticsearch_host',
+        ];
     }
 
     protected function internalVolumesArray() : array

@@ -29,6 +29,8 @@ class Redis extends WorkerAbstract
             ->setImage("redis:{$version}")
             ->setVersion($version);
 
+        $form->secrets['redis_host']['data'] = $service->getSlug();
+
         $this->createNetworks($service, $form);
         $this->createPorts($service, $form);
         $this->createSecrets($service, $form);
@@ -83,7 +85,9 @@ class Redis extends WorkerAbstract
 
     protected function internalSecretsArray() : array
     {
-        return [];
+        return [
+            'redis_host',
+        ];
     }
 
     protected function internalVolumesArray() : array

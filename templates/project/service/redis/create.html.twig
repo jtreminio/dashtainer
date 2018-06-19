@@ -10,11 +10,16 @@
         <div class="row">
             <div class="form-group col">
                 <label class="form-label" for="name">Service Name</label>
-                <input type="text" class="form-control" maxlength="64"
-                       id="name" name="name" placeholder=""
-                       value="{{ serviceName }}" required data-mask-type="dns"
-                       data-update-text="service-name-tag,volumes_dir_internal-datadir-bind-span"
-                       data-error-container="name" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="name" name="name" placeholder=""
+                           value="{{ serviceName }}" required data-mask-type="dns"
+                           data-update-text="service-name-tag"
+                           data-error-container="name" />
+                </div>
                 <div class="invalid-feedback" data-error-container-name="name"></div>
             </div>
         </div>
@@ -26,6 +31,14 @@
                 <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
                 <span id="service-name-tag">{{ serviceName }}</span>:6379</span>
         </div>
+
+        {% set secret = secrets.owned.remove('redis_host') %}
+        <input type="hidden" name="secrets[{{ secret.id }}][id]"
+               value="{{ secret.id }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][name]"
+               value="{{ secret.name }}" />
+        <input type="hidden" name="secrets[{{ secret.id }}][data]"
+               value="{{ secret.projectSecret.data }}" />
 
         <hr class="my-6" />
 
