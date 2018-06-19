@@ -2,47 +2,51 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Domain;
-use Dashtainer\Entity;
-use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Domain\Docker as Domain;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Repository\Docker as Repository;
 
 use Doctrine\Common\Collections;
 
 abstract class WorkerAbstract implements WorkerInterface
 {
-    /** @var Domain\Docker\Network */
+    /** @var Domain\Network */
     protected $networkDomain;
 
-    /** @var Domain\Docker\Secret */
+    /** @var Domain\Secret */
     protected $secretDomain;
 
-    /** @var Entity\Docker\ServiceType */
+    /** @var Domain\Service */
+    protected $serviceDomain;
+
+    /** @var Entity\ServiceType */
     protected $serviceType;
 
-    /** @var Repository\Docker\Service */
+    /** @var Repository\Service */
     protected $serviceRepo;
 
-    /** @var Repository\Docker\ServiceType */
-    protected $serviceTypeRepo;
-
-    /** @var Domain\Docker\Volume */
+    /** @var Domain\Volume */
     protected $volumeDomain;
 
+    /** @var string */
     protected $version;
 
+    /** @var Domain\WorkerBag */
+    protected $workerBag;
+
     public function __construct(
-        Repository\Docker\Service $serviceRepo,
-        Repository\Docker\ServiceType $serviceTypeRepo,
-        Domain\Docker\Network $networkDomain,
-        Domain\Docker\Secret $secretDomain,
-        Domain\Docker\Volume $volumeDomain
+        Repository\Service $serviceRepo,
+        Domain\Network $networkDomain,
+        Domain\Secret $secretDomain,
+        Domain\Service $serviceDomain,
+        Domain\Volume $volumeDomain
     ) {
         $this->serviceRepo     = $serviceRepo;
-        $this->serviceTypeRepo = $serviceTypeRepo;
 
         $this->networkDomain = $networkDomain;
         $this->secretDomain  = $secretDomain;
+        $this->serviceDomain = $serviceDomain;
         $this->volumeDomain  = $volumeDomain;
     }
 
@@ -51,17 +55,40 @@ abstract class WorkerAbstract implements WorkerInterface
         $this->version = $version;
     }
 
-    public function getCreateParams(Entity\Docker\Project $project): array
+    public function setServiceType(Entity\ServiceType $serviceType)
     {
+        $this->serviceType = $serviceType;
+    }
+
+    public function getServiceType() : Entity\ServiceType
+    {
+        return $this->serviceType;
+    }
+
+    public function setWorkerBag(Domain\WorkerBag $workerBag)
+    {
+        $this->workerBag = $workerBag;
+    }
+
+    public function getCreateParams(Entity\Project $project): array
+    {
+        $serviceName = $this->serviceDomain->generateName(
+            $project,
+            $this->serviceType,
+            $this->version
+        );
+
         return [
-            'networks' => $this->getCreateNetworks($project),
-            'ports'    => $this->getCreatePorts(),
-            'secrets'  => $this->getCreateSecrets($project),
-            'volumes'  => $this->getCreateVolumes($project),
+            'serviceName' => $serviceName,
+            'version'     => $this->version,
+            'networks'    => $this->getCreateNetworks($project),
+            'ports'       => $this->getCreatePorts(),
+            'secrets'     => $this->getCreateSecrets($project),
+            'volumes'     => $this->getCreateVolumes($project),
         ];
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getViewParams(Entity\Service $service) : array
     {
         return [
             'networks' => $this->getViewNetworks($service),
@@ -71,62 +98,58 @@ abstract class WorkerAbstract implements WorkerInterface
         ];
     }
 
-    public function delete(Entity\Docker\Service $service)
+    public function delete(Entity\Service $service)
     {
-        $metas = [];
         foreach ($service->getMetas() as $meta) {
             $service->removeMeta($meta);
 
-            $metas []= $meta;
+            $this->serviceRepo->remove($meta);
         }
 
         $this->secretDomain->deleteAllForService($service);
         $this->volumeDomain->deleteAllForService($service);
 
         if ($parent = $service->getParent()) {
-            $service->setParent(null);
             $parent->removeChild($service);
 
-            $this->serviceRepo->save($parent);
+            $this->serviceRepo->persist($parent);
         }
 
-        $children = [];
         foreach ($service->getChildren() as $child) {
-            $child->setParent(null);
             $service->removeChild($child);
 
-            $children []= $child;
+            $this->serviceRepo->remove($child);
         }
 
-        $this->serviceRepo->delete(...$metas, ...$children);
-        $this->serviceRepo->delete($service);
+        $this->serviceRepo->remove($service);
+        $this->serviceRepo->flush();
     }
 
-    protected function getCreateNetworks(Entity\Docker\Project $project) : array
+    protected function getCreateNetworks(Entity\Project $project) : array
     {
         return $this->networkDomain->getForNewService($project, $this->internalNetworksArray());
     }
 
-    protected function getViewNetworks(Entity\Docker\Service $service) : array
+    protected function getViewNetworks(Entity\Service $service) : array
     {
         return $this->networkDomain->getForExistingService($service, $this->internalNetworksArray());
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
-    protected function createNetworks(Entity\Docker\Service $service, $form)
+    protected function createNetworks(Entity\Service $service, $form)
     {
         $this->networkDomain->save($service, $form->networks);
         $this->networkDomain->deleteEmptyNetworks($service->getProject());
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
-    protected function updateNetworks(Entity\Docker\Service $service, $form)
+    protected function updateNetworks(Entity\Service $service, $form)
     {
         $this->createNetworks($service, $form);
     }
@@ -135,7 +158,7 @@ abstract class WorkerAbstract implements WorkerInterface
     {
         $ports = new Collections\ArrayCollection();
         foreach ($this->internalPortsArray() as $data) {
-            $port = new Entity\Docker\ServicePort();
+            $port = new Entity\ServicePort();
             $port->fromArray(['id' => uniqid()]);
             $port->setPublished($data[0])
                 ->setTarget($data[1])
@@ -147,65 +170,62 @@ abstract class WorkerAbstract implements WorkerInterface
         return $ports;
     }
 
-    protected function getViewPorts(Entity\Docker\Service $service) : iterable
+    protected function getViewPorts(Entity\Service $service) : iterable
     {
         return $service->getPorts();
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function createPorts(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
-        $saved = [];
         foreach ($form->ports as $data) {
-            $port = new Entity\Docker\ServicePort();
+            $port = new Entity\ServicePort();
             $port->setPublished($data['published'])
                 ->setTarget($data['target'])
                 ->setProtocol($data['protocol'])
                 ->setService($service);
 
-            $saved []= $port;
+            $this->serviceRepo->persist($port);
         }
-
-        $this->serviceRepo->save($service, ...$saved);
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function updatePorts(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
-        $saved  = [];
         $delete = [];
 
         foreach ($service->getPorts() as $port) {
             $service->removePort($port);
 
-            $delete []= $port;
+            $this->serviceRepo->remove($port);
         }
 
         foreach ($form->ports as $data) {
-            $port = new Entity\Docker\ServicePort();
+            $port = new Entity\ServicePort();
             $port->setPublished($data['published'])
                 ->setTarget($data['target'])
                 ->setProtocol($data['protocol'])
                 ->setService($service);
 
-            $saved []= $port;
+            $this->serviceRepo->persist($port);
         }
 
-        $this->serviceRepo->save($service, ...$saved);
-        $this->serviceRepo->delete(...$delete);
+        $this->serviceRepo->persist($service);
+        $this->serviceRepo->delete($delete);
+        $this->serviceRepo->flush();
     }
 
-    protected function getCreateSecrets(Entity\Docker\Project $project) : array
+    protected function getCreateSecrets(Entity\Project $project) : array
     {
         return $this->secretDomain->getForNewService(
             $project,
@@ -214,7 +234,7 @@ abstract class WorkerAbstract implements WorkerInterface
         );
     }
 
-    protected function getViewSecrets(Entity\Docker\Service $service) : array
+    protected function getViewSecrets(Entity\Service $service) : array
     {
         return $this->secretDomain->getForExistingService(
             $service,
@@ -224,11 +244,11 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function createSecrets(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
         $secrets = $this->getCreateSecrets($service->getProject());
@@ -243,11 +263,11 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function updateSecrets(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
         $secrets = $this->getViewSecrets($service);
@@ -265,10 +285,10 @@ abstract class WorkerAbstract implements WorkerInterface
      * Returns non-persisted ServiceVolumes [name => metaName] hydrated
      * from ServiceTypeMeta data
      *
-     * @param Entity\Docker\Project $project
+     * @param Entity\Project $project
      * @return Collections\ArrayCollection[]
      */
-    protected function getCreateVolumes(Entity\Docker\Project $project) : array
+    protected function getCreateVolumes(Entity\Project $project) : array
     {
         return $this->volumeDomain->getForNewService(
             $project,
@@ -281,10 +301,10 @@ abstract class WorkerAbstract implements WorkerInterface
      * Returns persisted ServiceVolumes [name => metaName] hydrated
      * from ServiceTypeMeta data
      *
-     * @param Entity\Docker\Service $service
+     * @param Entity\Service $service
      * @return Collections\ArrayCollection[]
      */
-    protected function getViewVolumes(Entity\Docker\Service $service) : array
+    protected function getViewVolumes(Entity\Service $service) : array
     {
         return $this->volumeDomain->getForExistingService(
             $service,
@@ -294,11 +314,11 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function createVolumes(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
         $volumes = $this->getCreateVolumes($service->getProject());
@@ -319,11 +339,11 @@ abstract class WorkerAbstract implements WorkerInterface
     }
 
     /**
-     * @param Entity\Docker\Service              $service
-     * @param Form\Docker\Service\CreateAbstract $form
+     * @param Entity\Service              $service
+     * @param Form\Service\CreateAbstract $form
      */
     protected function updateVolumes(
-        Entity\Docker\Service $service,
+        Entity\Service $service,
         $form
     ) {
         $volumes = $this->getViewVolumes($service);
