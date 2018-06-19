@@ -37,7 +37,7 @@ class ServiceType implements
     protected $is_public;
 
     /**
-     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceTypeMeta", mappedBy="type", fetch="EAGER")
+     * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceTypeMeta", mappedBy="type")
      */
     protected $meta;
 

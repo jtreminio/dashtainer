@@ -55,7 +55,7 @@ class ServiceSecret implements
     protected $is_internal = false;
 
     /**
-     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="service_secrets", fetch="EAGER")
+     * @ORM\ManyToOne(targetEntity="Dashtainer\Entity\Docker\Secret", inversedBy="service_secrets")
      * @ORM\JoinColumn(name="project_secret_id", referencedColumnName="id", nullable=true)
      * @see https://docs.docker.com/compose/compose-file/#long-syntax-2
      */
