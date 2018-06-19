@@ -4,7 +4,6 @@ namespace Dashtainer\Controller\Project;
 
 use Dashtainer\Domain;
 use Dashtainer\Entity;
-use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 use Dashtainer\Validator;
 
@@ -15,38 +14,32 @@ use Symfony\Component\HttpFoundation\Response;
 
 class Service extends Controller
 {
+    /** @var Domain\Docker\Project */
+    protected $projectDomain;
+
     /** @var Domain\Docker\Service */
-    protected $dServiceDomain;
+    protected $serviceDomain;
+
+    /** @var Domain\Docker\ServiceCategory */
+    protected $serviceCatDomain;
 
     /** @var Domain\Docker\WorkerBag */
     protected $workerBag;
-
-    /** @var Domain\Docker\Project */
-    protected $dProjectDomain;
-
-    /** @var Repository\Docker\Service */
-    protected $dServiceRepo;
-
-    /** @var Repository\Docker\ServiceCategory */
-    protected $dServiceCatRepo;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\Docker\Project $dProjectDomain,
-        Domain\Docker\Service $dServiceDomain,
+        Domain\Docker\Project $projectDomain,
+        Domain\Docker\ServiceCategory $serviceCatDomain,
+        Domain\Docker\Service $serviceDomain,
         Domain\Docker\WorkerBag $workerBag,
-        Repository\Docker\Service $dServiceRepo,
-        Repository\Docker\ServiceCategory $dServiceCatRepo,
         Validator\Validator $validator
     ) {
-        $this->dProjectDomain = $dProjectDomain;
-        $this->dServiceDomain = $dServiceDomain;
-        $this->workerBag      = $workerBag;
-
-        $this->dServiceRepo     = $dServiceRepo;
-        $this->dServiceCatRepo  = $dServiceCatRepo;
+        $this->projectDomain    = $projectDomain;
+        $this->serviceDomain    = $serviceDomain;
+        $this->serviceCatDomain = $serviceCatDomain;
+        $this->workerBag        = $workerBag;
 
         $this->validator = $validator;
     }
@@ -68,7 +61,7 @@ class Service extends Controller
         string $serviceTypeSlug,
         string $version = null
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -85,7 +78,7 @@ class Service extends Controller
         return $this->render($template, array_merge([
             'user'              => $user,
             'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'serviceCategories' => $this->serviceCatDomain->getAll(),
             'serviceType'       => $worker->getServiceType(),
 
         ], $worker->getCreateParams($project)));
@@ -108,7 +101,7 @@ class Service extends Controller
         string $projectId,
         string $serviceTypeSlug
     ) : AjaxResponse {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -130,12 +123,8 @@ class Service extends Controller
         $form->project = $project;
         $form->type    = $worker->getServiceType();
 
-        $form->service_name_used = $this->dServiceRepo->findOneBy([
-            'project' => $project,
-            'name'    => $form->name,
-        ]);
-
-        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project);
+        $form->service_name_used = $this->serviceDomain->getByName($project, $form->name);
+        $form->ports_used = $this->serviceDomain->getUsedPublishedPorts($project);
 
         $this->validator->setSource($form);
 
@@ -171,11 +160,11 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
+        if (!$service = $this->serviceDomain->getByProjectAndId($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -193,7 +182,7 @@ class Service extends Controller
         return $this->render($template, array_merge([
             'service'           => $service,
             'project'           => $project,
-            'serviceCategories' => $this->dServiceCatRepo->findAll(),
+            'serviceCategories' => $this->serviceCatDomain->getAll(),
         ], $worker->getViewParams($service)));
     }
 
@@ -212,11 +201,11 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
+        if (!$service = $this->serviceDomain->getByProjectAndId($project, $serviceId)) {
             return $this->render('@Dashtainer/project/service/not-found.html.twig', [
                 'project' => $project,
             ]);
@@ -255,14 +244,14 @@ class Service extends Controller
         string $serviceId
     ) : AjaxResponse {
         ;
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
+        if (!$service = $this->serviceDomain->getByProjectAndId($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
@@ -280,7 +269,7 @@ class Service extends Controller
         $form->type    = $serviceType;
         $form->name    = $service->getName();
 
-        $form->ports_used = $this->dServiceDomain->getUsedPublishedPorts($project, $service);
+        $form->ports_used = $this->serviceDomain->getUsedPublishedPorts($project, $service);
 
         $this->validator->setSource($form);
 
@@ -317,14 +306,14 @@ class Service extends Controller
         string $projectId,
         string $serviceId
     ) : AjaxResponse {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
             ], AjaxResponse::HTTP_OK);
         }
 
-        if (!$service = $this->dServiceRepo->findByProject($project, $serviceId)) {
+        if (!$service = $this->serviceDomain->getByProjectAndId($project, $serviceId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),

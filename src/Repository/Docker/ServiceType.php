@@ -2,96 +2,42 @@
 
 namespace Dashtainer\Repository\Docker;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository;
 
-use Doctrine\ORM;
-use Doctrine\Common\Persistence;
-
-class ServiceType implements Repository\ObjectPersistInterface
+class ServiceType extends Repository\ObjectPersistAbstract
 {
-    protected const ENTITY_CLASS = Entity\Docker\ServiceType::class;
+    protected const ENTITY_CLASS = Entity\ServiceType::class;
 
-    /** @var ORM\EntityManagerInterface */
-    protected $em;
-
-    /** @var Persistence\ObjectRepository */
-    protected $repo;
-
-    public function __construct(ORM\EntityManagerInterface $em)
+    public function findBySlug(string $slug) : ?Entity\ServiceType
     {
-        $this->em   = $em;
-        $this->repo = $em->getRepository(self::ENTITY_CLASS);
+        $qb = $this->em->createQueryBuilder()
+            ->select('st')
+            ->from('Dashtainer:Docker\ServiceType', 'st')
+            ->andWhere('st.slug = :slug')
+            ->setParameters([
+                'slug' => $slug,
+            ]);
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceType|null
+     * @param array $slugs
+     * @return Entity\ServiceType[]
      */
-    public function find($id) : ?Entity\Docker\ServiceType
+    public function findAllBySlugs(array $slugs) : array
     {
-        return $this->repo->find($id);
-    }
+        $qb = $this->em->createQueryBuilder()
+            ->select('st')
+            ->addSelect('st')
+            ->from('Dashtainer:Docker\ServiceType', 'st')
+            ->join('st.meta', 'm')
+            ->andWhere('st.slug IN (:slug)')
+            ->setParameters([
+                'slug' => $slugs,
+            ]);
 
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceType[]
-     */
-    public function findAll() : array
-    {
-        return $this->repo->findAll();
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceType[]
-     */
-    public function findBy(
-        array $criteria,
-        array $orderBy = null,
-        $limit = null,
-        $offset = null
-    ) : array {
-        return $this->repo->findBy($criteria, $orderBy, $limit, $offset);
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceType|null
-     */
-    public function findOneBy(array $criteria) : ?Entity\Docker\ServiceType
-    {
-        return $this->repo->findOneBy($criteria);
-    }
-
-    public function save(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->persist($ent);
-        }
-
-        $this->em->flush();
-    }
-
-    public function delete(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->remove($ent);
-        }
-
-        $this->em->flush();
-    }
-
-    public function getClassName() : string
-    {
-        return self::ENTITY_CLASS;
-    }
-
-    public function findBySlug(
-        string $slug
-    ) : ?Entity\Docker\ServiceType {
-        return $this->findOneBy([
-            'slug' => $slug,
-        ]);
+        return $qb->getQuery()->getResult();
     }
 }

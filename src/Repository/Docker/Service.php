@@ -2,128 +2,38 @@
 
 namespace Dashtainer\Repository\Docker;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository;
 
-use Doctrine\ORM;
-use Doctrine\ORM\Query\Expr;
-use Doctrine\Common\Persistence;
-
-class Service implements Repository\ObjectPersistInterface
+class Service extends Repository\ObjectPersistAbstract
 {
-    protected const ENTITY_CLASS = Entity\Docker\Service::class;
+    protected const ENTITY_CLASS = Entity\Service::class;
 
-    /** @var ORM\EntityManagerInterface */
-    protected $em;
-
-    /** @var Persistence\ObjectRepository */
-    protected $repo;
-
-    public function __construct(ORM\EntityManagerInterface $em)
+    public function findByProjectAndId(Entity\Project $project, string $id) : ?Entity\Service
     {
-        $this->em   = $em;
-        $this->repo = $em->getRepository(self::ENTITY_CLASS);
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\Service|null
-     */
-    public function find($id) : ?Entity\Docker\Service
-    {
-        return $this->repo->find($id);
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\Service[]
-     */
-    public function findAll() : array
-    {
-        return $this->repo->findAll();
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\Service[]
-     */
-    public function findBy(
-        array $criteria,
-        array $orderBy = null,
-        $limit = null,
-        $offset = null
-    ) : array {
-        return $this->repo->findBy($criteria, $orderBy, $limit, $offset);
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\Service|null
-     */
-    public function findOneBy(array $criteria) : ?Entity\Docker\Service
-    {
-        return $this->repo->findOneBy($criteria);
-    }
-
-    public function save(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->persist($ent);
-        }
-
-        $this->em->flush();
-    }
-
-    public function delete(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->remove($ent);
-        }
-
-        $this->em->flush();
-    }
-
-    public function getClassName() : string
-    {
-        return self::ENTITY_CLASS;
-    }
-
-    public function findByProject(
-        Entity\Docker\Project $project,
-        string $id
-    ) : ?Entity\Docker\Service {
-        return $this->findOneBy([
-            'id'      => $id,
-            'project' => $project,
-        ]);
-    }
-
-    /**
-     * @param Entity\Docker\Project $project
-     * @return Entity\Docker\Service[]
-     */
-    public function findAllByProject(
-        Entity\Docker\Project $project
-    ) : array {
-        return $this->findBy([
-            'project' => $project,
-        ]);
-    }
-
-    /**
-     * @param Entity\Docker\Project $project
-     * @return Entity\Docker\Service[]
-     */
-    public function findAllPublicByProject(
-        Entity\Docker\Project $project
-    ) : array {
         $qb = $this->em->createQueryBuilder()
             ->select('s')
             ->from('Dashtainer:Docker\Service', 's')
-            ->join('Dashtainer:Docker\ServiceType', 'st', Expr\Join::WITH, 's.type = st')
-            ->where('st.is_public != 0')
             ->andWhere('s.project = :project')
-            ->andWhere('1 = 1')
+            ->andWhere('s.id = :id')
+            ->setParameters([
+                'project' => $project,
+                'id'      => $id,
+            ]);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * @param Entity\Project $project
+     * @return Entity\Service[]
+     */
+    public function findAllByProject(Entity\Project $project) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->andWhere('s.project = :project')
             ->setParameters([
                 'project' => $project,
             ]);
@@ -132,53 +42,108 @@ class Service implements Repository\ObjectPersistInterface
     }
 
     /**
-     * @param Entity\Docker\Project     $project
-     * @param Entity\Docker\ServiceType $type
-     * @return Entity\Docker\Service[]
+     * @param Entity\Project $project
+     * @return Entity\Service[]
      */
-    public function findByProjectAndType(
-        Entity\Docker\Project $project,
-        Entity\Docker\ServiceType $type
-    ) : array {
-        return $this->findBy([
-            'project' => $project,
-            'type'    => $type,
-        ]);
-    }
-
-    public function findChildByType(
-        Entity\Docker\Service $parent,
-        Entity\Docker\ServiceType $childType
-    ) : ?Entity\Docker\Service {
-        return $this->findOneBy([
-            'parent' => $parent,
-            'type'   => $childType,
-        ]);
-    }
-
-    /**
-     * @param Entity\Docker\Network $network
-     * @return Entity\Docker\Service[]
-     */
-    public function findByNotNetwork(Entity\Docker\Network $network) : array
+    public function findAllPublicByProject(Entity\Project $project) : array
     {
         $qb = $this->em->createQueryBuilder()
             ->select('s')
             ->from('Dashtainer:Docker\Service', 's')
-            ->where(':network NOT MEMBER OF s.networks')
-            ->setParameters(['network' => $network]);
+            ->join('s.type', 'st')
+            ->andWhere('st.is_public != 0')
+            ->andWhere('s.project = :project')
+            ->setParameters([
+                'project' => $project,
+            ]);
 
         return $qb->getQuery()->getResult();
     }
 
     /**
-     * @param Entity\Docker\Project $project
-     * @param Entity\Docker\Service $excludeService
-     * @return Entity\Docker\ServicePort[]
+     * @param Entity\Project $project
+     * @param string         $name
+     * @return Entity\Service
+     */
+    public function findByProjectAndName(Entity\Project $project, string $name) : ?Entity\Service
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->andWhere('s.project = :project')
+            ->andWhere('s.name = :name')
+            ->setParameters([
+                'project' => $project,
+                'name'    => $name,
+            ]);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * @param Entity\Project     $project
+     * @param Entity\ServiceType $type
+     * @return Entity\Service[]
+     */
+    public function findByProjectAndType(Entity\Project $project, Entity\ServiceType $type) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->join('s.type', 'st')
+            ->andWhere('s.project = :project')
+            ->andWhere('s.type = :type')
+            ->setParameters([
+                'project' => $project,
+                'type'    => $type,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function findChildByType(
+        Entity\Service $parent,
+        Entity\ServiceType $childType
+    ) : ?Entity\Service {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->join('s.type', 'st')
+            ->andWhere('s.parent = :parent')
+            ->andWhere('s.type = :type')
+            ->setParameters([
+                'parent' => $parent,
+                'type'   => $childType,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param Entity\Network $network
+     * @return Entity\Service[]
+     */
+    public function findByNotNetwork(Entity\Network $network) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->andWhere(':network NOT MEMBER OF s.networks')
+            ->setParameters([
+                'network' => $network,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * @param Entity\Project $project
+     * @param Entity\Service $excludeService
+     * @return Entity\ServicePort[]
      */
     public function getProjectPorts(
-        Entity\Docker\Project $project,
-        Entity\Docker\Service $excludeService = null
+        Entity\Project $project,
+        Entity\Service $excludeService = null
     ) : array {
         $qb = $this->em->createQueryBuilder()
             ->select('sp')

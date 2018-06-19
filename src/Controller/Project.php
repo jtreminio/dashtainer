@@ -5,7 +5,6 @@ namespace Dashtainer\Controller;
 use Dashtainer\Domain;
 use Dashtainer\Entity;
 use Dashtainer\Form;
-use Dashtainer\Repository;
 use Dashtainer\Response\AjaxResponse;
 use Dashtainer\Validator;
 
@@ -20,37 +19,26 @@ use Symfony\Component\HttpFoundation\Response;
 class Project extends Controller
 {
     /** @var Domain\Docker\Export */
-    protected $dExportDomain;
+    protected $exportDomain;
 
     /** @var Domain\Docker\Project */
-    protected $dProjectDomain;
+    protected $projectDomain;
 
-    /** @var Repository\Docker\Network */
-    protected $dNetworkRepo;
-
-    /** @var Repository\Docker\Service */
-    protected $dServiceRepo;
-
-    /** @var Repository\Docker\ServiceCategory */
-    protected $dServiceCatRepo;
+    /** @var Domain\Docker\ServiceCategory */
+    protected $serviceCatDomain;
 
     /** @var Validator\Validator */
     protected $validator;
 
     public function __construct(
-        Domain\Docker\Export $dExportDomain,
-        Domain\Docker\Project $dProjectDomain,
-        Repository\Docker\Network $dNetworkRepo,
-        Repository\Docker\Service $dServiceRepo,
-        Repository\Docker\ServiceCategory $dServiceCatRepo,
+        Domain\Docker\Export $exportDomain,
+        Domain\Docker\Project $projectDomain,
+        Domain\Docker\ServiceCategory $serviceCatDomain,
         Validator\Validator $validator
     ) {
-        $this->dExportDomain  = $dExportDomain;
-        $this->dProjectDomain = $dProjectDomain;
-
-        $this->dNetworkRepo    = $dNetworkRepo;
-        $this->dServiceRepo    = $dServiceRepo;
-        $this->dServiceCatRepo = $dServiceCatRepo;
+        $this->exportDomain     = $exportDomain;
+        $this->projectDomain    = $projectDomain;
+        $this->serviceCatDomain = $serviceCatDomain;
 
         $this->validator = $validator;
     }
@@ -67,7 +55,7 @@ class Project extends Controller
     {
         return $this->render('@Dashtainer/project/index.html.twig', [
             'user'        => $user,
-            'projectList' => $this->dProjectDomain->getList($user),
+            'projectList' => $this->projectDomain->getList($user),
         ]);
     }
 
@@ -85,7 +73,7 @@ class Project extends Controller
         $form = new Form\Docker\ProjectCreateUpdate();
         $form->fromArray($request->request->all());
 
-        $form->project_name_used = $this->dProjectDomain->getByUserAndName($user, $form->name);
+        $form->project_name_used = $this->projectDomain->getByUserAndName($user, $form->name);
         $form->user = $user;
 
         $this->validator->setSource($form);
@@ -97,7 +85,7 @@ class Project extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $project = $this->dProjectDomain->create($form);
+        $project = $this->projectDomain->create($form);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -120,22 +108,14 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
-        }
-
-        $services = $this->dServiceRepo->findAllPublicByProject($project);
-
-        $servicesCategorized = [];
-        foreach ($services as $service) {
-            $servicesCategorized[$service->getType()->getCategory()->getId()] []= $service;
         }
 
         return $this->render('@Dashtainer/project/view.html.twig', [
             'project'             => $project,
-            'serviceCategories'   => $this->dServiceCatRepo->findAll(),
-            'servicesCategorized' => $servicesCategorized,
-            'services'            => $services,
+            'serviceCategories'   => $this->serviceCatDomain->getAll(),
+            'servicesCategorized' => $this->serviceCatDomain->getPublicServices($project),
         ]);
     }
 
@@ -152,7 +132,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -176,7 +156,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : AjaxResponse {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => $this->generateUrl('project.index.get'),
@@ -188,7 +168,7 @@ class Project extends Controller
         $form->fromArray($request->request->all());
         $form->user = $user;
 
-        $existingProject = $this->dProjectDomain->getByUserAndName($user, $form->name);
+        $existingProject = $this->projectDomain->getByUserAndName($user, $form->name);
 
         if ($existingProject && $existingProject->getId() !== $project->getId()) {
             $form->project_name_used = true;
@@ -205,7 +185,7 @@ class Project extends Controller
 
         $project->fromArray($form->toArray());
 
-        $this->dProjectDomain->update($project);
+        $this->projectDomain->update($project);
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -228,8 +208,8 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if ($project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
-            $this->dProjectDomain->delete($project);
+        if ($project = $this->projectDomain->getByUserAndId($user, $projectId)) {
+            $this->projectDomain->delete($project);
         }
 
         return new AjaxResponse([
@@ -251,7 +231,7 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -275,7 +255,7 @@ class Project extends Controller
         string $projectId,
         string $traefik
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
@@ -286,8 +266,8 @@ class Project extends Controller
 
             $zip = new ZipStream('dashtainer.zip', $opt);
 
-            $this->dExportDomain->setArchiver($zip);
-            $this->dExportDomain->download($project, $traefik === 'traefik');
+            $this->exportDomain->setArchiver($zip);
+            $this->exportDomain->download($project, $traefik === 'traefik');
 
             $zip->finish();
         });
@@ -308,13 +288,13 @@ class Project extends Controller
         Entity\User $user,
         string $projectId
     ) : Response {
-        if (!$project = $this->dProjectDomain->getByUserAndId($user, $projectId)) {
+        if (!$project = $this->projectDomain->getByUserAndId($user, $projectId)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
         return $this->render('@Dashtainer/project/dump.html.twig', [
             'project' => $project,
-            'dump'    => $this->dExportDomain->dump($project),
+            'dump'    => $this->exportDomain->dump($project),
         ]);
     }
 }

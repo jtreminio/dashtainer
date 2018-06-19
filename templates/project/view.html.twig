@@ -67,36 +67,32 @@
         <div class="card">
             <div class="card-body">
                 <table class="table table-vcenter text-nowrap">
-                    {% for category in serviceCategories %}
+                    {% for categoryName, services in servicesCategorized %}
                     <thead>
                     <tr>
-                        <th colspan="3">{{ category.name }}</th>
+                        <th colspan="3">{{ categoryName }}</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% if servicesCategorized[category.id] is defined %}
-                        {% for service in servicesCategorized[category.id] %}
-                        <tr>
-                            <td><a href="{{ path('project.service.view.get', {
-                                    'projectId': project.id,
-                                    'serviceId': service.id,
-                                }) }}" class="text-inherit">{{ service.name }}</a></td>
-                            <td>{{ service.type.name }}</td>
-                            <td class="w-2">
-                                <a class="btn btn-outline-primary td-action"
-                                   href="{{ path('project.service.update.get', {
-                                    'projectId': project.id,
-                                    'serviceId': service.id,
-                                }) }}">Update</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="3" class="text-muted">
-                                No {{ category.name }} services defined.</td>
-                        </tr>
-                    {% endif %}
+                    <tr class="empty-table text-muted">
+                        <td colspan="3">No {{ categoryName }} services defined.</td>
+                    </tr>
+                    {% for service in services %}
+                    <tr>
+                        <td><a href="{{ path('project.service.view.get', {
+                                'projectId': project.id,
+                                'serviceId': service.id,
+                            }) }}" class="text-inherit">{{ service.name }}</a></td>
+                        <td>{{ service.type.name }}</td>
+                        <td class="w-2">
+                            <a class="btn btn-outline-primary td-action"
+                               href="{{ path('project.service.update.get', {
+                                'projectId': project.id,
+                                'serviceId': service.id,
+                            }) }}">Update</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
                     </tbody>
                     {% endfor %}
                 </table>

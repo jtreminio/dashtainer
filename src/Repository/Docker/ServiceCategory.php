@@ -2,101 +2,44 @@
 
 namespace Dashtainer\Repository\Docker;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository;
 
-use Doctrine\ORM;
-use Doctrine\Common\Persistence;
-
-class ServiceCategory implements Repository\ObjectPersistInterface
+class ServiceCategory extends Repository\ObjectPersistAbstract
 {
-    protected const ENTITY_CLASS = Entity\Docker\ServiceCategory::class;
+    protected const ENTITY_CLASS = Entity\ServiceCategory::class;
 
-    /** @var ORM\EntityManagerInterface */
-    protected $em;
-
-    /** @var Persistence\ObjectRepository */
-    protected $repo;
-
-    public function __construct(ORM\EntityManagerInterface $em)
+    /**
+     * @return Entity\ServiceCategory[]
+     */
+    public function getAll() : array
     {
-        $this->em   = $em;
-        $this->repo = $em->getRepository(self::ENTITY_CLASS);
+        $qb = $this->em->createQueryBuilder()
+            ->select('sc')
+            ->from('Dashtainer:Docker\ServiceCategory', 'sc');
+
+        return $qb->getQuery()->getResult();
     }
 
     /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceCategory|null
+     * @var Entity\Project $project
+     * @return Entity\ServiceCategory[]
      */
-    public function find($id) : ?Entity\Docker\ServiceCategory
+    public function findPublicServices(Entity\Project $project) : array
     {
-        return $this->repo->find($id);
-    }
+        $qb = $this->em->createQueryBuilder()
+            ->select('sc')
+            ->addSelect('st')
+            ->addSelect('s')
+            ->from('Dashtainer:Docker\ServiceCategory', 'sc')
+            ->join('sc.types', 'st')
+            ->join('st.services', 's')
+            ->andWhere('s.project = :project')
+            ->andWhere('st.is_public <> 0')
+            ->setParameters([
+                'project' => $project,
+            ]);
 
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceCategory[]
-     */
-    public function findAll() : array
-    {
-        return $this->repo->findAll();
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceCategory[]
-     */
-    public function findBy(
-        array $criteria,
-        array $orderBy = null,
-        $limit = null,
-        $offset = null
-    ) : array {
-        return $this->repo->findBy($criteria, $orderBy, $limit, $offset);
-    }
-
-    /**
-     * @inheritdoc
-     * @return Entity\Docker\ServiceCategory|null
-     */
-    public function findOneBy(array $criteria) : ?Entity\Docker\ServiceCategory
-    {
-        return $this->repo->findOneBy($criteria);
-    }
-
-    public function save(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->persist($ent);
-        }
-    }
-
-    public function delete(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->remove($ent);
-        }
-    }
-
-    public function getClassName() : string
-    {
-        return self::ENTITY_CLASS;
-    }
-
-    /**
-     * @return Entity\Docker\ServiceCategory[]
-     */
-    public function getPublic()
-    {
-        $query = '
-            SELECT sc
-            FROM Dashtainer:Docker\ServiceCategory sc
-            JOIN sc.types st
-            WHERE st.is_public = true
-        ';
-
-        $q = $this->em->createQuery($query);
-
-        return $q->getResult();
+        return $qb->getQuery()->getResult();
     }
 }

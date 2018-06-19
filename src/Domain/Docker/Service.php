@@ -13,7 +13,17 @@ class Service
 
     public function __construct(Repository\Service $repo)
     {
-        $this->repo    = $repo;
+        $this->repo = $repo;
+    }
+
+    public function getByName(Entity\Project $project, string $name) : ?Entity\Service
+    {
+        return $this->repo->findByProjectAndName($project, $name);
+    }
+
+    public function getByProjectAndId(Entity\Project $project, string $id) : ?Entity\Service
+    {
+        return $this->repo->findByProjectAndId($project, $id);
     }
 
     public function generateName(
@@ -21,10 +31,7 @@ class Service
         Entity\ServiceType $serviceType,
         string $version = null
     ) : string {
-        $services = $this->repo->findBy([
-            'project' => $project,
-            'type'    => $serviceType,
-        ]);
+        $services = $this->repo->findByProjectAndType($project, $serviceType);
 
         $version  = $version ? "-{$version}" : '';
         $hostname = Util\Strings::hostname("{$serviceType->getSlug()}{$version}");

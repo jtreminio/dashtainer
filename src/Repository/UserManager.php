@@ -10,7 +10,7 @@ use FOS\UserBundle\Doctrine;
 use FOS\UserBundle\Model\UserInterface;
 use FOS\UserBundle\Util;
 
-class UserManager extends Doctrine\UserManager implements ObjectPersistInterface
+class UserManager extends Doctrine\UserManager
 {
     protected const ENTITY_CLASS = Entity\User::class;
 
@@ -70,24 +70,6 @@ class UserManager extends Doctrine\UserManager implements ObjectPersistInterface
     public function findOneBy(array $criteria) : ?Entity\User
     {
         return $this->repo->findOneBy($criteria);
-    }
-
-    public function save(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->persist($ent);
-        }
-
-        $this->em->flush();
-    }
-
-    public function delete(object ...$entity)
-    {
-        foreach ($entity as $ent) {
-            $this->em->remove($ent);
-        }
-
-        $this->em->flush();
     }
 
     public function getClassName() : string
