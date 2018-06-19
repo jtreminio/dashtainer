@@ -272,9 +272,6 @@ class Volume
 
             $this->repo->persist($projectVolume, $serviceVolume);
         }
-
-        $this->repo->persist($service);
-        $this->repo->flush();
     }
 
     /**
@@ -329,9 +326,6 @@ class Volume
             unset($configs[$id]);
         }
 
-        $this->repo->persist($service);
-        $this->repo->flush();
-
         return $configs;
     }
 
@@ -379,9 +373,7 @@ class Volume
             $service->removeVolume($serviceVolume);
         }
 
-        $this->repo->persist($service);
         $this->repo->remove(...array_values($serviceVolumes));
-        $this->repo->flush();
     }
 
     /**
@@ -467,7 +459,6 @@ class Volume
         }
 
         $this->repo->persist($project, $service);
-        $this->repo->flush();
 
         return $configs;
     }
@@ -562,9 +553,6 @@ class Volume
 
             $this->repo->remove($serviceVolume);
         }
-
-        $this->repo->persist($service);
-        $this->repo->flush();
     }
 
     /**

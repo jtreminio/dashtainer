@@ -238,7 +238,6 @@ class Secret
         }
 
         $this->repo->persist($project, $service);
-        $this->repo->flush();
 
         return $configs;
     }
@@ -307,7 +306,6 @@ class Secret
         }
 
         $this->repo->persist($service);
-        $this->repo->flush();
     }
 
     /**
@@ -358,7 +356,6 @@ class Secret
         }
 
         $this->repo->persist($service);
-        $this->repo->flush();
     }
 
     /**

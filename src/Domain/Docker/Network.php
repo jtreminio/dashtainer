@@ -159,7 +159,6 @@ class Network
         }
 
         $this->repo->persist($service);
-        $this->repo->flush();
     }
 
     /**
@@ -172,7 +171,5 @@ class Network
         foreach ($this->repo->findWithNoServices($project) as $network) {
             $this->repo->remove($network);
         }
-
-        $this->repo->flush();
     }
 }
