@@ -1,87 +1,70 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.update.post', {
-    'projectId': project.id,
-    'serviceId': service.id,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label">Service Name</label>
-                <div class="form-control">{{ service.name }}</div>
-            </div>
-        </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service is available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ service.name }}</span>:80</span>
-
-            and <strong>publicly</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
-                http://<span id="server-name-host">{{ service.name }}</span>.{{ project.slug }}.localhost</span>
-        </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Settings</h4>
-
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="design">Design</label>
-                <select class="form-control" id="design" name="design"
-                        data-error-container="design" data-selectize-tags>
-                    <option value="{{ design }}" selected>{{ design }}</option>
-                    {% for available in availableDesigns %}
-                        <option value="{{ available }}">{{ available }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="design"></div>
-                <small class="text-muted">
-                    Design list
-                    <a href="https://github.com/vrana/adminer/tree/master/designs"
-                       target="_blank">available here</a>.
-                </small>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="plugins">Plugins</label>
-                <select class="form-control" id="plugins" name="plugins[]"
-                        multiple data-error-container="plugins" data-selectize-tags>
-                    {% for available in availablePlugins %}
-                        <option value="{{ available }}">{{ available }}</option>
-                    {% endfor %}
-                    {% for plugin in plugins %}
-                        <option value="{{ plugin }}" selected>{{ plugin }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="plugins"></div>
-                <small class="text-muted">
-                    Plugins list
-                    <a href="https://github.com/vrana/adminer/tree/master/plugins"
-                       target="_blank">available here</a>.
-                    Some plugins require config files, make sure to create them below and
-                    follow <a href="https://hub.docker.com/_/adminer/"
-                                 target="_blank">"Loading plugins" instructions from here</a>.
-                </small>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label">Service Name</label>
+        <div class="form-control">{{ service.name }}</div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service is available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ service.name }}</span>:80</span>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-</form>
+    and <strong>publicly</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+        http://<span id="server-name-host">{{ service.name }}</span>.{{ project.slug }}.localhost</span>
+</div>
+
+<hr class="my-6" />
+
+<h4 class="mb-3">Settings</h4>
+
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="design">Design</label>
+        <select class="form-control" id="design" name="design"
+                data-error-container="design" data-selectize-tags>
+            <option value="{{ design }}" selected>{{ design }}</option>
+            {% for available in availableDesigns %}
+                <option value="{{ available }}">{{ available }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="design"></div>
+        <small class="text-muted">
+            Design list
+            <a href="https://github.com/vrana/adminer/tree/master/designs"
+               target="_blank">available here</a>.
+        </small>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="plugins">Plugins</label>
+        <select class="form-control" id="plugins" name="plugins[]"
+                multiple data-error-container="plugins" data-selectize-tags>
+            {% for available in availablePlugins %}
+                <option value="{{ available }}">{{ available }}</option>
+            {% endfor %}
+            {% for plugin in plugins %}
+                <option value="{{ plugin }}" selected>{{ plugin }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="plugins"></div>
+        <small class="text-muted">
+            Plugins list
+            <a href="https://github.com/vrana/adminer/tree/master/plugins"
+               target="_blank">available here</a>.
+            Some plugins require config files, make sure to create them below and
+            follow <a href="https://hub.docker.com/_/adminer/"
+                         target="_blank">"Loading plugins" instructions from here</a>.
+        </small>
+    </div>
+</div>
 {% endblock %}

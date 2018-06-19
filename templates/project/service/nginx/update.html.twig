@@ -1,227 +1,210 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.update.post', {
-    'projectId': project.id,
-    'serviceId': service.id,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label">Service Name</label>
-                <div class="form-control">{{ service.name }}</div>
-            </div>
-        </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service is available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ service.name }}</span>:80</span>
-
-            and <strong>publicly</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
-                http://<span id="server-name-tag">{{ vhost.server_name }}</span></span>
-             and server aliases you defined below
-        </div>
-
-        <hr class="my-6" />
-
-        {% set volume = volumes.other.remove('root') %}
-        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Packages</h4>
-
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="system-packages">System Packages</label>
-                <select class="form-control" id="system-packages" name="system_packages[]"
-                        multiple data-error-container="system-packages" data-selectize-tags>
-                    {% for package in systemPackagesSelected %}
-                        <option value="{{ package }}" selected>{{ package }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-                <small class="text-muted">
-                    Will be installed using <code>apt-get</code>.
-                </small>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Virtual Host Config</h4>
-
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label" for="server_name">Server Name</label>
-                <input type="text" class="form-control"
-                       id="server_name" name="server_name" placeholder=""
-                       value="{{ vhost.server_name }}"
-                       data-update-text="server-name-tag" />
-                <small class="text-muted">
-                    Your server name <strong>must</strong> be <code>.localhost</code>
-                    for local development.
-                </small>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label" for="server_alias">Server Aliases</label>
-                <select class="form-control" id="server_alias"
-                        name="server_alias[]"
-                        multiple data-selectize-tags>
-                    {% for alias in vhost.server_alias %}
-                        <option value="{{ alias }}" selected>{{ alias }}</option>
-                    {% endfor %}
-                </select>
-                <small class="text-muted">
-                    Your server aliases <strong>must</strong> be <code>.localhost</code>
-                    for local development.
-                </small>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label" for="document_root">Document Root</label>
-                <input type="text" class="form-control"
-                       id="document_root" name="document_root" placeholder=""
-                       value="{{ vhost.document_root }}" />
-                <small class="text-muted">
-                    Location of your site's index.php file, or other landing page.
-                    Symfony 2 &amp; 3 use <code>web</code>. Laravel and Symfony 4 use
-                    <code>public</code>.
-                </small>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col form-group">
-            {% set has_handlers = false %}
-                <label class="form-label" for="handler">Handler</label>
-                <select class="form-control" id="handler"
-                        name="handler"
-                        data-selectize-tags>
-                    {% for group, handlerServices in handlers %}
-                        {% set has_handlers = true %}
-                        {% set loop_first = loop.first %}
-                        <optgroup label="{{ group }}">
-                            {% for handler in handlerServices %}
-                                <option value="{{ handler }}"
-                                        {{ loop_first ? 'selected' }}>
-                                    {{ handler }}</option>
-                            {% endfor %}
-                        </optgroup>
-                    {% endfor %}
-                </select>
-                <small class="text-muted">
-                    {% if not has_handlers %}
-                        No handlers found.
-                        <a href="{{ path('project.view.get', {
-                            'projectId': project.id,
-                        }) }}">Create a handler service first</a>,
-                        like PHP-FPM or Node.js
-                    {% endif %}
-                </small>
-            </div>
-        </div>
-
-        {% set volume = volumes.files.remove('vhost-conf') %}
-        <div class="row">
-            <div class="col">
-                <ul class="nav nav-tabs mb-3" role="tablist">
-                    <li class="nav-item dropdown active">
-                        <a class="nav-link dropdown-toggle" data-toggle="dropdown"
-                           href="#" role="button" aria-haspopup="true"
-                           aria-expanded="false">Generate from a template</a>
-                        <div class="dropdown-menu">
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'basic_html',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic HTML</a>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'basic_phpfpm',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic PHP-FPM</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'symfony2_3',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 2 &amp; 3</a>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'symfony4',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 4</a>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'laravel',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Laravel</a>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'wordpress',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Wordpress</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item"
-                               href="{{ path('project.service.nginx.vhost.post', {
-                                    'projectId': project.id,
-                                    'type': 'basic_nodejs',
-                                }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic Node.js</a>
-                        </div>
-                    </li>
-                </ul>
-
-                <input type="hidden" name="volumes_file[{{ volume.id }}][name]"
-                       value="{{ volume.name }}" />
-                <input type="hidden" name="volumes_file[{{ volume.id }}][source]"
-                       value="{{ volume.source }}" />
-                <input type="hidden" name="volumes_file[{{ volume.id }}][target]"
-                       value="{{ volume.target }}" />
-                <input type="hidden" name="volumes_file[{{ volume.id }}][type]"
-                       value="{{ volume.type }}" />
-
-                <div id="volumes_file-content" class="tab-content">
-                    <div class="tab-pane fade show active" role="tabpanel"
-                         data-role="empty-tab">
-                        <div class="row">
-                            <div class="col">
-                                <pre class="language-nginx" data-code-highlight><code
-                                        id="volumes_file-{{ volume.id }}-data"
-                                        contenteditable autocorrect="off" autocapitalize="off"
-                                        spellcheck="false">{{ volume.data }}</code></pre>
-                                <input type="hidden" value=""
-                                       name="volumes_file[{{ volume.id }}][data]"
-                                       data-error-container="volumes_file-{{ volume.id }}-error"
-                                       data-get-value-source="volumes_file-{{ volume.id }}-data" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="invalid-feedback" data-error-container-name="volumes_file-{{ volume.id }}-error"></div>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label">Service Name</label>
+        <div class="form-control">{{ service.name }}</div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service is available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ service.name }}</span>:80</span>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-</form>
+    and <strong>publicly</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+        http://<span id="server-name-tag">{{ vhost.server_name }}</span></span>
+     and server aliases you defined below
+</div>
+
+<hr class="my-6" />
+
+{% set volume = volumes.other.remove('root') %}
+{% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
+
+<hr class="my-6" />
+
+<h4 class="mb-3">Packages</h4>
+
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="system-packages">System Packages</label>
+        <select class="form-control" id="system-packages" name="system_packages[]"
+                multiple data-error-container="system-packages" data-selectize-tags>
+            {% for package in systemPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
+        <small class="text-muted">
+            Will be installed using <code>apt-get</code>.
+        </small>
+    </div>
+</div>
+
+<hr class="my-6" />
+
+<h4 class="mb-3">Virtual Host Config</h4>
+
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label" for="server_name">Server Name</label>
+        <input type="text" class="form-control"
+               id="server_name" name="server_name" placeholder=""
+               value="{{ vhost.server_name }}"
+               data-update-text="server-name-tag" />
+        <small class="text-muted">
+            Your server name <strong>must</strong> be <code>.localhost</code>
+            for local development.
+        </small>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label" for="server_alias">Server Aliases</label>
+        <select class="form-control" id="server_alias"
+                name="server_alias[]"
+                multiple data-selectize-tags>
+            {% for alias in vhost.server_alias %}
+                <option value="{{ alias }}" selected>{{ alias }}</option>
+            {% endfor %}
+        </select>
+        <small class="text-muted">
+            Your server aliases <strong>must</strong> be <code>.localhost</code>
+            for local development.
+        </small>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label" for="document_root">Document Root</label>
+        <input type="text" class="form-control"
+               id="document_root" name="document_root" placeholder=""
+               value="{{ vhost.document_root }}" />
+        <small class="text-muted">
+            Location of your site's index.php file, or other landing page.
+            Symfony 2 &amp; 3 use <code>web</code>. Laravel and Symfony 4 use
+            <code>public</code>.
+        </small>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col form-group">
+    {% set has_handlers = false %}
+        <label class="form-label" for="handler">Handler</label>
+        <select class="form-control" id="handler"
+                name="handler"
+                data-selectize-tags>
+            {% for group, handlerServices in handlers %}
+                {% set has_handlers = true %}
+                {% set loop_first = loop.first %}
+                <optgroup label="{{ group }}">
+                    {% for handler in handlerServices %}
+                        <option value="{{ handler }}"
+                                {{ loop_first ? 'selected' }}>
+                            {{ handler }}</option>
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+        <small class="text-muted">
+            {% if not has_handlers %}
+                No handlers found.
+                <a href="{{ path('project.view.get', {
+                    'projectId': project.id,
+                }) }}">Create a handler service first</a>,
+                like PHP-FPM or Node.js
+            {% endif %}
+        </small>
+    </div>
+</div>
+
+{% set volume = volumes.files.remove('vhost-conf') %}
+<div class="row">
+    <div class="col">
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item dropdown active">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown"
+                   href="#" role="button" aria-haspopup="true"
+                   aria-expanded="false">Generate from a template</a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'basic_html',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic HTML</a>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'basic_phpfpm',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic PHP-FPM</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'symfony2_3',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 2 &amp; 3</a>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'symfony4',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 4</a>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'laravel',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Laravel</a>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'wordpress',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Wordpress</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item"
+                       href="{{ path('project.service.nginx.vhost.post', {
+                            'projectId': project.id,
+                            'type': 'basic_nodejs',
+                        }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic Node.js</a>
+                </div>
+            </li>
+        </ul>
+
+        <input type="hidden" name="volumes_file[{{ volume.id }}][name]"
+               value="{{ volume.name }}" />
+        <input type="hidden" name="volumes_file[{{ volume.id }}][source]"
+               value="{{ volume.source }}" />
+        <input type="hidden" name="volumes_file[{{ volume.id }}][target]"
+               value="{{ volume.target }}" />
+        <input type="hidden" name="volumes_file[{{ volume.id }}][type]"
+               value="{{ volume.type }}" />
+
+        <div id="volumes_file-content" class="tab-content">
+            <div class="tab-pane fade show active" role="tabpanel"
+                 data-role="empty-tab">
+                <div class="row">
+                    <div class="col">
+                        <pre class="language-nginx" data-code-highlight><code
+                                id="volumes_file-{{ volume.id }}-data"
+                                contenteditable autocorrect="off" autocapitalize="off"
+                                spellcheck="false">{{ volume.data }}</code></pre>
+                        <input type="hidden" value=""
+                               name="volumes_file[{{ volume.id }}][data]"
+                               data-error-container="volumes_file-{{ volume.id }}-error"
+                               data-get-value-source="volumes_file-{{ volume.id }}-data" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="invalid-feedback" data-error-container-name="volumes_file-{{ volume.id }}-error"></div>
+    </div>
+</div>
 {% endblock %}

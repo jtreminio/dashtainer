@@ -1,79 +1,62 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.update.post', {
-    'projectId': project.id,
-    'serviceId': service.id,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="name">Service Name</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="name" placeholder=""
-                           data-update-text="service-name-tag"
-                           value="{{ service.name }}" disabled />
-                </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="name">Service Name</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
             </div>
-        </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service is available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ service.name }}</span>:9200</span>
-        </div>
-
-        {% set secret = secrets.owned.remove('elasticsearch_host') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][data]"
-               value="{{ secret.projectSecret.data }}" />
-
-        <hr class="my-6" />
-
-        {% set volume = volumes.other.remove('datadir') %}
-        {% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
-            {% block dataDir %}
-            {% endblock %}
-        {% endembed %}
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Configuration</h4>
-
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label" for="heap_size">Heap Size</label>
-                <input type="text" class="form-control" maxlength="6"
-                       id="heap_size" name="heap_size" placeholder=""
-                       value="{{ heap_size }}" required
-                       data-error-container="heap_size" />
-                <div class="invalid-feedback"
-                     data-error-container-name="heap_size"></div>
-                <small class="text-muted">
-                    Set heap size. Valid examples <code>512m</code>, <code>1g</code>,
-                    <code>4g</code>.
-                </small>
-            </div>
+            <input type="text" class="form-control" maxlength="64"
+                   id="name" placeholder=""
+                   data-update-text="service-name-tag"
+                   value="{{ service.name }}" disabled />
         </div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service is available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ service.name }}</span>:9200</span>
+</div>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-</form>
+{% set secret = secrets.owned.remove('elasticsearch_host') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][data]"
+       value="{{ secret.projectSecret.data }}" />
+
+<hr class="my-6" />
+
+{% set volume = volumes.other.remove('datadir') %}
+{% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
+    {% block dataDir %}
+    {% endblock %}
+{% endembed %}
+
+<hr class="my-6" />
+
+<h4 class="mb-3">Configuration</h4>
+
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label" for="heap_size">Heap Size</label>
+        <input type="text" class="form-control" maxlength="6"
+               id="heap_size" name="heap_size" placeholder=""
+               value="{{ heap_size }}" required
+               data-error-container="heap_size" />
+        <div class="invalid-feedback"
+             data-error-container-name="heap_size"></div>
+        <small class="text-muted">
+            Set heap size. Valid examples <code>512m</code>, <code>1g</code>,
+            <code>4g</code>.
+        </small>
+    </div>
+</div>
 {% endblock %}

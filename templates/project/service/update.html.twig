@@ -38,13 +38,19 @@
 
             <div class="list-group list-group-transparent mb-0 text-right">
                 <a class="list-group-item list-group-item-action"
-                   href="#service">Service Settings <i class="fe fe-corner-up-right"></i></a>
+                   href="#service">Service Settings</a>
                 <a class="list-group-item list-group-item-action"
-                   href="#file">Config Files <i class="fe fe-corner-down-right"></i></a>
+                   href="#file">Config Files</a>
                 <a class="list-group-item list-group-item-action"
-                   href="#network">Networks <i class="fe fe-corner-down-right"></i></a>
+                   href="#network">Networks</a>
                 <a class="list-group-item list-group-item-action"
-                   href="#secret">Secrets <i class="fe fe-corner-down-right"></i></a>
+                   href="#secret">Secrets</a>
+                <a class="list-group-item list-group-item-action"
+                   href="#port">Mapped Ports</a>
+                <a class="list-group-item list-group-item-action"
+                   href="#volume-local">Local Volumes</a>
+                <a class="list-group-item list-group-item-action"
+                   href="#volume-docker">Docker Volumes</a>
             </div>
             <div class="list-group list-group-transparent mb-0">
                 <a class="list-group-item list-group-item-action text-danger"
@@ -62,7 +68,37 @@
             </div>
         </div>
 
-        {% block serviceContent %}{% endblock %}
+        <form action="{{ path('project.service.update.post', {
+            'projectId': project.id,
+            'serviceId': service.id,
+        }) }}" method="post" data-ajax>
+            <div class="card">
+                <div class="card-body">
+                    {% block serviceContent %}{% endblock %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col mb-5">
+                    <button class="btn btn-success btn-lg" type="button" data-toggle="collapse"
+                            data-target="#advanced-options" aria-expanded="false"
+                            aria-controls="advanced-options">
+                        <i class="fe fe-settings" aria-hidden="true"></i>
+                        Show Advanced Options
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapse" id="advanced-options">
+                {% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
+                {% include '@Dashtainer/project/service/snippets/network.html.twig' %}
+                {% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
+                {% include '@Dashtainer/project/service/snippets/port.html.twig' %}
+                {% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
+        </form>
     </div>
 </div>
 

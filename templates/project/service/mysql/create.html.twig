@@ -1,197 +1,180 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.create.post', {
-    'projectId': project.id,
-    'serviceTypeSlug': serviceType.slug,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="name">Service Name</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="name" name="name" placeholder=""
-                           value="{{ serviceName }}" required data-mask-type="dns"
-                           data-update-text="service-name-tag,volumes_dir_internal-datadir-bind-span"
-                           data-error-container="name" />
-                </div>
-                <div class="invalid-feedback" data-error-container-name="name"></div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="name">Service Name</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
             </div>
+            <input type="text" class="form-control" maxlength="64"
+                   id="name" name="name" placeholder=""
+                   value="{{ serviceName }}" required data-mask-type="dns"
+                   data-update-text="service-name-tag,volumes_dir_internal-datadir-bind-span"
+                   data-error-container="name" />
         </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service will be available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ serviceName }}</span>:3306</span>
-        </div>
-
-        <hr class="my-6" />
-
-        <h4 class="mb-3">Database Credentials</h4>
-
-        <div class="row form-group">
-            <div class="col">
-                <small class="text-muted">
-                    Credentials will be available as Docker Secrets. Other services may then import
-                    and use them without having to hardcode the actual value.
-                </small>
-            </div>
-        </div>
-
-        {% set secret = secrets.owned.remove('mysql_host') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][data]"
-               value="{{ secret.projectSecret.data }}" />
-
-        {% set secret = secrets.owned.remove('mysql_root_password') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label"
-                       for="secrets-{{ secret.id }}-data">Root Password</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="255"
-                           id="secrets-{{ secret.id }}-data"
-                           name="secrets[{{ secret.id }}][data]" placeholder=""
-                           value="{{ secret.projectSecret.data }}" required
-                           data-error-container="secrets-{{ secret.id }}-data" />
-                </div>
-                <div class="invalid-feedback"
-                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
-                <small class="text-muted">
-                    Password for the <code>root</code> user.
-                </small>
-            </div>
-        </div>
-
-        {% set secret = secrets.owned.remove('mysql_database') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label"
-                       for="secrets-{{ secret.id }}-data">Database</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="255"
-                           id="secrets-{{ secret.id }}-data"
-                           name="secrets[{{ secret.id }}][data]" placeholder=""
-                           value="{{ secret.projectSecret.data }}" required
-                           data-error-container="secrets-{{ secret.id }}-data" />
-                </div>
-                <div class="invalid-feedback"
-                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
-                <small class="text-muted">
-                    Database to create on init.
-                </small>
-            </div>
-        </div>
-
-        {% set secret = secrets.owned.remove('mysql_user') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label"
-                       for="secrets-{{ secret.id }}-data">User</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="255"
-                           id="secrets-{{ secret.id }}-data"
-                           name="secrets[{{ secret.id }}][data]" placeholder=""
-                           value="{{ secret.projectSecret.data }}" required
-                           data-error-container="secrets-{{ secret.id }}-data" />
-                </div>
-                <div class="invalid-feedback"
-                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
-                <small class="text-muted">
-                    Non-root user.
-                </small>
-            </div>
-        </div>
-
-        {% set secret = secrets.owned.remove('mysql_password') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <div class="row">
-            <div class="col form-group">
-                <label class="form-label"
-                       for="secrets-{{ secret.id }}-data">User Password</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="255"
-                           id="secrets-{{ secret.id }}-data"
-                           name="secrets[{{ secret.id }}][data]" placeholder=""
-                           value="{{ secret.projectSecret.data }}" required
-                           data-error-container="secrets-{{ secret.id }}-data" />
-                </div>
-                <div class="invalid-feedback"
-                     data-error-container-name="secrets-{{ secret.id }}-data"></div>
-                <small class="text-muted">
-                    Password for User.
-                </small>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        {% set volume = volumes.other.remove('datadir') %}
-        {% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
-            {% block dataDir %}
-                <div class="row">
-                    <div class="form-group col">
-                        <label>Init Directory</label>
-
-                        <p>
-                            Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
-                            within the
-                            <code><span id="initdir">{{ serviceName }}</span>/init</code>
-                            directory will be executed or imported into the defined database.
-                            Files will be executed in alphabetical order.
-                        </p>
-                    </div>
-                </div>
-            {% endblock %}
-        {% endembed %}
-
-        <input type="hidden" id="version" name="version" value="{{ version }}" />
+        <div class="invalid-feedback" data-error-container-name="name"></div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service will be available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ serviceName }}</span>:3306</span>
+</div>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
-</form>
+<hr class="my-6" />
+
+<h4 class="mb-3">Database Credentials</h4>
+
+<div class="row form-group">
+    <div class="col">
+        <small class="text-muted">
+            Credentials will be available as Docker Secrets. Other services may then import
+            and use them without having to hardcode the actual value.
+        </small>
+    </div>
+</div>
+
+{% set secret = secrets.owned.remove('mysql_host') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][data]"
+       value="{{ secret.projectSecret.data }}" />
+
+{% set secret = secrets.owned.remove('mysql_root_password') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label"
+               for="secrets-{{ secret.id }}-data">Root Password</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+            </div>
+            <input type="text" class="form-control" maxlength="255"
+                   id="secrets-{{ secret.id }}-data"
+                   name="secrets[{{ secret.id }}][data]" placeholder=""
+                   value="{{ secret.projectSecret.data }}" required
+                   data-error-container="secrets-{{ secret.id }}-data" />
+        </div>
+        <div class="invalid-feedback"
+             data-error-container-name="secrets-{{ secret.id }}-data"></div>
+        <small class="text-muted">
+            Password for the <code>root</code> user.
+        </small>
+    </div>
+</div>
+
+{% set secret = secrets.owned.remove('mysql_database') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label"
+               for="secrets-{{ secret.id }}-data">Database</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+            </div>
+            <input type="text" class="form-control" maxlength="255"
+                   id="secrets-{{ secret.id }}-data"
+                   name="secrets[{{ secret.id }}][data]" placeholder=""
+                   value="{{ secret.projectSecret.data }}" required
+                   data-error-container="secrets-{{ secret.id }}-data" />
+        </div>
+        <div class="invalid-feedback"
+             data-error-container-name="secrets-{{ secret.id }}-data"></div>
+        <small class="text-muted">
+            Database to create on init.
+        </small>
+    </div>
+</div>
+
+{% set secret = secrets.owned.remove('mysql_user') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label"
+               for="secrets-{{ secret.id }}-data">User</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+            </div>
+            <input type="text" class="form-control" maxlength="255"
+                   id="secrets-{{ secret.id }}-data"
+                   name="secrets[{{ secret.id }}][data]" placeholder=""
+                   value="{{ secret.projectSecret.data }}" required
+                   data-error-container="secrets-{{ secret.id }}-data" />
+        </div>
+        <div class="invalid-feedback"
+             data-error-container-name="secrets-{{ secret.id }}-data"></div>
+        <small class="text-muted">
+            Non-root user.
+        </small>
+    </div>
+</div>
+
+{% set secret = secrets.owned.remove('mysql_password') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<div class="row">
+    <div class="col form-group">
+        <label class="form-label"
+               for="secrets-{{ secret.id }}-data">User Password</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
+            </div>
+            <input type="text" class="form-control" maxlength="255"
+                   id="secrets-{{ secret.id }}-data"
+                   name="secrets[{{ secret.id }}][data]" placeholder=""
+                   value="{{ secret.projectSecret.data }}" required
+                   data-error-container="secrets-{{ secret.id }}-data" />
+        </div>
+        <div class="invalid-feedback"
+             data-error-container-name="secrets-{{ secret.id }}-data"></div>
+        <small class="text-muted">
+            Password for User.
+        </small>
+    </div>
+</div>
+
+<hr class="my-6" />
+
+{% set volume = volumes.other.remove('datadir') %}
+{% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
+    {% block dataDir %}
+        <div class="row">
+            <div class="form-group col">
+                <label>Init Directory</label>
+
+                <p>
+                    Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
+                    within the
+                    <code><span id="initdir">{{ serviceName }}</span>/init</code>
+                    directory will be executed or imported into the defined database.
+                    Files will be executed in alphabetical order.
+                </p>
+            </div>
+        </div>
+    {% endblock %}
+{% endembed %}
+
+<input type="hidden" id="version" name="version" value="{{ version }}" />
 {% endblock %}

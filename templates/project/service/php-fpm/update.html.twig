@@ -1,226 +1,209 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.update.post', {
-    'projectId': project.id,
-    'serviceId': service.id,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label">Service Name</label>
-                <input type="hidden" value="{{ service.name }}"
-                       data-update-text="service-name-tag" />
-                <div class="form-control">{{ service.name }}</div>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label">Service Name</label>
+        <input type="hidden" value="{{ service.name }}"
+               data-update-text="service-name-tag" />
+        <div class="form-control">{{ service.name }}</div>
+    </div>
+</div>
 
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service is available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ service.name }}</span>:9000</span>
-        </div>
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service is available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ service.name }}</span>:9000</span>
+</div>
 
-        <hr class="my-6" />
+<hr class="my-6" />
 
-        {% set volume = volumes.other.remove('root') %}
-        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
+{% set volume = volumes.other.remove('root') %}
+{% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
-        <hr class="my-6" />
+<hr class="my-6" />
 
-        <h4 class="mb-3">Packages</h4>
+<h4 class="mb-3">Packages</h4>
 
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="php-packages">PHP Packages</label>
-                <select class="form-control" id="php-packages" name="php_packages[]"
-                        multiple data-error-container="php-packages" data-selectize-tags>
-                    {% for package in phpPackagesSelected %}
-                        <option value="{{ package }}" selected>{{ package }}</option>
-                    {% endfor %}
-                    {% for package in phpPackagesAvailable %}
-                        <option value="{{ package }}">{{ package }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="php-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
-                       target="_blank">available here</a>.
-                </small>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="php-packages">PHP Packages</label>
+        <select class="form-control" id="php-packages" name="php_packages[]"
+                multiple data-error-container="php-packages" data-selectize-tags>
+            {% for package in phpPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
+            {% for package in phpPackagesAvailable %}
+                <option value="{{ package }}">{{ package }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="php-packages"></div>
+        <small class="text-muted">
+            Package list
+            <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
+               target="_blank">available here</a>.
+        </small>
+    </div>
+</div>
 
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="pear-packages">PEAR Packages</label>
-                <select class="form-control" id="pear-packages" name="pear_packages[]"
-                        multiple data-error-container="pear-packages" data-selectize-tags>
-                    {% for package in pearPackagesSelected %}
-                        <option value="{{ package }}" selected>{{ package }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://pear.php.net/packages.php"
-                       target="_blank">available here</a>.
-                    PEAR is deprecated, you should consider something else.
-                </small>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="pear-packages">PEAR Packages</label>
+        <select class="form-control" id="pear-packages" name="pear_packages[]"
+                multiple data-error-container="pear-packages" data-selectize-tags>
+            {% for package in pearPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
+        <small class="text-muted">
+            Package list
+            <a href="https://pear.php.net/packages.php"
+               target="_blank">available here</a>.
+            PEAR is deprecated, you should consider something else.
+        </small>
+    </div>
+</div>
 
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="pecl-packages">PECL Packages</label>
-                <select class="form-control" id="pecl-packages" name="pecl_packages[]"
-                        multiple data-error-container="pecl-packages" data-selectize-tags>
-                    {% for package in peclPackagesSelected %}
-                        <option value="{{ package }}" selected>{{ package }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
-                <small class="text-muted">
-                    Package list
-                    <a href="https://pecl.php.net/packages.php"
-                       target="_blank">available here</a>.
-                    PECL is deprecated, you should consider something else.
-                </small>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="pecl-packages">PECL Packages</label>
+        <select class="form-control" id="pecl-packages" name="pecl_packages[]"
+                multiple data-error-container="pecl-packages" data-selectize-tags>
+            {% for package in peclPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
+        <small class="text-muted">
+            Package list
+            <a href="https://pecl.php.net/packages.php"
+               target="_blank">available here</a>.
+            PECL is deprecated, you should consider something else.
+        </small>
+    </div>
+</div>
 
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="system-packages">System Packages</label>
-                <select class="form-control" id="system-packages" name="system_packages[]"
-                        multiple data-error-container="system-packages" data-selectize-tags>
-                    {% for package in systemPackagesSelected %}
-                        <option value="{{ package }}" selected>{{ package }}</option>
-                    {% endfor %}
-                </select>
-                <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-                <small class="text-muted">
-                    Will be installed using <code>apt-get</code>.
-                </small>
-            </div>
-        </div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="system-packages">System Packages</label>
+        <select class="form-control" id="system-packages" name="system_packages[]"
+                multiple data-error-container="system-packages" data-selectize-tags>
+            {% for package in systemPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
+        </select>
+        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
+        <small class="text-muted">
+            Will be installed using <code>apt-get</code>.
+        </small>
+    </div>
+</div>
 
-        <hr class="my-6" />
+<hr class="my-6" />
 
-        <h4 class="mb-3">Additional Tools</h4>
+<h4 class="mb-3">Additional Tools</h4>
 
-        <div class="row mb-3">
-            <div class="col">
-                <label class="form-label text-uppercase"
-                       for="composer-install">Composer</label>
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input"
-                                       value="1" id="composer-install"
-                                       {{ composer.install ? 'checked' }}
-                                       name="composer[install]" checked />
-                                <label class="custom-control-label"
-                                       for="composer-install">Install</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-control">
-                        Composer will be available as a system service at
-                        <code>$ composer</code>
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label text-uppercase"
+               for="composer-install">Composer</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input"
+                               value="1" id="composer-install"
+                               {{ composer.install ? 'checked' }}
+                               name="composer[install]" checked />
+                        <label class="custom-control-label"
+                               for="composer-install">Install</label>
                     </div>
                 </div>
             </div>
+            <div class="form-control">
+                Composer will be available as a system service at
+                <code>$ composer</code>
+            </div>
         </div>
+    </div>
+</div>
 
-        <div class="row mb-3">
-            <div class="col">
-                <label class="form-label text-uppercase"
-                       for="xdebug-install">Xdebug</label>
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input"
-                                       value="1" id="xdebug-install"
-                                       {{ xdebug.install ? 'checked' }}
-                                       name="xdebug[install]" />
-                                <label class="custom-control-label"
-                                       for="xdebug-install">Install</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-control">
-                        <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
-                            For example, you can use the following to debug your programs via
-                            CLI:</p>
-                        <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
-                        <p>You can edit INI values in the <strong>Config Files</strong> section.</p>
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label text-uppercase"
+               for="xdebug-install">Xdebug</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input"
+                               value="1" id="xdebug-install"
+                               {{ xdebug.install ? 'checked' }}
+                               name="xdebug[install]" />
+                        <label class="custom-control-label"
+                               for="xdebug-install">Install</label>
                     </div>
                 </div>
             </div>
+            <div class="form-control">
+                <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
+                    For example, you can use the following to debug your programs via
+                    CLI:</p>
+                <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
+                <p>You can edit INI values in the <strong>Config Files</strong> section.</p>
+            </div>
         </div>
+    </div>
+</div>
 
-        <div class="row mb-3">
-            <div class="col">
-                <label class="form-label text-uppercase"
-                       for="blackfire-install">Blackfire</label>
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input"
-                                       value="1" id="blackfire-install"
-                                       {{ blackfire.install ? 'checked' }}
-                                       name="blackfire[install]" />
-                                <label class="custom-control-label"
-                                       for="blackfire-install">Install</label>
-                            </div>
-                        </div>
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label text-uppercase"
+               for="blackfire-install">Blackfire</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input"
+                               value="1" id="blackfire-install"
+                               {{ blackfire.install ? 'checked' }}
+                               name="blackfire[install]" />
+                        <label class="custom-control-label"
+                               for="blackfire-install">Install</label>
                     </div>
-                    <div class="form-control">
-                        <div class="row">
-                            <div class="form-group col">
-                                <label class="form-label"
-                                       for="blackfire-server_id">Blackfire Server ID</label>
-                                <input type="text" class="form-control" maxlength="64"
-                                       id="blackfire-server_id" name="blackfire[server_id]"
-                                       placeholder="" value="{{ blackfire.server_id }}"
-                                       data-error-container="blackfire-server_id" />
-                                <div class="invalid-feedback"
-                                     data-error-container-name="blackfire-server_id"></div>
-                            </div>
-                        </div>
+                </div>
+            </div>
+            <div class="form-control">
+                <div class="row">
+                    <div class="form-group col">
+                        <label class="form-label"
+                               for="blackfire-server_id">Blackfire Server ID</label>
+                        <input type="text" class="form-control" maxlength="64"
+                               id="blackfire-server_id" name="blackfire[server_id]"
+                               placeholder="" value="{{ blackfire.server_id }}"
+                               data-error-container="blackfire-server_id" />
+                        <div class="invalid-feedback"
+                             data-error-container-name="blackfire-server_id"></div>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="form-group col">
-                                <label class="form-label"
-                                       for="blackfire-server_token">Blackfire Server Token</label>
-                                <input type="text" class="form-control" maxlength="64"
-                                       id="blackfire-server_token" name="blackfire[server_token]"
-                                       placeholder="" value="{{ blackfire.server_token }}"
-                                       data-error-container="blackfire-server_token" />
-                                <div class="invalid-feedback"
-                                     data-error-container-name="blackfire-server_token"></div>
-                            </div>
-                        </div>
+                <div class="row">
+                    <div class="form-group col">
+                        <label class="form-label"
+                               for="blackfire-server_token">Blackfire Server Token</label>
+                        <input type="text" class="form-control" maxlength="64"
+                               id="blackfire-server_token" name="blackfire[server_token]"
+                               placeholder="" value="{{ blackfire.server_token }}"
+                               data-error-container="blackfire-server_token" />
+                        <div class="invalid-feedback"
+                             data-error-container-name="blackfire-server_token"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
-
-<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-</form>
 {% endblock %}

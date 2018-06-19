@@ -1,63 +1,46 @@
 {% extends '@Dashtainer/project/service/create.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.create.post', {
-    'projectId': project.id,
-    'serviceTypeSlug': serviceType.slug,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="name">Service Name</label>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">{{ availableAsSecret|raw }}</span>
-                    </div>
-                    <input type="text" class="form-control" maxlength="64"
-                           id="name" name="name" placeholder=""
-                           value="{{ serviceName }}" required data-mask-type="dns"
-                           data-update-text="service-name-tag"
-                           data-error-container="name" />
-                </div>
-                <div class="invalid-feedback" data-error-container-name="name"></div>
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="name">Service Name</label>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">{{ availableAsSecret|raw }}</span>
             </div>
+            <input type="text" class="form-control" maxlength="64"
+                   id="name" name="name" placeholder=""
+                   value="{{ serviceName }}" required data-mask-type="dns"
+                   data-update-text="service-name-tag"
+                   data-error-container="name" />
         </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service will be available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ serviceName }}</span>:27017</span>
-        </div>
-
-        {% set secret = secrets.owned.remove('mongodb_host') %}
-        <input type="hidden" name="secrets[{{ secret.id }}][id]"
-               value="{{ secret.id }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][name]"
-               value="{{ secret.name }}" />
-        <input type="hidden" name="secrets[{{ secret.id }}][data]"
-               value="{{ secret.projectSecret.data }}" />
-
-        <hr class="my-6" />
-
-        {% set volume = volumes.other.remove('datadir') %}
-        {% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
-            {% block dataDir %}
-            {% endblock %}
-        {% endembed %}
-
-        <input type="hidden" id="version" name="version" value="{{ version }}" />
+        <div class="invalid-feedback" data-error-container-name="name"></div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service will be available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ serviceName }}</span>:27017</span>
+</div>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Create Service</button>
-</form>
+{% set secret = secrets.owned.remove('mongodb_host') %}
+<input type="hidden" name="secrets[{{ secret.id }}][id]"
+       value="{{ secret.id }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][name]"
+       value="{{ secret.name }}" />
+<input type="hidden" name="secrets[{{ secret.id }}][data]"
+       value="{{ secret.projectSecret.data }}" />
+
+<hr class="my-6" />
+
+{% set volume = volumes.other.remove('datadir') %}
+{% embed '@Dashtainer/project/service/snippets/volume-datadir.html.twig' with {'volume': volume} %}
+    {% block dataDir %}
+    {% endblock %}
+{% endembed %}
+
+<input type="hidden" id="version" name="version" value="{{ version }}" />
 {% endblock %}

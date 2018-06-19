@@ -1,70 +1,53 @@
 {% extends '@Dashtainer/project/service/update.html.twig' %}
 
 {% block serviceContent %}
-<form action="{{ path('project.service.update.post', {
-    'projectId': project.id,
-    'serviceId': service.id,
-}) }}" method="post" data-ajax>
-<div class="card">
-    <div class="card-body">
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label">Service Name</label>
-                <div class="form-control">{{ service.name }}</div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="name">Listen Port</label>
-                <input type="number" class="form-control" maxlength="64"
-                       id="port" name="port" placeholder=""
-                       value="{{ port }}" required
-                       min="8000" max="65535"
-                       data-update-text="service-port-tag"
-                       data-error-container="port" />
-                <div class="invalid-feedback" data-error-container-name="port"></div>
-            </div>
-        </div>
-
-        <div class="alert alert-icon alert-info mb-6" role="alert">
-            <i class="fe fe-bell mr-2" aria-hidden="true"></i>
-            This service is available <strong>privately</strong> at
-            <span class="badge badge-primary text-lg">
-                <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-                <span id="service-name-tag">{{ service.name }}</span>:<span
-                    id="service-port-tag">{{ port }}</span></span>
-        </div>
-
-        <hr class="my-6" />
-
-        <div class="row">
-            <div class="form-group col">
-                <label class="form-label" for="name">NPM Command</label>
-                <input type="text" class="form-control" maxlength="256"
-                       id="command" name="command" placeholder=""
-                       value="{{ command|join(' ') }}" required
-                       data-error-container="command" />
-                <small class="text-muted">
-                    Run this command to start your app.
-                </small>
-                <div class="invalid-feedback" data-error-container-name="command"></div>
-            </div>
-        </div>
-
-        <hr class="my-6" />
-
-        {% set volume = volumes.other.remove('root') %}
-        {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label">Service Name</label>
+        <div class="form-control">{{ service.name }}</div>
     </div>
 </div>
 
-{% include '@Dashtainer/project/service/snippets/volume-file.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/network.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/secret.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/port.html.twig' %}
-{% include '@Dashtainer/project/service/snippets/volume.html.twig' %}
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="name">Listen Port</label>
+        <input type="number" class="form-control" maxlength="64"
+               id="port" name="port" placeholder=""
+               value="{{ port }}" required
+               min="8000" max="65535"
+               data-update-text="service-port-tag"
+               data-error-container="port" />
+        <div class="invalid-feedback" data-error-container-name="port"></div>
+    </div>
+</div>
 
-<button class="btn btn-primary btn-lg btn-block" type="submit">Update Service</button>
-</form>
+<div class="alert alert-icon alert-info mb-6" role="alert">
+    <i class="fe fe-bell mr-2" aria-hidden="true"></i>
+    This service is available <strong>privately</strong> at
+    <span class="badge badge-primary text-lg">
+        <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
+        <span id="service-name-tag">{{ service.name }}</span>:<span
+            id="service-port-tag">{{ port }}</span></span>
+</div>
+
+<hr class="my-6" />
+
+<div class="row">
+    <div class="form-group col">
+        <label class="form-label" for="name">NPM Command</label>
+        <input type="text" class="form-control" maxlength="256"
+               id="command" name="command" placeholder=""
+               value="{{ command|join(' ') }}" required
+               data-error-container="command" />
+        <small class="text-muted">
+            Run this command to start your app.
+        </small>
+        <div class="invalid-feedback" data-error-container-name="command"></div>
+    </div>
+</div>
+
+<hr class="my-6" />
+
+{% set volume = volumes.other.remove('root') %}
+{% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 {% endblock %}
