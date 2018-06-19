@@ -16,7 +16,9 @@ class ServiceCategory extends Repository\ObjectPersistAbstract
     {
         $qb = $this->em->createQueryBuilder()
             ->select('sc')
-            ->from('Dashtainer:Docker\ServiceCategory', 'sc');
+            ->addSelect('st')
+            ->from('Dashtainer:Docker\ServiceCategory', 'sc')
+            ->join('sc.types', 'st');
 
         return $qb->getQuery()->getResult();
     }
