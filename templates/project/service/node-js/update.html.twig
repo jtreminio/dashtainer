@@ -56,8 +56,6 @@
 
         {% set volume = volumes.other.remove('root') %}
         {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
-
-        <input type="hidden" id="version" name="version" value="{{ version }}" />
     </div>
 </div>
 
