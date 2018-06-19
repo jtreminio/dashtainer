@@ -125,9 +125,17 @@ class ServiceType implements
      * @param ServiceCategory $service_category
      * @return $this
      */
-    public function setCategory(ServiceCategory $service_category)
+    public function setCategory(ServiceCategory $service_category = null)
     {
+        if ($this->category === $service_category) {
+            return $this;
+        }
+
         $this->category = $service_category;
+
+        if ($service_category) {
+            $service_category->addType($this);
+        }
 
         return $this;
     }
@@ -138,14 +146,24 @@ class ServiceType implements
      */
     public function addMeta(ServiceTypeMeta $service_type_meta)
     {
-        $this->meta[] = $service_type_meta;
+        if ($this->meta->contains($service_type_meta)) {
+            return $this;
+        }
+
+        $this->meta->add($service_type_meta);
+        $service_type_meta->setType($this);
 
         return $this;
     }
 
     public function removeMeta(ServiceTypeMeta $service_type_meta)
     {
+        if (!$this->meta->contains($service_type_meta)) {
+            return;
+        }
+
         $this->meta->removeElement($service_type_meta);
+        $service_type_meta->setType(null);
     }
 
     public function getMeta(string $name) : ?ServiceTypeMeta
@@ -173,14 +191,24 @@ class ServiceType implements
      */
     public function addService(Service $service)
     {
-        $this->services[] = $service;
+        if ($this->services->contains($service)) {
+            return $this;
+        }
+
+        $this->services->add($service);
+        $service->setType($this);
 
         return $this;
     }
 
     public function removeService(Service $service)
     {
+        if (!$this->services->contains($service)) {
+            return;
+        }
+
         $this->services->removeElement($service);
+        $service->setType(null);
     }
 
     /**

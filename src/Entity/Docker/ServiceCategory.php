@@ -76,14 +76,24 @@ class ServiceCategory implements Util\HydratorInterface, Entity\EntityBaseInterf
      */
     public function addType(ServiceType $serviceType)
     {
-        $this->types[] = $serviceType;
+        if ($this->types->contains($serviceType)) {
+            return $this;
+        }
+
+        $this->types->add($serviceType);
+        $serviceType->setCategory($this);
 
         return $this;
     }
 
     public function removeType(ServiceType $serviceType)
     {
+        if (!$this->types->contains($serviceType)) {
+            return;
+        }
+
         $this->types->removeElement($serviceType);
+        $serviceType->setCategory(null);
     }
 
     /**

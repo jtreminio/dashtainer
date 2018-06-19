@@ -73,9 +73,17 @@ class ServiceMeta implements Util\HydratorInterface, Entity\EntityBaseInterface
      * @param Service $service
      * @return $this
      */
-    public function setService(Service $service)
+    public function setService(Service $service = null)
     {
+        if ($this->service === $service) {
+            return $this;
+        }
+
         $this->service = $service;
+
+        if ($service) {
+            $service->addMeta($this);
+        }
 
         return $this;
     }

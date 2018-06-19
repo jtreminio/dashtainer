@@ -229,9 +229,17 @@ class Network implements Util\HydratorInterface, Entity\EntityBaseInterface
      * @param Project $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(Project $project = null)
     {
+        if ($this->project === $project) {
+            return $this;
+        }
+
         $this->project = $project;
+
+        if ($project) {
+            $project->addNetwork($this);
+        }
 
         return $this;
     }

@@ -125,14 +125,24 @@ class Project implements
      */
     public function addNetwork(Network $network)
     {
-        $this->networks[] = $network;
+        if ($this->networks->contains($network)) {
+            return $this;
+        }
+
+        $this->networks->add($network);
+        $network->setProject($this);
 
         return $this;
     }
 
     public function removeNetwork(Network $network)
     {
+        if (!$this->networks->contains($network)) {
+            return;
+        }
+
         $this->networks->removeElement($network);
+        $network->setProject(null);
     }
 
     /**
@@ -183,14 +193,24 @@ class Project implements
      */
     public function addService(Service $service)
     {
-        $this->services[] = $service;
+        if ($this->services->contains($service)) {
+            return $this;
+        }
+
+        $this->services->add($service);
+        $service->setProject($this);
 
         return $this;
     }
 
     public function removeService(Service $service)
     {
+        if (!$this->services->contains($service)) {
+            return;
+        }
+
         $this->services->removeElement($service);
+        $service->setProject(null);
     }
 
     /**
@@ -215,9 +235,17 @@ class Project implements
      * @param Entity\User $user
      * @return $this
      */
-    public function setUser(Entity\User $user)
+    public function setUser(Entity\User $user = null)
     {
+        if ($this->user === $user) {
+            return $this;
+        }
+
         $this->user = $user;
+
+        if ($user) {
+            $user->addProject($this);
+        }
 
         return $this;
     }

@@ -281,10 +281,7 @@ class Volume implements
         }
 
         $this->service_volumes->removeElement($serviceVolume);
-
-        if ($serviceVolume->getProjectVolume() === $this) {
-            $serviceVolume->setProjectVolume(null);
-        }
+        $serviceVolume->setProjectVolume(null);
     }
 
     /**

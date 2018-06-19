@@ -73,9 +73,17 @@ class ServiceTypeMeta implements Util\HydratorInterface, Entity\EntityBaseInterf
      * @param ServiceType $serviceType
      * @return $this
      */
-    public function setType(ServiceType $serviceType)
+    public function setType(ServiceType $serviceType = null)
     {
+        if ($this->type === $serviceType) {
+            return $this;
+        }
+
         $this->type = $serviceType;
+
+        if ($serviceType) {
+            $serviceType->addMeta($this);
+        }
 
         return $this;
     }

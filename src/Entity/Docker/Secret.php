@@ -189,7 +189,7 @@ class Secret implements
      * @param Project $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(Project $project = null)
     {
         if ($this->project === $project) {
             return $this;
@@ -232,10 +232,7 @@ class Secret implements
         }
 
         $this->service_secrets->removeElement($serviceSecret);
-
-        if ($serviceSecret->getProjectSecret() === $this) {
-            $serviceSecret->setProjectSecret(null);
-        }
+        $serviceSecret->setProjectSecret(null);
     }
 
     /**

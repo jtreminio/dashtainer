@@ -245,6 +245,11 @@ class Service implements
     protected $userns_mode;
 
     /**
+     * @ORM\Column(name="version", type="string", length=16, nullable=true)
+     */
+    protected $version;
+
+    /**
      * @ORM\OneToMany(targetEntity="Dashtainer\Entity\Docker\ServiceVolume", mappedBy="service")
      */
     protected $volumes;
@@ -651,19 +656,29 @@ class Service implements
     }
 
     /**
-     * @param ServiceMeta $service_meta
+     * @param ServiceMeta $meta
      * @return $this
      */
-    public function addMeta(ServiceMeta $service_meta)
+    public function addMeta(ServiceMeta $meta)
     {
-        $this->meta[] = $service_meta;
+        if ($this->meta->contains($meta)) {
+            return $this;
+        }
+
+        $this->meta->add($meta);
+        $meta->setService($this);
 
         return $this;
     }
 
-    public function removeMeta(ServiceMeta $service_meta)
+    public function removeMeta(ServiceMeta $meta)
     {
-        $this->meta->removeElement($service_meta);
+        if (!$this->meta->contains($meta)) {
+            return;
+        }
+
+        $this->meta->removeElement($meta);
+        $meta->setService(null);
     }
 
     public function getMeta(string $name = null) : ?ServiceMeta
@@ -766,7 +781,15 @@ class Service implements
      */
     public function setParent(Service $parent = null)
     {
+        if ($this->parent === $parent) {
+            return $this;
+        }
+
         $this->parent = $parent;
+
+        if ($parent) {
+            $parent->addChild($this);
+        }
 
         return $this;
     }
@@ -830,9 +853,17 @@ class Service implements
      * @param Project $project
      * @return $this
      */
-    public function setProject(Project $project)
+    public function setProject(Project $project = null)
     {
+        if ($this->project === $project) {
+            return $this;
+        }
+
         $this->project = $project;
+
+        if ($project) {
+            $project->addService($this);
+        }
 
         return $this;
     }
@@ -983,9 +1014,17 @@ class Service implements
      * @param ServiceType $serviceType
      * @return $this
      */
-    public function setType(ServiceType $serviceType)
+    public function setType(ServiceType $serviceType = null)
     {
+        if ($this->type === $serviceType) {
+            return $this;
+        }
+
         $this->type = $serviceType;
+
+        if ($serviceType) {
+            $serviceType->addService($this);
+        }
 
         return $this;
     }
@@ -1040,6 +1079,22 @@ class Service implements
     public function setUsernsMode(string $userns_mode = null)
     {
         $this->userns_mode = $userns_mode;
+
+        return $this;
+    }
+
+    public function getVersion() : ?string
+    {
+        return $this->version;
+    }
+
+    /**
+     * @param string $version
+     * @return $this
+     */
+    public function setVersion(string $version = null)
+    {
+        $this->version = $version;
 
         return $this;
     }
