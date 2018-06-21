@@ -3,8 +3,7 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Domain\Docker\Network;
-use Dashtainer\Entity;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
@@ -16,104 +15,181 @@ class NetworkTest extends KernelTestCase
     /** @var Network */
     protected $network;
 
-    /** @var MockObject|Repository\Docker\Network */
-    protected $networkRepo;
-
     protected function setUp()
     {
         /** @var $em MockObject|ORM\EntityManagerInterface */
         $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
             ->getMock();
 
-        $this->networkRepo = new Mock\RepoDockerNetwork($em);
-
-        $wordListFile = __DIR__ . '/../../files/networkNames.txt';
-
-        $this->network = new Network($this->networkRepo, $wordListFile);
+        $this->network = new Network(new Mock\RepoDockerNetwork($em));
     }
 
-    public function testDeleteRemovesFromServices()
+    protected function createPrivateNetwork() : Entity\Network
     {
-        $networkA = new Entity\Docker\Network();
-        $networkA->setName('networkA');
+        $network = new Entity\Network();
+        $network->fromArray(['id' => 'private']);
+        $network->setName('private')
+            ->setIsPublic(false)
+            ->setIsEditable(false);
 
-        $networkB = new Entity\Docker\Network();
-        $networkB->setName('networkB');
-
-        $serviceA = new Entity\Docker\Service();
-        $serviceA->setName('serviceA')
-            ->addNetwork($networkA)
-            ->addNetwork($networkB);
-
-        $serviceB = new Entity\Docker\Service();
-        $serviceB->setName('serviceB')
-            ->addNetwork($networkA)
-            ->addNetwork($networkB);
-
-        $serviceC = new Entity\Docker\Service();
-        $serviceC->setName('serviceC')
-            ->addNetwork($networkB);
-
-        $networkA->addService($serviceA)
-            ->addService($serviceB);
-
-        $networkB->addService($serviceA)
-            ->addService($serviceB)
-            ->addService($serviceC);
-
-        $this->network->delete($networkA);
-
-        $this->assertNotContains($networkA, $serviceA->getNetworks());
-        $this->assertNotContains($networkA, $serviceB->getNetworks());
-
-        $this->assertNotContains($serviceA, $networkA->getServices());
-        $this->assertNotContains($serviceB, $networkA->getServices());
-
-        $this->assertContains($networkB, $serviceA->getNetworks());
-        $this->assertContains($networkB, $serviceB->getNetworks());
-        $this->assertContains($networkB, $serviceC->getNetworks());
+        return $network;
     }
 
-    public function testGenerateNameReturnsUnusedNames()
+    protected function createPublicNetwork() : Entity\Network
     {
-        $project = new Entity\Docker\Project();
+        $network = new Entity\Network();
+        $network->fromArray(['id' => 'public']);
+        $network->setName('public')
+            ->setIsPublic(true)
+            ->setIsEditable(false);
 
-        $networkA = new Entity\Docker\Network();
-        $networkA->setName('networkA')
-            ->setProject($project);
+        return $network;
+    }
 
-        $networkB = new Entity\Docker\Network();
-        $networkB->setName('networkB')
-            ->setProject($project);
+    protected function createNetwork(string $name) : Entity\Network
+    {
+        $network = new Entity\Network();
+        $network->fromArray(['id' => $name]);
+        $network->setName($name)
+            ->setIsPublic(false)
+            ->setIsEditable(true);
 
-        $networkC = new Entity\Docker\Network();
-        $networkC->setName('networkC')
-            ->setProject($project);
+        return $network;
+    }
 
-        $networkD = new Entity\Docker\Network();
-        $networkD->setName('networkD')
-            ->setProject($project);
+    public function testGetForNewServiceReturnsNetworks()
+    {
+        $privateNetwork = $this->createPrivateNetwork();
+        $publicNetwork  = $this->createPublicNetwork();
+        $networkA       = $this->createNetwork('network-a');
+        $networkB       = $this->createNetwork('network-b');
+        $networkC       = $this->createNetwork('network-c');
 
-        $networks = [
-            $networkA,
-            $networkB,
-            $networkC,
-            $networkD,
+        $project = new Entity\Project();
+        $project->addNetwork($privateNetwork)
+            ->addNetwork($publicNetwork)
+            ->addNetwork($networkA)
+            ->addNetwork($networkB)
+            ->addNetwork($networkC);
+
+        $internalVolumesArray = [
+            'public',
         ];
 
-        $project->addNetwork($networkA)
+        $result = $this->network->getForNewService($project, $internalVolumesArray);
+
+        $joined   = $result['joined'];
+        $unjoined = $result['unjoined'];
+
+        $this->assertTrue($joined->contains($privateNetwork));
+        $this->assertTrue($joined->contains($publicNetwork));
+
+        $this->assertFalse($joined->contains($networkA));
+        $this->assertFalse($joined->contains($networkB));
+        $this->assertFalse($joined->contains($networkC));
+
+        $this->assertTrue($unjoined->contains($networkA));
+        $this->assertTrue($unjoined->contains($networkB));
+        $this->assertTrue($unjoined->contains($networkC));
+
+        $this->assertFalse($unjoined->contains($privateNetwork));
+        $this->assertFalse($unjoined->contains($publicNetwork));
+    }
+
+    public function testGetForExistingServiceReturnsNetworks()
+    {
+        $privateNetwork = $this->createPrivateNetwork();
+        $publicNetwork  = $this->createPublicNetwork();
+        $networkA       = $this->createNetwork('network-a');
+        $networkB       = $this->createNetwork('network-b');
+        $networkC       = $this->createNetwork('network-c');
+
+        $service = new Entity\Service();
+        $service->addNetwork($privateNetwork)
+            ->addNetwork($publicNetwork)
+            ->addNetwork($networkA);
+
+        $project = new Entity\Project();
+        $project->addNetwork($privateNetwork)
+            ->addNetwork($publicNetwork)
+            ->addNetwork($networkA)
             ->addNetwork($networkB)
             ->addNetwork($networkC)
-            ->addNetwork($networkD);
+            ->addService($service);
 
-        $result = $this->network->generateName($project);
-
-        $availableNames = [
-            'unusedNetworkNameA',
-            'unusedNetworkNameB',
-            'unusedNetworkNameC',
+        $internalVolumesArray = [
+            'public',
         ];
 
-        $this->assertContains($result, $availableNames);
+        $result = $this->network->getForExistingService($service, $internalVolumesArray);
+
+        $joined   = $result['joined'];
+        $unjoined = $result['unjoined'];
+
+        $this->assertTrue($joined->contains($privateNetwork));
+        $this->assertTrue($joined->contains($publicNetwork));
+        $this->assertTrue($joined->contains($networkA));
+
+        $this->assertFalse($joined->contains($networkB));
+        $this->assertFalse($joined->contains($networkC));
+
+        $this->assertTrue($unjoined->contains($networkB));
+        $this->assertTrue($unjoined->contains($networkC));
+
+        $this->assertFalse($unjoined->contains($privateNetwork));
+        $this->assertFalse($unjoined->contains($publicNetwork));
+        $this->assertFalse($unjoined->contains($networkA));
+    }
+
+    public function testSaveAddsServiceToNetworksAndRemovesUnwanted()
+    {
+        $privateNetwork = $this->createPrivateNetwork();
+        $publicNetwork  = $this->createPublicNetwork();
+        $networkA       = $this->createNetwork('network-a');
+        $networkB       = $this->createNetwork('network-b');
+        $networkC       = $this->createNetwork('network-c');
+
+        $service = new Entity\Service();
+        $service->addNetwork($privateNetwork)
+            ->addNetwork($publicNetwork)
+            ->addNetwork($networkA);
+
+        $project = new Entity\Project();
+        $project->addNetwork($privateNetwork)
+            ->addNetwork($publicNetwork)
+            ->addNetwork($networkA)
+            ->addNetwork($networkB)
+            ->addNetwork($networkC)
+            ->addService($service);
+
+        $configs = [
+            'private' => [
+                'id'   => 'private',
+                'name' => 'private',
+            ],
+            'public' => [
+                'id'   => 'public',
+                'name' => 'public',
+            ],
+            'new-network' => [
+                'id'   => 'new-network',
+                'name' => 'new-network',
+            ],
+        ];
+
+        $this->network->save($service, $configs);
+
+        $networks = $service->getNetworks();
+
+        $this->assertNotNull($networks->remove($networks->indexOf($privateNetwork)));
+        $this->assertNotNull($networks->remove($networks->indexOf($publicNetwork)));
+        /** @var Entity\Network $newNetwork */
+        $newNetwork = $networks->first();
+
+        $this->assertEquals($newNetwork->getName(), 'new-network');
+
+        $this->assertFalse($service->getNetworks()->contains($networkA));
+        $this->assertFalse($service->getNetworks()->contains($networkB));
+        $this->assertFalse($service->getNetworks()->contains($networkC));
     }
 }

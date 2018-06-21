@@ -2,97 +2,71 @@
 
 namespace Dashtainer\Tests\Mock;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker\Network;
 
 class RepoDockerNetwork extends Network
 {
-    public function findAllByProject(
-        Entity\Docker\Project $project
-    ): array {
-        return $project->getNetworks()->toArray();
-    }
-
-    public function findByProject(
-        Entity\Docker\Project $project,
-        string $id
-    ) : ?Entity\Docker\Network {
-        foreach ($project->getNetworks() as $network) {
-            if ($network->getId() === $id) {
-                return $network;
-            }
-        }
-
-        return null;
-    }
-
-    public function findByProjectMultipleIds(
-        Entity\Docker\Project $project,
-        array $ids
-    ) : array {
+    public function findByNames(Entity\Project $project, array $names) : array
+    {
         $networks = [];
+
         foreach ($project->getNetworks() as $network) {
-            if (in_array($network->getId(), $ids)){
-                $networks []= $network;
+            // ->andWhere('n.name IN (:names)')
+            if (!in_array($network->getName(), $names)) {
+                continue;
             }
+
+            $networks []= $network;
         }
 
         return $networks;
     }
 
-    public function findByService(Entity\Docker\Service $service) : array
+    public function findByProject(Entity\Project $project) : array
+    {
+        return $project->getNetworks()->toArray();
+    }
+
+    public function findByService(Entity\Service $service) : array
     {
         return $service->getNetworks()->toArray();
     }
 
-    public function findByNotService(Entity\Docker\Service $service) : array
+    public function findByNotService(Entity\Service $service) : array
     {
+        $networks = [];
+
         $project = $service->getProject();
 
-        $networks = [];
         foreach ($project->getNetworks() as $network) {
-            $networks [$network->getId()]= $network;
-        }
+            // ->andWhere(':service NOT MEMBER OF n.services')
+            if ($service->getNetworks()->contains($network)) {
+                continue;
+            }
 
-        foreach ($service->getNetworks() as $network) {
-            unset($networks[$network->getId()]);
+            $networks []= $network;
         }
 
         return $networks;
     }
 
-    public function findWithNoServices(Entity\Docker\Project $project) : array
+    public function findWithNoServices(Entity\Project $project) : array
     {
         $networks = [];
+
         foreach ($project->getNetworks() as $network) {
+            // ->andWhere('s IS NULL')
             if (!$network->getServices()->count()) {
-                $networks []= $network;
+                continue;
             }
-        }
 
-        return $networks;
-    }
-
-    public function getPublicNetwork(
-        Entity\Docker\Project $project
-    ) : ?Entity\Docker\Network {
-        foreach ($project->getNetworks() as $network) {
-            if ($network->getIsPublic()) {
-                return $network;
+            // ->andWhere('n.is_editable = true')
+            if (!$network->getIsEditable()) {
+                continue;
             }
-        }
 
-        return null;
-    }
-
-    public function getPrivateNetworks(
-        Entity\Docker\Project $project
-    ) : array {
-        $networks = [];
-        foreach ($project->getNetworks() as $network) {
-            if (!$network->getIsPublic()) {
-                $networks []= $network;
-            }
+            $networks []= $network;
         }
 
         return $networks;

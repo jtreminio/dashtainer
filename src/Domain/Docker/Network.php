@@ -22,7 +22,7 @@ class Network
      *
      * @param Entity\Project $project
      * @param array          $internalNetworksArray
-     * @return array
+     * @return Collections\ArrayCollection[]
      */
     public function getForNewService(
         Entity\Project $project,
@@ -58,7 +58,7 @@ class Network
      *
      * @param Entity\Service $service
      * @param array          $internalNetworksArray
-     * @return array
+     * @return Collections\ArrayCollection[]
      */
     public function getForExistingService(
         Entity\Service $service,
@@ -169,6 +169,8 @@ class Network
     public function deleteEmptyNetworks(Entity\Project $project)
     {
         foreach ($this->repo->findWithNoServices($project) as $network) {
+            $project->removeNetwork($network);
+
             $this->repo->remove($network);
         }
     }

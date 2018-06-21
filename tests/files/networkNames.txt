@@ -1,6 +1,0 @@
-networkA
-networkC
-networkD
-unusedNetworkNameA
-unusedNetworkNameB
-unusedNetworkNameC
