@@ -28,7 +28,7 @@ class NetworkTest extends KernelTestCase
     {
         $network = new Entity\Network();
         $network->fromArray(['id' => 'private']);
-        $network->setName('private')
+        $network->setName($network->getId())
             ->setIsPublic(false)
             ->setIsEditable(false);
 
@@ -39,7 +39,7 @@ class NetworkTest extends KernelTestCase
     {
         $network = new Entity\Network();
         $network->fromArray(['id' => 'public']);
-        $network->setName('public')
+        $network->setName($network->getId())
             ->setIsPublic(true)
             ->setIsEditable(false);
 
