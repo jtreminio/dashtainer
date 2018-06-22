@@ -21,19 +21,20 @@ class Project
     {
         $project = new Entity\Project();
         $project->fromArray($form->toArray());
-        $project->setUser($form->user);
 
         $public = new Entity\Network();
         $public->setName('public')
             ->setIsEditable(false)
             ->setIsPublic(true)
-            ->setExternal('traefik_webgateway')
-            ->setProject($project);
+            ->setExternal('traefik_webgateway');
 
         $private = new Entity\Network();
         $private->setName('private')
-            ->setIsEditable(false)
-            ->setProject($project);
+            ->setIsEditable(false);
+
+        $project->setUser($form->user)
+            ->addNetwork($public)
+            ->addNetwork($private);
 
         $this->repo->persist($public, $private, $project);
         $this->repo->flush();
@@ -70,6 +71,7 @@ class Project
     {
         foreach ($project->getServices() as $service) {
             $this->deleteService($service);
+            $project->removeService($service);
             $this->repo->remove($service);
         }
 
@@ -117,11 +119,17 @@ class Project
         }
 
         foreach ($service->getSecrets() as $serviceSecret) {
+            if ($projectSecret = $serviceSecret->getProjectSecret()) {
+                $projectSecret->removeServiceSecret($serviceSecret);
+            }
             $service->removeSecret($serviceSecret);
             $this->repo->remove($serviceSecret);
         }
 
         foreach ($service->getVolumes() as $serviceVolume) {
+            if ($projectVolume = $serviceVolume->getProjectVolume()) {
+                $projectVolume->removeServiceVolume($serviceVolume);
+            }
             $service->removeVolume($serviceVolume);
             $this->repo->remove($serviceVolume);
         }

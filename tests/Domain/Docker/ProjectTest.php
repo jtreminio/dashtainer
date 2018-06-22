@@ -3,9 +3,10 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Domain\Docker\Project;
-use Dashtainer\Entity;
-use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Entity\User;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -16,107 +17,100 @@ class ProjectTest extends KernelTestCase
     /** @var Project */
     protected $project;
 
-    /** @var MockObject|Repository\Docker\Project */
-    protected $projectRepo;
-
     protected function setUp()
     {
+        /** @var $em MockObject|ORM\EntityManagerInterface */
         $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
             ->getMock();
 
-        $this->projectRepo = $this->getMockBuilder(Repository\Docker\Project::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
-
-        $this->project = new Project($this->projectRepo);
+        $this->project = new Project(new Mock\RepoDockerProject($em));
     }
 
-    public function testCreateFromFormGeneratesEntity()
+    public function testCreateFromFormCreatesProject()
     {
-        $user = new Entity\User();
-
-        $form = new Form\Docker\ProjectCreateUpdate();
+        $form = new Form\ProjectCreateUpdate();
         $form->name = 'Project Name';
+        $form->user = new User();
 
-        $this->projectRepo->expects($this->exactly(2))
-            ->method('save');
+        $project = $this->project->create($form);
 
-        $project = $this->project->createProjectFromForm($form, $user);
+        $networks = [];
+        foreach ($project->getNetworks() as $network) {
+            $networks [$network->getName()]= $network;
+        }
 
-        $this->assertCount(1, $project->getNetworks());
+        $this->assertNotNull($networks['public']);
+        $this->assertNotNull($networks['private']);
 
-        /** @var Entity\Docker\Network $publicNetwork */
-        $publicNetwork = $project->getNetworks()->first();
-
-        $this->assertEquals('projectname-public', $publicNetwork->getName());
+        $this->assertSame($form->user, $project->getUser());
     }
 
     public function testDeleteTraversesChildren()
     {
-        $project = new Entity\Docker\Project();
+        $project = new Entity\Project();
         $project->setName('Project Name');
 
-        $networkA = new Entity\Docker\Network();
+        $networkA = new Entity\Network();
         $networkA->setName('network-a')
             ->setProject($project);
         $project->addNetwork($networkA);
 
-        $networkB = new Entity\Docker\Network();
+        $networkB = new Entity\Network();
         $networkB->setName('network-b')
             ->setProject($project);
         $project->addNetwork($networkB);
 
-        $projectSecretA = new Entity\Docker\Secret();
+        $projectSecretA = new Entity\Secret();
         $projectSecretA->setName('secret-a')
             ->setProject($project);
         $project->addSecret($projectSecretA);
 
-        $serviceSecretA = new Entity\Docker\ServiceSecret();
+        $serviceSecretA = new Entity\ServiceSecret();
         $serviceSecretA->setProjectSecret($projectSecretA);
 
-        $projectSecretB = new Entity\Docker\Secret();
+        $projectSecretB = new Entity\Secret();
         $projectSecretB->setName('secret-b')
             ->setProject($project);
         $project->addSecret($projectSecretB);
 
-        $serviceSecretB = new Entity\Docker\ServiceSecret();
+        $serviceSecretB = new Entity\ServiceSecret();
         $serviceSecretB->setProjectSecret($projectSecretB);
 
-        $volumeA = new Entity\Docker\Volume();
+        $volumeA = new Entity\Volume();
         $volumeA->setName('volume-a')
             ->setProject($project);
         $project->addVolume($volumeA);
 
-        $volumeB = new Entity\Docker\Volume();
+        $volumeB = new Entity\Volume();
         $volumeB->setName('volume-b')
             ->setProject($project);
         $project->addVolume($volumeB);
 
         // Service A
 
-        $serviceA = new Entity\Docker\Service();
+        $serviceA = new Entity\Service();
         $serviceA->setName('servica-a')
             ->setProject($project);
         $project->addService($serviceA);
 
-        $serviceAMetaA = new Entity\Docker\ServiceMeta();
+        $serviceAMetaA = new Entity\ServiceMeta();
         $serviceAMetaA->setName('service-a-meta-a')
             ->setService($serviceA);
         $serviceA->addMeta($serviceAMetaA);
 
-        $serviceAMetaB = new Entity\Docker\ServiceMeta();
+        $serviceAMetaB = new Entity\ServiceMeta();
         $serviceAMetaB->setName('service-a-meta-b')
             ->setService($serviceA);
         $serviceA->addMeta($serviceAMetaB);
 
-        $serviceAVolumeA = new Entity\Docker\ServiceVolume();
+        $serviceAVolumeA = new Entity\ServiceVolume();
         $serviceAVolumeA->setName('service-a-volume-a')
             ->setService($serviceA)
             ->setProjectVolume($volumeA);
         $serviceA->addVolume($serviceAVolumeA);
         $volumeA->addServiceVolume($serviceAVolumeA);
 
-        $serviceAVolumeB = new Entity\Docker\ServiceVolume();
+        $serviceAVolumeB = new Entity\ServiceVolume();
         $serviceAVolumeB->setName('service-a-volume-b')
             ->setService($serviceA)
             ->setProjectVolume($volumeA);
@@ -133,7 +127,7 @@ class ProjectTest extends KernelTestCase
 
         // Service B
 
-        $serviceB = new Entity\Docker\Service();
+        $serviceB = new Entity\Service();
         $serviceB->setName('servica-b')
             ->setProject($project);
         $project->addService($serviceB);
@@ -141,22 +135,22 @@ class ProjectTest extends KernelTestCase
         $serviceB->setParent($serviceA);
         $serviceA->addChild($serviceB);
 
-        $serviceBMetaA = new Entity\Docker\ServiceMeta();
+        $serviceBMetaA = new Entity\ServiceMeta();
         $serviceBMetaA->setName('service-b-meta-a')
             ->setService($serviceB);
         $serviceB->addMeta($serviceBMetaA);
 
-        $serviceBMetaB = new Entity\Docker\ServiceMeta();
+        $serviceBMetaB = new Entity\ServiceMeta();
         $serviceBMetaB->setName('service-b-meta-b')
             ->setService($serviceB);
         $serviceB->addMeta($serviceBMetaB);
 
-        $serviceBVolumeA = new Entity\Docker\ServiceVolume();
+        $serviceBVolumeA = new Entity\ServiceVolume();
         $serviceBVolumeA->setName('service-b-volume-a')
             ->setService($serviceB);
         $serviceB->addVolume($serviceBVolumeA);
 
-        $serviceBVolumeB = new Entity\Docker\ServiceVolume();
+        $serviceBVolumeB = new Entity\ServiceVolume();
         $serviceBVolumeB->setName('service-b-volume-b')
             ->setService($serviceB);
         $serviceB->addVolume($serviceBVolumeB);
