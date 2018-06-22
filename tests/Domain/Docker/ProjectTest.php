@@ -186,6 +186,5 @@ class ProjectTest extends KernelTestCase
         $this->assertEmpty($serviceB->getVolumes());
         $this->assertEmpty($serviceB->getMetas());
         $this->assertEmpty($serviceB->getSecrets());
-
     }
 }
