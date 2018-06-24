@@ -2,28 +2,27 @@
 
 namespace Dashtainer\Tests\Mock;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker\Secret;
 
 class RepoDockerSecret extends Secret
 {
-    public function findAllByProject(Entity\Docker\Project $project) : array
-    {
-        return $project->getSecrets()->toArray();
-    }
-
-    public function findAllByService(Entity\Docker\Service $service) : array
-    {
-        return $service->getSecrets()->toArray();
-    }
-
-    public function findOwned(Entity\Docker\Service $service) : array
+    public function findAllServiceSecretsByProject(Entity\Project $project) : array
     {
         $secrets = [];
-        foreach ($service->getSecrets() as $serviceSecret) {
-            $projectSecret = $serviceSecret->getProjectSecret();
 
-            if ($projectSecret->getOwner() === $service) {
+        foreach ($project->getServices() as $service) {
+            foreach ($service->getSecrets() as $serviceSecret) {
+                // ->join('ss.project_secret', 's')
+                if (!$projectSecret = $serviceSecret->getProjectSecret()) {
+                    continue;
+                }
+
+                // ->andWhere('ss.service = s.owner')
+                if ($projectSecret->getOwner() !== $service) {
+                    continue;
+                }
+
                 $secrets []= $serviceSecret;
             }
         }
@@ -31,70 +30,173 @@ class RepoDockerSecret extends Secret
         return $secrets;
     }
 
-    public function findInternal(Entity\Docker\Service $service) : array
+    public function findByIds(Entity\Project $project, array $ids) : array
     {
         $secrets = [];
 
-        foreach ($service->getSecrets() as $serviceSecret) {
-            if ($serviceSecret->getIsInternal()) {
-                $secrets []= $serviceSecret;
+        foreach ($project->getSecrets() as $secret) {
+            // ->andWhere('s.id IN (:ids)')
+            if (!in_array($secret->getId(), $ids)) {
+                continue;
             }
+
+            $secrets []= $secret;
         }
 
         return $secrets;
     }
 
-    public function findNotInternal(Entity\Docker\Service $service) : array
-    {
+    public function findByName(
+        Entity\Service $service,
+        array $names
+    ) : array {
         $secrets = [];
 
-        foreach ($service->getSecrets() as $serviceSecret) {
-            if (!$serviceSecret->getIsInternal()) {
-                $secrets []= $serviceSecret;
+        foreach ($service->getSecrets() as $secret) {
+            // ->andWhere('ss.name IN (:names)')
+            if (!in_array($secret->getName(), $names)) {
+                continue;
             }
+
+            $secrets []= $secret;
         }
 
         return $secrets;
     }
 
-    public function findGranted(Entity\Docker\Service $service) : array
+    public function findOwnedProjectSecrets(Entity\Service $service)
     {
-        $secrets = [];
-        foreach ($service->getSecrets() as $serviceSecret) {
-            $projectSecret = $serviceSecret->getProjectSecret();
+        $project = $service->getProject();
 
+        $secrets = [];
+
+        foreach ($project->getSecrets() as $projectSecret) {
             if ($projectSecret->getOwner() !== $service) {
-                $secrets []= $serviceSecret;
+                continue;
             }
+
+            $secrets []= $projectSecret;
+        }
+
+        return $secrets;
+    }
+
+    public function findOwnedServiceSecrets(Entity\Service $service)
+    {
+        $secrets = [];
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            if ($serviceSecret->getProjectSecret()) {
+                continue;
+            }
+
+            $secrets []= $serviceSecret;
+        }
+
+        return $secrets;
+    }
+
+    public function findInternal(Entity\Service $service) : array
+    {
+        $secrets = [];
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            // ->join('ss.project_secret', 's')
+            if (!$projectSecret = $serviceSecret->getProjectSecret()) {
+                continue;
+            }
+
+            // ->andWhere('s.owner = :service')
+            if ($projectSecret->getOwner() !== $service) {
+                continue;
+            }
+
+            // ->andWhere('ss.is_internal <> 0')
+            if (!$serviceSecret->getIsInternal()) {
+                continue;
+            }
+
+            $secrets []= $serviceSecret;
+        }
+
+        return $secrets;
+    }
+
+    public function findNotInternal(Entity\Service $service) : array
+    {
+        $secrets = [];
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            // ->join('ss.project_secret', 's')
+            if (!$projectSecret = $serviceSecret->getProjectSecret()) {
+                continue;
+            }
+
+            // ->andWhere('s.owner = :service')
+            if ($projectSecret->getOwner() !== $service) {
+                continue;
+            }
+
+            // ->andWhere('ss.is_internal = 0')
+            if ($serviceSecret->getIsInternal()) {
+                continue;
+            }
+
+            $secrets []= $serviceSecret;
+        }
+
+        return $secrets;
+    }
+
+    public function findGranted(Entity\Service $service) : array
+    {
+        $secrets = [];
+
+        foreach ($service->getSecrets() as $serviceSecret) {
+            // ->join('ss.project_secret', 's')
+            if (!$projectSecret = $serviceSecret->getProjectSecret()) {
+                continue;
+            }
+
+            // ->andWhere('s.owner <> :service')
+            if ($projectSecret->getOwner() === $service) {
+                continue;
+            }
+
+            $secrets []= $serviceSecret;
         }
 
         return $secrets;
     }
 
     public function findNotGranted(
-        Entity\Docker\Project $project,
-        Entity\Docker\Service $service
+        Entity\Project $project,
+        Entity\Service $service
     ) : array {
-        $serviceSecrets = $service->getSecrets();
-
         $secrets = [];
+
+        $granted = [];
+        /** @var Entity\ServiceSecret $grantedServiceSecret */
+        foreach ($this->findGranted($service) as $grantedServiceSecret) {
+            $granted []= $grantedServiceSecret->getProjectSecret();
+        }
+
         foreach ($project->getSecrets() as $projectSecret) {
-            if (!$serviceSecrets->contains($projectSecret)) {
-                $secrets []= $projectSecret;
+            // ->join('s.service_secrets', 'ss')
+            foreach ($projectSecret->getServiceSecrets() as $serviceSecret) {
+                // ->andWhere('s.owner <> :service')
+                if ($serviceSecret->getService() === $service) {
+                    continue;
+                }
+
+                if (in_array($projectSecret, $granted)) {
+                    continue;
+                }
+
+                $secrets []= $serviceSecret;
             }
         }
 
         return $secrets;
-    }
-
-    public function deleteGrantedNotOwned(Entity\Docker\Service $service)
-    {
-        foreach ($service->getSecrets() as $serviceSecret) {
-            $projectSecret = $serviceSecret->getProjectSecret();
-
-            if ($projectSecret->getOwner() !== $service) {
-                $service->removeSecret($serviceSecret);
-            }
-        }
     }
 }

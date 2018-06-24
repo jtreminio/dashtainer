@@ -6,7 +6,7 @@ use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker as Repository;
 use Dashtainer\Util;
 
-use Doctrine\Common\Collections;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class Secret
 {
@@ -25,9 +25,36 @@ class Secret
      */
     public function deleteAllForService(Entity\Service $service)
     {
-        $this->repo->deleteSecrets($service);
-        $this->repo->deleteServiceSecrets($service);
-        $this->repo->deleteGrantedNotOwned($service);
+        $project = $service->getProject();
+
+        foreach ($this->repo->findOwnedProjectSecrets($service) as $projectSecret) {
+            foreach ($projectSecret->getServiceSecrets() as $serviceSecret) {
+                $subService = $serviceSecret->getService();
+
+                $projectSecret->removeServiceSecret($serviceSecret);
+                $projectSecret->setOwner(null);
+                $subService->removeSecret($serviceSecret);
+                $this->repo->remove($serviceSecret);
+            }
+
+            $project->removeSecret($projectSecret);
+            $this->repo->remove($projectSecret);
+        }
+
+        foreach ($this->repo->findOwnedServiceSecrets($service) as $serviceSecret) {
+            $service->removeSecret($serviceSecret);
+            $serviceSecret->setProjectSecret(null);
+            $this->repo->remove($serviceSecret);
+        }
+
+        foreach ($this->repo->findGranted($service) as $serviceSecret) {
+            if ($projectSecret = $serviceSecret->getProjectSecret()) {
+                $projectSecret->removeServiceSecret($serviceSecret);
+            }
+
+            $service->removeSecret($serviceSecret);
+            $this->repo->remove($serviceSecret);
+        }
     }
 
     /**
@@ -36,14 +63,14 @@ class Secret
      * @param Entity\Project     $project
      * @param Entity\ServiceType $serviceType
      * @param array              $internalSecretsArray
-     * @return array
+     * @return ArrayCollection[]
      */
     public function getForNewService(
         Entity\Project $project,
         Entity\ServiceType $serviceType,
         array $internalSecretsArray
-    ) {
-        $internal = new Collections\ArrayCollection();
+    ) : array {
+        $internal = new ArrayCollection();
 
         foreach ($internalSecretsArray as $metaName) {
             $data = $serviceType->getMeta($metaName)->getData();
@@ -65,7 +92,7 @@ class Secret
 
         return [
             'owned'     => $internal,
-            'granted'   => [],
+            'granted'   => new ArrayCollection(),
             'grantable' => $this->getAllServiceSecrets($project),
         ];
     }
@@ -76,35 +103,52 @@ class Secret
      * @param Entity\Service     $service
      * @param Entity\ServiceType $serviceType
      * @param array              $internalSecretsArray
-     * @return array
+     * @return ArrayCollection[]
      */
     public function getForExistingService(
         Entity\Service $service,
         Entity\ServiceType $serviceType,
         array $internalSecretsArray
-    ) {
-        $internal = new Collections\ArrayCollection();
+    ) : array {
+        $owned = new ArrayCollection();
 
-        $internalNames = [];
+        $internalMetaSecrets = [];
         foreach ($internalSecretsArray as $metaName) {
             if (!$meta = $serviceType->getMeta($metaName)) {
                 continue;
             }
 
             $data = $meta->getData();
-            $internalNames []= $data['name'];
+            $internalMetaSecrets [$data['name']]= $data;
         }
 
-        foreach ($this->getInternalFromNames($service, $internalNames) as $name => $secret) {
-            $internal->set($name, $secret);
+        $existingInternal = $this->getInternalFromNames($service, array_keys($internalMetaSecrets));
+        foreach ($existingInternal as $name => $secret) {
+            if (empty($secret)) {
+                $data = $internalMetaSecrets[$name];
+
+                $projectSecret = new Entity\Secret();
+                $projectSecret->fromArray(['id' => $data['name']]);
+                $projectSecret->setName($data['name'])
+                    ->setData($data['data']);
+
+                $secret = new Entity\ServiceSecret();
+                $secret->fromArray(['id' => $data['name']]);
+                $secret->setName($data['name'])
+                    ->setTarget($data['name'])
+                    ->setIsInternal(true)
+                    ->setProjectSecret($projectSecret);
+            }
+
+            $owned->set($name, $secret);
         }
 
         foreach ($this->getNotInternal($service) as $name => $secret) {
-            $internal->set($name, $secret);
+            $owned->set($name, $secret);
         }
 
         return [
-            'owned'     => $internal,
+            'owned'     => $owned,
             'granted'   => $this->getGranted($service),
             'grantable' => $this->getNotGranted($service),
         ];
@@ -114,9 +158,9 @@ class Secret
      * All Service Secrets belonging to Project
      *
      * @param Entity\Project $project
-     * @return Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
+     * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
      */
-    public function getAllServiceSecrets(Entity\Project $project) : array
+    public function getAllServiceSecrets(Entity\Project $project) : ArrayCollection
     {
         return $this->sortServiceSecrets($this->repo->findAllServiceSecretsByProject($project));
     }
@@ -127,7 +171,7 @@ class Secret
      * ex: MySQL database, root password, username
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
+     * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
     public function getInternal(Entity\Service $service) : array
     {
@@ -138,9 +182,9 @@ class Secret
      * Owned, not internal
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
+     * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getNotInternal(Entity\Service $service) : array
+    public function getNotInternal(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceSecrets($this->repo->findNotInternal($service));
     }
@@ -149,9 +193,9 @@ class Secret
      * Granted, not owned
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceSecret[] Keyed by Entity\Secret.name
+     * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getGranted(Entity\Service $service) : array
+    public function getGranted(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceSecrets($this->repo->findGranted($service));
     }
@@ -160,9 +204,9 @@ class Secret
      * Not granted
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
+     * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\ServiceSecret.name
      */
-    public function getNotGranted(Entity\Service $service) : array
+    public function getNotGranted(Entity\Service $service) : ArrayCollection
     {
         $project = $service->getProject();
 
@@ -321,7 +365,14 @@ class Secret
         $project = $service->getProject();
 
         // Clear existing granted Secrets from Service
-        $this->repo->deleteGrantedNotOwned($service);
+        foreach ($this->repo->findGranted($service) as $serviceSecret) {
+            if ($projectSecret = $serviceSecret->getProjectSecret()) {
+                $projectSecret->removeServiceSecret($serviceSecret);
+            }
+
+            $service->removeSecret($serviceSecret);
+            $this->repo->remove($serviceSecret);
+        }
 
         if (empty($toGrant)) {
             return;
@@ -378,33 +429,35 @@ class Secret
             $sorted [$secret->getName()]= $secret;
         }
 
-        return array_filter($sorted);
+        return $sorted;
     }
 
     /**
      * Sorts Service Secrets by owner Service name then Secret name
      *
      * @param Entity\ServiceSecret[] $serviceSecrets
-     * @return Entity\ServiceSecret[]
+     * @return ArrayCollection|Entity\ServiceSecret[]
      */
-    private function sortServiceSecrets(array $serviceSecrets) : array
+    private function sortServiceSecrets(array $serviceSecrets) : ArrayCollection
     {
-        $arr = [];
+        $serviceArr = [];
 
         foreach ($serviceSecrets as $serviceSecret) {
             $projectSecret = $serviceSecret->getProjectSecret();
             $owner         = $projectSecret->getOwner();
 
-            $arr [$owner->getSlug()][$projectSecret->getName()]= $serviceSecret;
+            $serviceArr [$owner->getSlug()][$projectSecret->getName()]= $serviceSecret;
         }
 
-        ksort($arr);
+        ksort($serviceArr);
 
-        $sorted = [];
-        foreach ($arr as $key => $secrets) {
-            ksort($arr[$key]);
+        $sorted = new ArrayCollection();
+        foreach ($serviceArr as $secrets) {
+            ksort($secrets);
 
-            $sorted = array_merge($sorted, $arr[$key]);
+            foreach ($secrets as $projectSecretName => $serviceSecret) {
+                $sorted->set($projectSecretName, $serviceSecret);
+            }
         }
 
         return $sorted;
