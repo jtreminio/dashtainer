@@ -50,7 +50,7 @@ abstract class DomainAbstract extends KernelTestCase
         return $secret;
     }
 
-    protected function createServiceSecrete(string $name) : Entity\ServiceSecret
+    protected function createServiceSecret(string $name) : Entity\ServiceSecret
     {
         $secret = new Entity\ServiceSecret();
         $secret->fromArray(['id' => $name]);

@@ -29,13 +29,13 @@ class SecretTest extends DomainAbstract
         $projectSecretB = $this->createProjectSecret('project-secret-b');
         $projectSecretC = $this->createProjectSecret('project-secret-c');
 
-        $serviceSecretA = $this->createServiceSecrete('service-secret-a');
-        $serviceSecretB = $this->createServiceSecrete('service-secret-b');
-        $serviceSecretC = $this->createServiceSecrete('service-secret-c');
-        $serviceSecretD = $this->createServiceSecrete('service-secret-d');
-        $serviceSecretE = $this->createServiceSecrete('service-secret-e');
-        $serviceSecretF = $this->createServiceSecrete('service-secret-f');
-        $serviceSecretG = $this->createServiceSecrete('service-secret-g');
+        $serviceSecretA = $this->createServiceSecret('service-secret-a');
+        $serviceSecretB = $this->createServiceSecret('service-secret-b');
+        $serviceSecretC = $this->createServiceSecret('service-secret-c');
+        $serviceSecretD = $this->createServiceSecret('service-secret-d');
+        $serviceSecretE = $this->createServiceSecret('service-secret-e');
+        $serviceSecretF = $this->createServiceSecret('service-secret-f');
+        $serviceSecretG = $this->createServiceSecret('service-secret-g');
 
         $serviceA = $this->createService('service-a');
         $serviceB = $this->createService('service-b');
@@ -134,8 +134,8 @@ class SecretTest extends DomainAbstract
         $grantableProjectSecretA    = $this->createProjectSecret('project-secret-a');
         $notGrantableProjectSecretB = $this->createProjectSecret('project-secret-b');
 
-        $grantableServiceSecretA    = $this->createServiceSecrete('service-secret-a');
-        $notGrantableServiceSecretB = $this->createServiceSecrete('service-secret-b');
+        $grantableServiceSecretA    = $this->createServiceSecret('service-secret-a');
+        $notGrantableServiceSecretB = $this->createServiceSecret('service-secret-b');
 
         $serviceA = $this->createService('service-a');
 
@@ -210,8 +210,8 @@ class SecretTest extends DomainAbstract
         $grantedProjectSecretA   = $this->createProjectSecret('project-secret-a');
         $grantableProjectSecretB = $this->createProjectSecret('project-secret-b');
 
-        $grantedServiceSecretA   = $this->createServiceSecrete('service-secret-a');
-        $grantableServiceSecretB = $this->createServiceSecrete('service-secret-b');
+        $grantedServiceSecretA   = $this->createServiceSecret('service-secret-a');
+        $grantableServiceSecretB = $this->createServiceSecret('service-secret-b');
 
         $serviceA = $this->createService('service-a');
 
@@ -261,9 +261,9 @@ class SecretTest extends DomainAbstract
         $internalProjectSecretA = $this->createProjectSecret('internal_secret_a-project_secret');
         $ownedProjectSecretA    = $this->createProjectSecret('owned_secret');
 
-        $internalServiceSecretA  = $this->createServiceSecrete('internal_secret_a');
-        $grantedServiceSecretA_A = $this->createServiceSecrete('service-secret-a-granted');
-        $ownedServiceSecret      = $this->createServiceSecrete('owned_secret');
+        $internalServiceSecretA  = $this->createServiceSecret('internal_secret_a');
+        $grantedServiceSecretA_A = $this->createServiceSecret('service-secret-a-granted');
+        $ownedServiceSecret      = $this->createServiceSecret('owned_secret');
 
         $currentService = $this->createService('current-service');
         $project->addService($currentService);
