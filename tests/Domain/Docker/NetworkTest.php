@@ -8,9 +8,8 @@ use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class NetworkTest extends KernelTestCase
+class NetworkTest extends DomainAbstract
 {
     /** @var Network */
     protected $network;
@@ -22,39 +21,6 @@ class NetworkTest extends KernelTestCase
             ->getMock();
 
         $this->network = new Network(new Mock\RepoDockerNetwork($em));
-    }
-
-    protected function createPrivateNetwork() : Entity\Network
-    {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => 'private']);
-        $network->setName($network->getId())
-            ->setIsPublic(false)
-            ->setIsEditable(false);
-
-        return $network;
-    }
-
-    protected function createPublicNetwork() : Entity\Network
-    {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => 'public']);
-        $network->setName($network->getId())
-            ->setIsPublic(true)
-            ->setIsEditable(false);
-
-        return $network;
-    }
-
-    protected function createNetwork(string $name) : Entity\Network
-    {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => $name]);
-        $network->setName($name)
-            ->setIsPublic(false)
-            ->setIsEditable(true);
-
-        return $network;
     }
 
     public function testGetForNewServiceReturnsNetworks()

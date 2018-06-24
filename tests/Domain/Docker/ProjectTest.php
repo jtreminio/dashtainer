@@ -10,9 +10,8 @@ use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class ProjectTest extends KernelTestCase
+class ProjectTest extends DomainAbstract
 {
     /** @var Project */
     protected $project;

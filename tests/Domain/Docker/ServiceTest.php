@@ -8,9 +8,8 @@ use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class ServiceTest extends KernelTestCase
+class ServiceTest extends DomainAbstract
 {
     /** @var Service */
     protected $service;
@@ -22,34 +21,6 @@ class ServiceTest extends KernelTestCase
             ->getMock();
 
         $this->service = new Service(new Mock\RepoDockerService($em));
-    }
-
-    protected function createService(string $name) : Entity\Service
-    {
-        $service = new Entity\Service();
-        $service->fromArray(['id' => $name]);
-        $service->setName($service->getId());
-
-        return $service;
-    }
-
-    protected function createServiceType(string $name) : Entity\ServiceType
-    {
-        $serviceType = new Entity\ServiceType();
-        $serviceType->fromArray(['id' => $name]);
-        $serviceType->setName($serviceType->getId());
-
-        return $serviceType;
-    }
-
-    protected function createPort(string $id, int $published, int $target) : Entity\ServicePort
-    {
-        $port = new Entity\ServicePort();
-        $port->fromArray(['id' => $id]);
-        $port->setPublished($published)
-            ->setTarget($target);
-
-        return $port;
     }
 
     public function testGenerateNameReturnsServiceTypeNameOnNoExistingServicesOfType()

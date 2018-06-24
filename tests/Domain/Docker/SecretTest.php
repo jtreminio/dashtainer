@@ -7,11 +7,9 @@ use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
-use Doctrine\Common\Collections;
 use PHPUnit\Framework\MockObject\MockObject;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class SecretTest extends KernelTestCase
+class SecretTest extends DomainAbstract
 {
     /** @var Secret */
     protected $secret;
@@ -23,33 +21,6 @@ class SecretTest extends KernelTestCase
             ->getMock();
 
         $this->secret = new Secret(new Mock\RepoDockerSecret($em));
-    }
-
-    protected function createProjectSecret(string $name) : Entity\Secret
-    {
-        $secret = new Entity\Secret();
-        $secret->fromArray(['id' => $name]);
-        $secret->setName($secret->getId());
-
-        return $secret;
-    }
-
-    protected function createServiceSecrete(string $name) : Entity\ServiceSecret
-    {
-        $secret = new Entity\ServiceSecret();
-        $secret->fromArray(['id' => $name]);
-        $secret->setName($secret->getId());
-
-        return $secret;
-    }
-
-    protected function createService(string $name) : Entity\Service
-    {
-        $service = new Entity\Service();
-        $service->fromArray(['id' => $name]);
-        $service->setName($service->getId());
-
-        return $service;
     }
 
     public function testDeleteAllForService()
