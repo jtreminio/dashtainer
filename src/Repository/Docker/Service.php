@@ -51,7 +51,7 @@ class Service extends Repository\ObjectPersistAbstract
             ->select('s')
             ->from('Dashtainer:Docker\Service', 's')
             ->join('s.type', 'st')
-            ->andWhere('st.is_public != 0')
+            ->andWhere('st.is_public <> 0')
             ->andWhere('s.project = :project')
             ->setParameters([
                 'project' => $project,

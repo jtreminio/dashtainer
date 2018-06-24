@@ -2,36 +2,16 @@
 
 namespace Dashtainer\Tests\Mock;
 
-use Dashtainer\Entity;
+use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker\Service;
 
 class RepoDockerService extends Service
 {
-    public function findByProjectAndType(
-        Entity\Docker\Project $project,
-        Entity\Docker\ServiceType $type
-    ): array {
-        $services = [];
-
+    public function findByProjectAndId(Entity\Project $project, string $id) : ?Entity\Service
+    {
         foreach ($project->getServices() as $service) {
-            $serviceType = $service->getType();
-
-            if ($serviceType->getName() == $type->getName()) {
-                $services []= $service;
-            }
-        }
-
-        return $services;
-    }
-
-    public function findChildByType(
-        Entity\Docker\Service $parent,
-        Entity\Docker\ServiceType $childType
-    ): ?Entity\Docker\Service {
-        foreach ($parent->getChildren() as $service) {
-            $serviceType = $service->getType();
-
-            if ($serviceType->getName() == $childType->getName()) {
+            // ->andWhere('s.id = :id')
+            if ($service->getId() === $id) {
                 return $service;
             }
         }
@@ -39,17 +19,106 @@ class RepoDockerService extends Service
         return null;
     }
 
-    public function getProjectBindPorts(Entity\Docker\Project $project) : array
+    public function findAllByProject(Entity\Project $project) : array
     {
+        return $project->getServices()->toArray();
+    }
+
+    public function findAllPublicByProject(Entity\Project $project) : array
+    {
+        $services = [];
+
+        foreach ($project->getServices() as $service) {
+            $type = $service->getType();
+
+            // ->andWhere('st.is_public <> 0')
+            if ($type->getIsPublic()) {
+                $services []= $service;
+            }
+        }
+
+        return $services;
+    }
+
+    public function findByProjectAndName(Entity\Project $project, string $name) : ?Entity\Service
+    {
+        foreach ($project->getServices() as $service) {
+            // ->andWhere('s.name = :name')
+            if ($service->getName() === $name) {
+                return $service;
+            }
+        }
+
+        return null;
+    }
+
+    public function findByProjectAndType(Entity\Project $project, Entity\ServiceType $type) : array
+    {
+        $services = [];
+
+        foreach ($project->getServices() as $service) {
+            $serviceType = $service->getType();
+
+            // ->andWhere('s.type = :type')
+            if ($serviceType->getName() !== $type->getName()) {
+                continue;
+            }
+
+            $services []= $service;
+        }
+
+        return $services;
+    }
+
+    public function findChildByType(
+        Entity\Service $parent,
+        Entity\ServiceType $childType
+    ) : ?Entity\Service {
+        // ->andWhere('s.parent = :parent')
+        foreach ($parent->getChildren() as $child) {
+            $serviceType = $child->getType();
+
+            // ->andWhere('s.type = :type')
+            if ($serviceType->getName() === $childType->getName()) {
+                return $child;
+            }
+        }
+
+        return null;
+    }
+
+    public function findByNotNetwork(Entity\Network $network) : array
+    {
+        $services = [];
+
+        $project = $network->getProject();
+
+        foreach ($project->getServices() as $service) {
+            // ->andWhere(':network NOT MEMBER OF s.networks')
+            if ($network->getServices()->contains($services)) {
+                continue;
+            }
+
+            $services []= $service;
+        }
+
+        return $services;
+    }
+
+    public function getProjectPorts(
+        Entity\Project $project,
+        Entity\Service $excludeService = null
+    ) : array {
         $ports = [];
 
         foreach ($project->getServices() as $service) {
-            foreach ($service->getMetas() as $meta) {
-                if ($meta->getName() !== 'bind-port') {
-                    continue;
-                }
+            // $qb->andWhere('sp.service <> :service');
+            if ($excludeService && $excludeService->getName() === $service->getName()) {
+                continue;
+            }
 
-                $ports []= $meta->getData();
+            foreach ($service->getPorts() as $port) {
+                $ports []= $port;
             }
         }
 

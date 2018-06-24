@@ -3,10 +3,8 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Domain\Docker\Service;
-use Dashtainer\Domain\Docker\WorkerBag;
-use Dashtainer\Entity;
-use Dashtainer\Form;
-use Dashtainer\Repository;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Tests\Mock;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -14,67 +12,82 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ServiceTest extends KernelTestCase
 {
-    /** @var WorkerBag */
-    protected $manager;
-
     /** @var Service */
     protected $service;
 
-    /** @var MockObject|Repository\Docker\Service */
-    protected $serviceRepo;
-
     protected function setUp()
     {
+        /** @var $em MockObject|ORM\EntityManagerInterface */
         $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
             ->getMock();
 
-        $this->serviceRepo = $this->getMockBuilder(Repository\Docker\Service::class)
-            ->setConstructorArgs([$em])
-            ->getMock();
+        $this->service = new Service(new Mock\RepoDockerService($em));
+    }
 
-        $this->manager = $this->getMockBuilder(WorkerBag::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+    protected function createService(string $name) : Entity\Service
+    {
+        $service = new Entity\Service();
+        $service->fromArray(['id' => $name]);
+        $service->setName($service->getId());
 
-        $this->service = new Service($this->serviceRepo, $this->manager);
+        return $service;
+    }
+
+    protected function createServiceType(string $name) : Entity\ServiceType
+    {
+        $serviceType = new Entity\ServiceType();
+        $serviceType->fromArray(['id' => $name]);
+        $serviceType->setName($serviceType->getId());
+
+        return $serviceType;
+    }
+
+    protected function createPort(string $id, int $published, int $target) : Entity\ServicePort
+    {
+        $port = new Entity\ServicePort();
+        $port->fromArray(['id' => $id]);
+        $port->setPublished($published)
+            ->setTarget($target);
+
+        return $port;
     }
 
     public function testGenerateNameReturnsServiceTypeNameOnNoExistingServicesOfType()
     {
-        $project     = new Entity\Docker\Project();
-        $serviceType = new Entity\Docker\ServiceType();
-        $serviceType->setSlug('service-type-slug');
-        $version     = null;
+        $project = new Entity\Project();
 
-        $services = [];
+        $serviceTypeA = $this->createServiceType('service-type-a');
+        $serviceTypeB = $this->createServiceType('service-type-b');
 
-        $this->serviceRepo->expects($this->once())
-            ->method('findBy')
-            ->with(['project' => $project, 'type' => $serviceType])
-            ->will($this->returnValue($services));
+        $serviceA = $this->createService('service-a');
+        $serviceA->setType($serviceTypeA);
 
-        $result = $this->service->generateName($project, $serviceType, $version);
+        $project->addService($serviceA);
 
-        $this->assertEquals('service-type-slug', $result);
+        $version = null;
+
+        $result = $this->service->generateName($project, $serviceTypeB, $version);
+
+        $this->assertEquals('service-type-b', $result);
     }
 
     public function testGenerateNameReturnsServiceTypeNameWithVersionOnNoExistingServicesOfType()
     {
-        $project     = new Entity\Docker\Project();
-        $serviceType = new Entity\Docker\ServiceType();
-        $serviceType->setSlug('service-type-slug');
-        $version     = 1.2;
+        $project = new Entity\Project();
 
-        $services = [];
+        $serviceTypeA = $this->createServiceType('service-type-a');
+        $serviceTypeB = $this->createServiceType('service-type-b');
 
-        $this->serviceRepo->expects($this->once())
-            ->method('findBy')
-            ->with(['project' => $project, 'type' => $serviceType])
-            ->will($this->returnValue($services));
+        $serviceA = $this->createService('service-a');
+        $serviceA->setType($serviceTypeA);
 
-        $result = $this->service->generateName($project, $serviceType, $version);
+        $project->addService($serviceA);
 
-        $this->assertEquals('service-type-slug-1-2', $result);
+        $version = 1.2;
+
+        $result = $this->service->generateName($project, $serviceTypeB, $version);
+
+        $this->assertEquals('service-type-b-1-2', $result);
     }
 
     /**
@@ -86,19 +99,17 @@ class ServiceTest extends KernelTestCase
     public function testGenerateNameReturnsNameWithCountAppended(
         array $serviceNames, string $version, string $expected
     ) {
-        $project     = new Entity\Docker\Project();
-        $serviceType = new Entity\Docker\ServiceType();
-        $serviceType->setSlug('service-name');
+        $project = new Entity\Project();
 
-        $services = [];
+        $serviceType = $this->createServiceType('service-type');
+
         foreach ($serviceNames as $serviceName) {
-            $services []= (new Entity\Docker\Service())->setName($serviceName);
-        }
+            $service = $this->createService($serviceName);
+            $service->setVersion($version)
+                ->setType($serviceType);
 
-        $this->serviceRepo->expects($this->once())
-            ->method('findBy')
-            ->with(['project' => $project, 'type' => $serviceType])
-            ->will($this->returnValue($services));
+            $project->addService($service);
+        }
 
         $result = $this->service->generateName($project, $serviceType, $version);
 
@@ -108,80 +119,65 @@ class ServiceTest extends KernelTestCase
     public function providerGenerateNameReturnsNameWithCountAppended()
     {
         yield [
-            ['service-name', 'service-name-1'], '', 'service-name-2'
+            ['service-type', 'service-type-1'], '', 'service-type-2'
         ];
 
         yield [
-            ['service-name-1'], '', 'service-name-2'
+            ['service-type-1'], '', 'service-type-2'
         ];
 
         yield [
-            ['service-name', 'service-name-1'], '7.2', 'service-name-7-2-1'
+            ['service-type', 'service-type-1'], '7.2', 'service-type-7-2-1'
         ];
 
         yield [
-            ['service-name-1'], '7.2', 'service-name-7-2-1'
+            ['service-type-1'], '7.2', 'service-type-7-2-1'
         ];
 
         yield [
-            [], '', 'service-name'
+            [], '', 'service-type'
         ];
 
         yield [
-            [], '7.2', 'service-name-7-2'
+            [], '7.2', 'service-type-7-2'
         ];
     }
 
-    public function testValidateByNameReturnsNoDiffWhenAllServiceNamesExist()
+    public function testGetUsedPublishedPorts()
     {
-        $project = new Entity\Docker\Project();
+        $project = new Entity\Project();
 
-        $serviceA = new Entity\Docker\Service();
-        $serviceA->setName('serviceA');
+        $serviceType = $this->createServiceType('service-type');
 
-        $serviceB = new Entity\Docker\Service();
-        $serviceB->setName('serviceB');
+        $serviceA = $this->createService('service-a');
+        $portA    = $this->createPort('port-a', 1000, 2000);
+        $serviceA->setType($serviceType)
+            ->addPort($portA);
 
-        $services = [$serviceA, $serviceB];
+        $serviceB = $this->createService('service-b');
+        $portB    = $this->createPort('port-b', 3000, 4000);
+        $serviceB->setType($serviceType)
+            ->addPort($portB);
 
-        $servicesList = ['serviceA', 'serviceB'];
+        $serviceC = $this->createService('service-c');
+        $portC    = $this->createPort('port-c', 5000, 6000);
+        $serviceC->setType($serviceType)
+            ->addPort($portC);
 
-        $this->serviceRepo->expects($this->once())
-            ->method('findBy')
-            ->with([
-                    'project' => $project,
-                    'name'    => $servicesList,
-                ])
-            ->will($this->returnValue($services));
+        $project->addService($serviceA)
+            ->addService($serviceB)
+            ->addService($serviceC);
 
-        $result = $this->service->validateByName($project, $servicesList);
+        $result = $this->service->getUsedPublishedPorts($project, $serviceC);
 
-        $this->assertEmpty($result);
-    }
+        $expected = [
+            'tcp' => [
+                1000,
+                3000,
+            ],
+            'udp' => [],
+        ];
 
-    public function testValidateByNameReturnsDiffWhenAServiceNameDoesNotExist()
-    {
-        $project = new Entity\Docker\Project();
-
-        $serviceA = new Entity\Docker\Service();
-        $serviceA->setName('serviceA');
-
-        $services = [$serviceA];
-
-        $servicesList = ['serviceA', 'serviceB', 'serviceC'];
-
-        $this->serviceRepo->expects($this->once())
-            ->method('findBy')
-            ->with([
-                    'project' => $project,
-                    'name'    => $servicesList,
-                ])
-            ->will($this->returnValue($services));
-
-        $result = $this->service->validateByName($project, $servicesList);
-
-        $expected = ['serviceB', 'serviceC'];
-
-        $this->assertEquals(array_values($expected), array_values($result));
+        $this->assertEquals($expected, $result);
     }
 }
