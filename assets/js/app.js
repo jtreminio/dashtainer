@@ -80,6 +80,12 @@ $(document).ready(function() {
         }
     });
 
+    $(document).on('click', '[data-target="#advanced-options"]', function(e) {
+        $.each($('#advanced-options').find('table.table-scroll'), function(_, element) {
+            $(this).floatThead('reflow');
+        });
+    });
+
     new Sticky('[data-sticky]', {
         marginTop: 130,
     });
