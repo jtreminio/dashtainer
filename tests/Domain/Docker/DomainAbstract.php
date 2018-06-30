@@ -8,6 +8,17 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class DomainAbstract extends KernelTestCase
 {
+    protected function createNetwork(string $name) : Entity\Network
+    {
+        $network = new Entity\Network();
+        $network->fromArray(['id' => $name]);
+        $network->setName($name)
+            ->setIsPublic(false)
+            ->setIsEditable(true);
+
+        return $network;
+    }
+
     protected function createPrivateNetwork() : Entity\Network
     {
         $network = new Entity\Network();
@@ -30,15 +41,13 @@ abstract class DomainAbstract extends KernelTestCase
         return $network;
     }
 
-    protected function createNetwork(string $name) : Entity\Network
+    protected function createProject(string $name) : Entity\Project
     {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => $name]);
-        $network->setName($name)
-            ->setIsPublic(false)
-            ->setIsEditable(true);
+        $project = new Entity\Project();
+        $project->fromArray(['id' => $name]);
+        $project->setName($project->getId());
 
-        return $network;
+        return $project;
     }
 
     protected function createProjectSecret(string $name) : Entity\Secret
@@ -68,6 +77,24 @@ abstract class DomainAbstract extends KernelTestCase
         return $service;
     }
 
+    protected function createServiceCategory(string $name) : Entity\ServiceCategory
+    {
+        $category = new Entity\ServiceCategory();
+        $category->fromArray(['id' => $name]);
+        $category->setName($category->getId());
+
+        return $category;
+    }
+
+    protected function createServiceMeta(string $name) : Entity\ServiceMeta
+    {
+        $meta = new Entity\ServiceMeta();
+        $meta->fromArray(['id' => $name]);
+        $meta->setName($meta->getId());
+
+        return $meta;
+    }
+
     protected function createServiceType(string $name) : Entity\ServiceType
     {
         $serviceType = new Entity\ServiceType();
@@ -85,5 +112,23 @@ abstract class DomainAbstract extends KernelTestCase
             ->setTarget($target);
 
         return $port;
+    }
+
+    protected function createProjectVolume(string $name) : Entity\Volume
+    {
+        $volume = new Entity\Volume();
+        $volume->fromArray(['id' => $name]);
+        $volume->setName($volume->getId());
+
+        return $volume;
+    }
+
+    protected function createServiceVolume(string $name) : Entity\ServiceVolume
+    {
+        $volume = new Entity\ServiceVolume();
+        $volume->fromArray(['id' => $name]);
+        $volume->setName($volume->getId());
+
+        return $volume;
     }
 }
