@@ -46,119 +46,83 @@ class ProjectTest extends DomainAbstract
 
     public function testDeleteTraversesChildren()
     {
-        $project = new Entity\Project();
-        $project->setName('Project Name');
+        $project = $this->createProject('Project Name');
 
-        $networkA = new Entity\Network();
-        $networkA->setName('network-a')
-            ->setProject($project);
+        $networkA = $this->createNetwork('network-a');
         $project->addNetwork($networkA);
 
-        $networkB = new Entity\Network();
-        $networkB->setName('network-b')
-            ->setProject($project);
+        $networkB = $this->createNetwork('network-b');
         $project->addNetwork($networkB);
 
-        $projectSecretA = new Entity\Secret();
-        $projectSecretA->setName('secret-a')
-            ->setProject($project);
+        $projectSecretA = $this->createProjectSecret('secret-a');
         $project->addSecret($projectSecretA);
 
-        $serviceSecretA = new Entity\ServiceSecret();
-        $serviceSecretA->setProjectSecret($projectSecretA);
+        $serviceSecretA = $this->createServiceSecret('service-secret-a');
+        $projectSecretA->addServiceSecret($serviceSecretA);
 
-        $projectSecretB = new Entity\Secret();
-        $projectSecretB->setName('secret-b')
-            ->setProject($project);
+        $projectSecretB = $this->createProjectSecret('secret-b');
         $project->addSecret($projectSecretB);
 
-        $serviceSecretB = new Entity\ServiceSecret();
-        $serviceSecretB->setProjectSecret($projectSecretB);
+        $serviceSecretB = $this->createServiceSecret('service-secret-b');
+        $projectSecretB->addServiceSecret($serviceSecretB);
 
-        $volumeA = new Entity\Volume();
-        $volumeA->setName('volume-a')
-            ->setProject($project);
+        $volumeA = $this->createProjectVolume('volume-a');
         $project->addVolume($volumeA);
 
-        $volumeB = new Entity\Volume();
-        $volumeB->setName('volume-b')
-            ->setProject($project);
+        $volumeB = $this->createProjectVolume('volume-b');
         $project->addVolume($volumeB);
 
         // Service A
 
-        $serviceA = new Entity\Service();
-        $serviceA->setName('servica-a')
-            ->setProject($project);
+        $serviceA = $this->createService('service-a');
         $project->addService($serviceA);
 
-        $serviceAMetaA = new Entity\ServiceMeta();
-        $serviceAMetaA->setName('service-a-meta-a')
-            ->setService($serviceA);
+        $serviceAMetaA = $this->createServiceMeta('service-a-meta-a');
         $serviceA->addMeta($serviceAMetaA);
 
-        $serviceAMetaB = new Entity\ServiceMeta();
-        $serviceAMetaB->setName('service-a-meta-b')
-            ->setService($serviceA);
+        $serviceAMetaB = $this->createServiceMeta('service-a-meta-b');
         $serviceA->addMeta($serviceAMetaB);
 
-        $serviceAVolumeA = new Entity\ServiceVolume();
-        $serviceAVolumeA->setName('service-a-volume-a')
-            ->setService($serviceA)
-            ->setProjectVolume($volumeA);
+        $serviceAPortA = $this->createPort('port-a', 8080, 8081);
+        $serviceA->addPort($serviceAPortA);
+
+        $serviceAVolumeA = $this->createServiceVolume('service-a-volume-a');
         $serviceA->addVolume($serviceAVolumeA);
         $volumeA->addServiceVolume($serviceAVolumeA);
 
-        $serviceAVolumeB = new Entity\ServiceVolume();
-        $serviceAVolumeB->setName('service-a-volume-b')
-            ->setService($serviceA)
-            ->setProjectVolume($volumeA);
+        $serviceAVolumeB = $this->createServiceVolume('service-a-volume-b');
         $serviceA->addVolume($serviceAVolumeB);
         $volumeA->addServiceVolume($serviceAVolumeB);
 
         $networkA->addService($serviceA);
-        $serviceA->addNetwork($networkA);
 
-        $serviceSecretA->setService($serviceA)
-            ->setProjectSecret($projectSecretA);
         $projectSecretA->setOwner($serviceA);
         $serviceA->addSecret($serviceSecretA);
 
         // Service B
 
-        $serviceB = new Entity\Service();
-        $serviceB->setName('servica-b')
-            ->setProject($project);
+        $serviceB = $this->createService('service-b');
         $project->addService($serviceB);
 
-        $serviceB->setParent($serviceA);
         $serviceA->addChild($serviceB);
 
-        $serviceBMetaA = new Entity\ServiceMeta();
-        $serviceBMetaA->setName('service-b-meta-a')
-            ->setService($serviceB);
+        $serviceBMetaA = $this->createServiceMeta('service-b-meta-a');
         $serviceB->addMeta($serviceBMetaA);
 
-        $serviceBMetaB = new Entity\ServiceMeta();
-        $serviceBMetaB->setName('service-b-meta-b')
-            ->setService($serviceB);
+        $serviceBMetaB = $this->createServiceMeta('service-b-meta-b');
         $serviceB->addMeta($serviceBMetaB);
 
-        $serviceBVolumeA = new Entity\ServiceVolume();
-        $serviceBVolumeA->setName('service-b-volume-a')
-            ->setService($serviceB);
+        $serviceBPortA = $this->createPort('port-b', 8080, 8081);
+        $serviceB->addPort($serviceBPortA);
+
+        $serviceBVolumeA = $this->createServiceVolume('service-b-volume-a');
         $serviceB->addVolume($serviceBVolumeA);
 
-        $serviceBVolumeB = new Entity\ServiceVolume();
-        $serviceBVolumeB->setName('service-b-volume-b')
-            ->setService($serviceB);
+        $serviceBVolumeB = $this->createServiceVolume('service-b-volume-b');
         $serviceB->addVolume($serviceBVolumeB);
 
         $networkB->addService($serviceB);
-        $serviceB->addNetwork($networkB);
 
-        $serviceSecretB->setService($serviceB)
-            ->setProjectSecret($projectSecretB);
         $projectSecretB->setOwner($serviceB);
         $serviceB->addSecret($serviceSecretB);
 
@@ -180,10 +144,12 @@ class ProjectTest extends DomainAbstract
 
         $this->assertEmpty($serviceA->getVolumes());
         $this->assertEmpty($serviceA->getMetas());
+        $this->assertEmpty($serviceA->getPorts());
         $this->assertEmpty($serviceA->getSecrets());
 
         $this->assertEmpty($serviceB->getVolumes());
         $this->assertEmpty($serviceB->getMetas());
+        $this->assertEmpty($serviceB->getPorts());
         $this->assertEmpty($serviceB->getSecrets());
     }
 }
