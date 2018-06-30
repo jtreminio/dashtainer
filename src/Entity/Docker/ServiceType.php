@@ -221,6 +221,10 @@ class ServiceType implements
 
     public function getSlug() : string
     {
+        if (!$this->slug) {
+            $this->setSlug($this->getName());
+        }
+
         return $this->slug;
     }
 
