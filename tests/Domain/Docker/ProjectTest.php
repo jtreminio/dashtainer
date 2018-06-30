@@ -3,13 +3,9 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Domain\Docker\Project;
-use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Entity\User;
 use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Mock;
-
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class ProjectTest extends DomainAbstract
 {
@@ -18,11 +14,7 @@ class ProjectTest extends DomainAbstract
 
     protected function setUp()
     {
-        /** @var $em MockObject|ORM\EntityManagerInterface */
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->project = new Project(new Mock\RepoDockerProject($em));
+        $this->project = new Project(new Mock\RepoDockerProject($this->getEm()));
     }
 
     public function testCreateFromFormCreatesProject()

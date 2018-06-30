@@ -6,9 +6,6 @@ use Dashtainer\Domain\Docker\Service;
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Tests\Mock;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-
 class ServiceTest extends DomainAbstract
 {
     /** @var Service */
@@ -16,16 +13,12 @@ class ServiceTest extends DomainAbstract
 
     protected function setUp()
     {
-        /** @var $em MockObject|ORM\EntityManagerInterface */
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->service = new Service(new Mock\RepoDockerService($em));
+        $this->service = new Service(new Mock\RepoDockerService($this->getEm()));
     }
 
     public function testGenerateNameReturnsServiceTypeNameOnNoExistingServicesOfType()
     {
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
 
         $serviceTypeA = $this->createServiceType('service-type-a');
         $serviceTypeB = $this->createServiceType('service-type-b');
@@ -44,7 +37,7 @@ class ServiceTest extends DomainAbstract
 
     public function testGenerateNameReturnsServiceTypeNameWithVersionOnNoExistingServicesOfType()
     {
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
 
         $serviceTypeA = $this->createServiceType('service-type-a');
         $serviceTypeB = $this->createServiceType('service-type-b');
@@ -70,7 +63,7 @@ class ServiceTest extends DomainAbstract
     public function testGenerateNameReturnsNameWithCountAppended(
         array $serviceNames, string $version, string $expected
     ) {
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
 
         $serviceType = $this->createServiceType('service-type');
 
@@ -116,7 +109,7 @@ class ServiceTest extends DomainAbstract
 
     public function testGetUsedPublishedPorts()
     {
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
 
         $serviceType = $this->createServiceType('service-type');
 

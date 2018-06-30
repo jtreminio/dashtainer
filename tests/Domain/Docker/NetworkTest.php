@@ -6,9 +6,6 @@ use Dashtainer\Domain\Docker\Network;
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Tests\Mock;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-
 class NetworkTest extends DomainAbstract
 {
     /** @var Network */
@@ -16,11 +13,7 @@ class NetworkTest extends DomainAbstract
 
     protected function setUp()
     {
-        /** @var $em MockObject|ORM\EntityManagerInterface */
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->network = new Network(new Mock\RepoDockerNetwork($em));
+        $this->network = new Network(new Mock\RepoDockerNetwork($this->getEm()));
     }
 
     public function testGetForNewServiceReturnsNetworks()
@@ -31,7 +24,7 @@ class NetworkTest extends DomainAbstract
         $networkB       = $this->createNetwork('network-b');
         $networkC       = $this->createNetwork('network-c');
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork)
             ->addNetwork($networkA)
@@ -70,12 +63,12 @@ class NetworkTest extends DomainAbstract
         $networkB       = $this->createNetwork('network-b');
         $networkC       = $this->createNetwork('network-c');
 
-        $service = new Entity\Service();
+        $service = $this->createService('service');
         $service->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork)
             ->addNetwork($networkA);
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork)
             ->addNetwork($networkA)
@@ -115,12 +108,12 @@ class NetworkTest extends DomainAbstract
         $networkB       = $this->createNetwork('network-b');
         $networkC       = $this->createNetwork('network-c');
 
-        $service = new Entity\Service();
+        $service = $this->createService('service');
         $service->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork)
             ->addNetwork($networkA);
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addNetwork($privateNetwork)
             ->addNetwork($publicNetwork)
             ->addNetwork($networkA)

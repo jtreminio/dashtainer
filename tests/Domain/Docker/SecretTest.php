@@ -6,9 +6,6 @@ use Dashtainer\Domain\Docker\Secret;
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Tests\Mock;
 
-use Doctrine\ORM;
-use PHPUnit\Framework\MockObject\MockObject;
-
 class SecretTest extends DomainAbstract
 {
     /** @var Secret */
@@ -16,11 +13,7 @@ class SecretTest extends DomainAbstract
 
     protected function setUp()
     {
-        /** @var $em MockObject|ORM\EntityManagerInterface */
-        $em = $this->getMockBuilder(ORM\EntityManagerInterface::class)
-            ->getMock();
-
-        $this->secret = new Secret(new Mock\RepoDockerSecret($em));
+        $this->secret = new Secret(new Mock\RepoDockerSecret($this->getEm()));
     }
 
     public function testDeleteAllForService()
@@ -40,7 +33,7 @@ class SecretTest extends DomainAbstract
         $serviceA = $this->createService('service-a');
         $serviceB = $this->createService('service-b');
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addService($serviceA)
             ->addService($serviceB)
             ->addSecret($projectSecretA)
@@ -139,7 +132,7 @@ class SecretTest extends DomainAbstract
 
         $serviceA = $this->createService('service-a');
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addService($serviceA)
             ->addSecret($grantableProjectSecretA);
 
@@ -152,24 +145,19 @@ class SecretTest extends DomainAbstract
         $serviceA->addSecret($notGrantableServiceSecretB);
         $notGrantableProjectSecretB->addServiceSecret($notGrantableServiceSecretB);
 
-        $serviceType = new Entity\ServiceType();
-        $serviceType->fromArray(['id' => 'service-type']);
+        $serviceType = $this->createServiceType('service-type');
 
-        $metaSecretA = new Entity\ServiceTypeMeta();
-        $metaSecretA->fromArray(['id' => 'internal_secret_a']);
-        $metaSecretA->setName($metaSecretA->getId())
-            ->setData([
-                'name' => 'internal_secret_a',
-                'data' => 'internal_secret_a data',
-            ]);
+        $metaSecretA = $this->createServiceTypeMeta('internal_secret_a');
+        $metaSecretA->setData([
+            'name' => 'internal_secret_a',
+            'data' => 'internal_secret_a data',
+        ]);
 
-        $metaSecretB = new Entity\ServiceTypeMeta();
-        $metaSecretB->fromArray(['id' => 'internal_secret_b']);
-        $metaSecretB->setName($metaSecretB->getId())
-            ->setData([
-                'name' => 'internal_secret_b',
-                'data' => 'internal_secret_b data',
-            ]);
+        $metaSecretB = $this->createServiceTypeMeta('internal_secret_b');
+        $metaSecretB->setData([
+            'name' => 'internal_secret_b',
+            'data' => 'internal_secret_b data',
+        ]);
 
         $serviceType->addMeta($metaSecretA)
             ->addMeta($metaSecretB);
@@ -215,7 +203,7 @@ class SecretTest extends DomainAbstract
 
         $serviceA = $this->createService('service-a');
 
-        $project = new Entity\Project();
+        $project = $this->createProject('project');
         $project->addService($serviceA)
             ->addSecret($grantedProjectSecretA)
             ->addSecret($grantableProjectSecretB);
@@ -234,24 +222,19 @@ class SecretTest extends DomainAbstract
             ->setOwner($serviceA)
             ->setData('project secret b data');
 
-        $serviceType = new Entity\ServiceType();
-        $serviceType->fromArray(['id' => 'service-type']);
+        $serviceType = $this->createServiceType('service-type');
 
-        $metaSecretA = new Entity\ServiceTypeMeta();
-        $metaSecretA->fromArray(['id' => 'internal_secret_a']);
-        $metaSecretA->setName($metaSecretA->getId())
-            ->setData([
-                'name' => 'internal_secret_a',
-                'data' => 'internal_secret_a data',
-            ]);
+        $metaSecretA = $this->createServiceTypeMeta('internal_secret_a');
+        $metaSecretA->setData([
+            'name' => 'internal_secret_a',
+            'data' => 'internal_secret_a data',
+        ]);
 
-        $metaSecretB = new Entity\ServiceTypeMeta();
-        $metaSecretB->fromArray(['id' => 'internal_secret_b']);
-        $metaSecretB->setName($metaSecretB->getId())
-            ->setData([
-                'name' => 'internal_secret_b',
-                'data' => 'internal_secret_b data',
-            ]);
+        $metaSecretB = $this->createServiceTypeMeta('internal_secret_b');
+        $metaSecretB->setData([
+            'name' => 'internal_secret_b',
+            'data' => 'internal_secret_b data',
+        ]);
 
         $serviceType->addMeta($metaSecretA)
             ->addMeta($metaSecretB);
