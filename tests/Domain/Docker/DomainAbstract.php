@@ -4,131 +4,151 @@ namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Entity\Docker as Entity;
 
+use Doctrine\ORM;
+use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 abstract class DomainAbstract extends KernelTestCase
 {
+    /**
+     * @return MockObject|ORM\EntityManagerInterface
+     */
+    protected function getEm() : MockObject
+    {
+        return $this->getMockBuilder(ORM\EntityManagerInterface::class)
+            ->getMock();
+    }
+
     protected function createNetwork(string $name) : Entity\Network
     {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => $name]);
-        $network->setName($name)
+        $entity = new Entity\Network();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId())
             ->setIsPublic(false)
             ->setIsEditable(true);
 
-        return $network;
+        return $entity;
     }
 
     protected function createPrivateNetwork() : Entity\Network
     {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => 'private']);
-        $network->setName($network->getId())
+        $entity = new Entity\Network();
+        $entity->fromArray(['id' => 'private']);
+        $entity->setName($entity->getId())
             ->setIsPublic(false)
             ->setIsEditable(false);
 
-        return $network;
+        return $entity;
     }
 
     protected function createPublicNetwork() : Entity\Network
     {
-        $network = new Entity\Network();
-        $network->fromArray(['id' => 'public']);
-        $network->setName($network->getId())
+        $entity = new Entity\Network();
+        $entity->fromArray(['id' => 'public']);
+        $entity->setName($entity->getId())
             ->setIsPublic(true)
             ->setIsEditable(false);
 
-        return $network;
+        return $entity;
     }
 
     protected function createProject(string $name) : Entity\Project
     {
-        $project = new Entity\Project();
-        $project->fromArray(['id' => $name]);
-        $project->setName($project->getId());
+        $entity = new Entity\Project();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $project;
+        return $entity;
     }
 
     protected function createProjectSecret(string $name) : Entity\Secret
     {
-        $secret = new Entity\Secret();
-        $secret->fromArray(['id' => $name]);
-        $secret->setName($secret->getId());
+        $entity = new Entity\Secret();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $secret;
+        return $entity;
     }
 
     protected function createServiceSecret(string $name) : Entity\ServiceSecret
     {
-        $secret = new Entity\ServiceSecret();
-        $secret->fromArray(['id' => $name]);
-        $secret->setName($secret->getId());
+        $entity = new Entity\ServiceSecret();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $secret;
+        return $entity;
     }
 
     protected function createService(string $name) : Entity\Service
     {
-        $service = new Entity\Service();
-        $service->fromArray(['id' => $name]);
-        $service->setName($service->getId());
+        $entity = new Entity\Service();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $service;
+        return $entity;
     }
 
     protected function createServiceCategory(string $name) : Entity\ServiceCategory
     {
-        $category = new Entity\ServiceCategory();
-        $category->fromArray(['id' => $name]);
-        $category->setName($category->getId());
+        $entity = new Entity\ServiceCategory();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $category;
+        return $entity;
     }
 
     protected function createServiceMeta(string $name) : Entity\ServiceMeta
     {
-        $meta = new Entity\ServiceMeta();
-        $meta->fromArray(['id' => $name]);
-        $meta->setName($meta->getId());
+        $entity = new Entity\ServiceMeta();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $meta;
+        return $entity;
     }
 
     protected function createServiceType(string $name) : Entity\ServiceType
     {
-        $serviceType = new Entity\ServiceType();
-        $serviceType->fromArray(['id' => $name]);
-        $serviceType->setName($serviceType->getId());
+        $entity = new Entity\ServiceType();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $serviceType;
+        return $entity;
+    }
+
+    protected function createServiceTypeMeta(string $name) : Entity\ServiceTypeMeta
+    {
+        $entity = new Entity\ServiceTypeMeta();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
+
+        return $entity;
     }
 
     protected function createPort(string $id, int $published, int $target) : Entity\ServicePort
     {
-        $port = new Entity\ServicePort();
-        $port->fromArray(['id' => $id]);
-        $port->setPublished($published)
+        $entity = new Entity\ServicePort();
+        $entity->fromArray(['id' => $id]);
+        $entity->setPublished($published)
             ->setTarget($target);
 
-        return $port;
+        return $entity;
     }
 
     protected function createProjectVolume(string $name) : Entity\Volume
     {
-        $volume = new Entity\Volume();
-        $volume->fromArray(['id' => $name]);
-        $volume->setName($volume->getId());
+        $entity = new Entity\Volume();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $volume;
+        return $entity;
     }
 
     protected function createServiceVolume(string $name) : Entity\ServiceVolume
     {
-        $volume = new Entity\ServiceVolume();
-        $volume->fromArray(['id' => $name]);
-        $volume->setName($volume->getId());
+        $entity = new Entity\ServiceVolume();
+        $entity->fromArray(['id' => $name]);
+        $entity->setName($entity->getId());
 
-        return $volume;
+        return $entity;
     }
 }
