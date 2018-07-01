@@ -49,12 +49,33 @@ class Volume extends Repository\ObjectPersistAbstract
     }
 
     /**
-     * Volumes owned by Service
+     * ProjectVolumes owned by Service
+     *
+     * @param Entity\Service $service
+     * @return Entity\Volume[]
+     */
+    public function findOwnedProjectVolumes(Entity\Service $service) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('v')
+            ->addSelect('sv')
+            ->from('Dashtainer:Docker\Volume', 'v')
+            ->join('v.service_volumes', 'sv')
+            ->andWhere('v.owner = :service')
+            ->setParameters([
+                'service' => $service,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * ServiceVolumes owned by Service
      *
      * @param Entity\Service $service
      * @return Entity\ServiceVolume[]
      */
-    public function findOwned(Entity\Service $service) : array
+    public function findOwnedServiceVolumes(Entity\Service $service) : array
     {
         $qb = $this->em->createQueryBuilder()
             ->select('sv')
@@ -84,7 +105,7 @@ class Volume extends Repository\ObjectPersistAbstract
             ->join('sv.project_volume', 'v')
             ->andWhere('v.owner = :service')
             ->andWhere('sv.service = :service')
-            ->andWhere('sv.is_internal = 1')
+            ->andWhere('sv.is_internal <> 0')
             ->setParameters([
                 'service' => $service,
             ]);
@@ -107,7 +128,7 @@ class Volume extends Repository\ObjectPersistAbstract
             ->join('sv.project_volume', 'v')
             ->andWhere('v.owner = :service')
             ->andWhere('sv.service = :service')
-            ->andWhere('sv.is_internal = 1')
+            ->andWhere('sv.is_internal = 0')
             ->setParameters([
                 'service' => $service,
             ]);
@@ -129,7 +150,7 @@ class Volume extends Repository\ObjectPersistAbstract
             ->from('Dashtainer:Docker\ServiceVolume', 'sv')
             ->join('sv.project_volume', 'v')
             ->andWhere('sv.service = :service')
-            ->andWhere('v.owner != :service')
+            ->andWhere('v.owner <> :service')
             ->setParameters([
                 'service' => $service,
             ]);
@@ -174,7 +195,7 @@ class Volume extends Repository\ObjectPersistAbstract
             'service' => $service,
         ];
 
-        if ($granted) {
+        if (!empty($granted)) {
             $qb->andWhere('v.id NOT IN (:granted)');
 
             $parameters = [
@@ -189,63 +210,6 @@ class Volume extends Repository\ObjectPersistAbstract
         $notGranted = $qb->getQuery()->getResult();
 
         return $notGranted;
-    }
-
-    public function deleteVolumes(Entity\Service $service)
-    {
-        $qb = $this->em->createQueryBuilder()
-            ->select('v')
-            ->addSelect('sv')
-            ->from('Dashtainer:Docker\Volume', 'v')
-            ->join('v.service_volumes', 'sv')
-            ->andWhere('v.owner = :service')
-            ->setParameters([
-                'service' => $service,
-            ]);
-
-        /** @var Entity\Volume $projectVolume */
-        foreach ($qb->getQuery()->getResult() as $projectVolume) {
-            foreach ($projectVolume->getServiceVolumes() as $serviceVolume) {
-                $projectVolume->removeServiceVolume($serviceVolume);
-
-                $this->em->remove($serviceVolume);
-            }
-
-            $this->em->remove($projectVolume);
-        }
-    }
-
-    public function deleteServiceVolumes(Entity\Service $service)
-    {
-        $qb = $this->em->createQueryBuilder()
-            ->select('sv')
-            ->from('Dashtainer:Docker\ServiceVolume', 'sv')
-            ->andWhere('sv.service = :service')
-            ->setParameters([
-                'service' => $service,
-            ]);
-
-        /** @var Entity\ServiceVolume $serviceVolume */
-        foreach ($qb->getQuery()->getResult() as $serviceVolume) {
-            $this->em->remove($serviceVolume);
-        }
-    }
-
-    public function deleteGrantedNotOwned(Entity\Service $service)
-    {
-        $qb = $this->em->createQueryBuilder()
-            ->select('sv')
-            ->from('Dashtainer:Docker\ServiceVolume', 'sv')
-            ->join('sv.project_volume', 'v')
-            ->andWhere('sv.service = :service')
-            ->andWhere('v.owner <> :service')
-            ->setParameters([
-                'service' => $service,
-            ]);
-
-        foreach ($qb->getQuery()->getResult() as $item) {
-            $this->em->remove($item);
-        }
     }
 
     /**

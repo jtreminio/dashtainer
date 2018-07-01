@@ -6,7 +6,7 @@ use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository\Docker as Repository;
 use Dashtainer\Util;
 
-use Doctrine\Common\Collections;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class Volume
 {
@@ -25,9 +25,35 @@ class Volume
      */
     public function deleteAllForService(Entity\Service $service)
     {
-        $this->repo->deleteVolumes($service);
-        $this->repo->deleteServiceVolumes($service);
-        $this->repo->deleteGrantedNotOwned($service);
+        $project = $service->getProject();
+
+        foreach ($this->repo->findOwnedProjectVolumes($service) as $projectVolume) {
+            foreach ($projectVolume->getServiceVolumes() as $serviceVolume) {
+                $subService = $serviceVolume->getService();
+
+                $projectVolume->removeServiceVolume($serviceVolume);
+                $projectVolume->setOwner(null);
+                $subService->removeVolume($serviceVolume);
+                $this->repo->remove($serviceVolume);
+            }
+
+            $project->removeVolume($projectVolume);
+            $this->repo->remove($projectVolume);
+        }
+
+        foreach ($this->repo->findGranted($service) as $serviceVolume) {
+            if ($projectVolume = $serviceVolume->getProjectVolume()) {
+                $projectVolume->removeServiceVolume($serviceVolume);
+            }
+
+            $service->removeVolume($serviceVolume);
+            $this->repo->remove($serviceVolume);
+        }
+
+        foreach ($service->getVolumes() as $serviceVolume) {
+            $service->removeVolume($serviceVolume);
+            $this->repo->remove($serviceVolume);
+        }
     }
 
     /**
@@ -36,15 +62,15 @@ class Volume
      * @param Entity\Project     $project
      * @param Entity\ServiceType $serviceType
      * @param array              $internalVolumesArray
-     * @return array
+     * @return ArrayCollection[]
      */
     public function getForNewService(
         Entity\Project $project,
         Entity\ServiceType $serviceType,
         array $internalVolumesArray
-    ) {
-        $files = new Collections\ArrayCollection();
-        $other = new Collections\ArrayCollection();
+    ) : array {
+        $files = new ArrayCollection();
+        $other = new ArrayCollection();
 
         foreach ($internalVolumesArray['files'] as $metaName) {
             $data = $serviceType->getMeta($metaName)->getData();
@@ -81,7 +107,7 @@ class Volume
         return [
             'files'     => $files,
             'other'     => $other,
-            'granted'   => [],
+            'granted'   => new ArrayCollection(),
             'grantable' => $this->getAll($project),
         ];
     }
@@ -92,15 +118,15 @@ class Volume
      * @param Entity\Service     $service
      * @param Entity\ServiceType $serviceType
      * @param array              $internalVolumesArray
-     * @return array
+     * @return ArrayCollection[]
      */
     public function getForExistingService(
         Entity\Service $service,
         Entity\ServiceType $serviceType,
         array $internalVolumesArray
-    ) {
-        $files = new Collections\ArrayCollection();
-        $other = new Collections\ArrayCollection();
+    ) : array {
+        $files = new ArrayCollection();
+        $other = new ArrayCollection();
 
         $internalFileNames = [];
         foreach ($internalVolumesArray['files'] as $metaName) {
@@ -159,9 +185,9 @@ class Volume
 
     /**
      * @param Entity\Project $project
-     * @return Entity\Volume[]
+     * @return ArrayCollection|Entity\Volume[]
      */
-    public function getAll(Entity\Project $project) : array
+    public function getAll(Entity\Project $project) : ArrayCollection
     {
         return $this->sortProjectVolumes($this->repo->findAllByProject($project));
     }
@@ -170,20 +196,20 @@ class Volume
      * All internal and not-internal Volumes owned by Service
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceVolume[]
+     * @return ArrayCollection|Entity\ServiceVolume[]
      */
-    public function getOwned(Entity\Service $service) : array
+    public function getOwned(Entity\Service $service) : ArrayCollection
     {
-        return $this->sortServiceVolumes($this->repo->findOwned($service));
+        return $this->sortServiceVolumes($this->repo->findOwnedServiceVolumes($service));
     }
 
     /**
      * Internal Volume are internal and required to Service.
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceVolume[] Keyed by Entity\Volume.name
+     * @return ArrayCollection|Entity\ServiceVolume[] Keyed by Entity\Volume.name
      */
-    public function getInternal(Entity\Service $service) : array
+    public function getInternal(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceVolumes($this->repo->findInternal($service));
     }
@@ -192,9 +218,9 @@ class Volume
      * Owned, not internal
      *
      * @param Entity\Service $service
-     * @return Entity\ServiceVolume[] Keyed by Entity\Volume.name
+     * @return ArrayCollection|Entity\ServiceVolume[] Keyed by Entity\Volume.name
      */
-    public function getNotInternal(Entity\Service $service) : array
+    public function getNotInternal(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceVolumes($this->repo->findNotInternal($service));
     }
@@ -203,9 +229,9 @@ class Volume
      * Granted, not owned
      *
      * @param Entity\Service $service
-     * @return Entity\Volume[]
+     * @return ArrayCollection|Entity\Volume[]
      */
-    public function getGranted(Entity\Service $service) : array
+    public function getGranted(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceVolumes($this->repo->findGranted($service));
     }
@@ -214,9 +240,9 @@ class Volume
      * Not granted
      *
      * @param Entity\Service $service
-     * @return Entity\Volume[]
+     * @return ArrayCollection|Entity\Volume[]
      */
-    public function getNotGranted(Entity\Service $service) : array
+    public function getNotGranted(Entity\Service $service) : ArrayCollection
     {
         $project = $service->getProject();
 
@@ -229,14 +255,20 @@ class Volume
      * @param Entity\Service $service
      * @param array          $toGrant [Project Volume id, Service Volume target]
      */
-    public function grant(
-        Entity\Service $service,
-        array $toGrant
-    ) {
+    public function grant(Entity\Service $service, array $toGrant)
+    {
         $project = $service->getProject();
 
         // Clear existing granted Volumes from Service
-        $this->repo->deleteGrantedNotOwned($service);
+        foreach ($this->repo->findGranted($service) as $serviceVolume) {
+            $service->removeVolume($serviceVolume);
+
+            if ($projectVolume = $serviceVolume->getProjectVolume()) {
+                $projectVolume->removeServiceVolume($serviceVolume);
+            }
+
+            $this->repo->remove($serviceVolume);
+        }
 
         if (empty($toGrant)) {
             return;
@@ -335,10 +367,8 @@ class Volume
      * @param Entity\Service $service
      * @param array          $configs User-provided data from form
      */
-    protected function saveNotInternalFile(
-        Entity\Service $service,
-        array $configs
-    ) {
+    protected function saveNotInternalFile(Entity\Service $service, array $configs)
+    {
         $serviceVolumes = [];
         foreach ($this->getNotInternalFile($service) as $serviceVolume) {
             $serviceVolumes [$serviceVolume->getId()] = $serviceVolume;
@@ -371,9 +401,8 @@ class Volume
         // No longer wanted by user
         foreach ($serviceVolumes as $serviceVolume) {
             $service->removeVolume($serviceVolume);
+            $this->repo->remove($serviceVolume);
         }
-
-        $this->repo->remove(...array_values($serviceVolumes));
     }
 
     /**
@@ -409,7 +438,7 @@ class Volume
         Entity\Service $service,
         array $serviceVolumes,
         array $configs
-    ) {
+    ) : array {
         $project = $service->getProject();
 
         foreach ($serviceVolumes as $serviceVolume) {
@@ -446,11 +475,11 @@ class Volume
                     // Remove other Service's grants to this Project Volume
                     foreach ($projectVolume->getServiceVolumes() as $granted) {
                         $projectVolume->removeServiceVolume($granted);
-
                         $this->repo->remove($granted);
                     }
 
                     $project->removeVolume($projectVolume);
+                    $this->repo->remove($projectVolume);
                 }
             }
 
@@ -469,10 +498,8 @@ class Volume
      * @param Entity\Service $service
      * @param array          $configs User-provided data from form
      */
-    protected function saveNotInternalOther(
-        Entity\Service $service,
-        array $configs
-    ) {
+    protected function saveNotInternalOther(Entity\Service $service, array $configs)
+    {
         $project = $service->getProject();
 
         $serviceVolumes = [];
@@ -520,7 +547,6 @@ class Volume
                     // Remove other Service's grants to this Project Volume
                     foreach ($projectVolume->getServiceVolumes() as $granted) {
                         $projectVolume->removeServiceVolume($granted);
-
                         $this->repo->remove($granted);
                     }
 
@@ -543,7 +569,6 @@ class Volume
                 // Remove other Service's grants to this Project Volume
                 foreach ($projectVolume->getServiceVolumes() as $granted) {
                     $projectVolume->removeServiceVolume($granted);
-
                     $this->repo->remove($granted);
                 }
 
@@ -558,12 +583,10 @@ class Volume
     /**
      * @param Entity\Service $service
      * @param array          $names
-     * @return Entity\ServiceVolume[]
+     * @return ArrayCollection|Entity\ServiceVolume[]
      */
-    protected function getInternalFromNames(
-        Entity\Service $service,
-        array $names
-    ) : array {
+    protected function getInternalFromNames(Entity\Service $service, array $names) : array
+    {
         $volumes = $this->repo->findByName(
             $service,
             $names
@@ -572,63 +595,67 @@ class Volume
         $sorted = array_fill_keys($names, null);
 
         foreach ($volumes as $volume) {
-            $sorted [$volume->getName()]= $volume;
+            $sorted [$volume->getSlug()]= $volume;
         }
 
-        return array_filter($sorted);
+        return $sorted;
     }
 
     /**
      * @param Entity\Service $service
-     * @return Entity\ServiceVolume[]
+     * @return ArrayCollection|Entity\ServiceVolume[]
      */
-    protected function getNotInternalFile(
-        Entity\Service $service
-    ) : array {
-        return $this->repo->findByFileType(
+    protected function getNotInternalFile(Entity\Service $service) : ArrayCollection
+    {
+        $arr = $this->repo->findByFileType(
             $service,
             Entity\ServiceVolume::FILETYPE_FILE,
             false
         );
+
+        return $this->sortServiceVolumes($arr);
     }
 
     /**
      * @param Entity\Service $service
-     * @return Entity\ServiceVolume[]
+     * @return ArrayCollection|Entity\ServiceVolume[]
      */
-    protected function getNotInternalOther(
-        Entity\Service $service
-    ) : array {
-        return $this->repo->findByFileType(
+    protected function getNotInternalOther(Entity\Service $service) : ArrayCollection
+    {
+        $arr = $this->repo->findByFileType(
             $service,
             Entity\ServiceVolume::FILETYPE_OTHER,
             false
         );
+
+        return $this->sortServiceVolumes($arr);
     }
 
     /**
      * Sorts Project Volumes by owner Service name then Volume name
      *
      * @param Entity\Volume[] $projectVolumes
-     * @return Entity\Volume[]
+     * @return ArrayCollection|Entity\Volume[]
      */
-    private function sortProjectVolumes(array $projectVolumes) : array
+    private function sortProjectVolumes(array $projectVolumes) : ArrayCollection
     {
-        $arr = [];
+        $volumeArr = [];
 
         foreach ($projectVolumes as $projectVolume) {
             $owner = $projectVolume->getOwner();
 
-            $arr [$owner->getSlug()][$projectVolume->getName()]= $projectVolume;
+            $volumeArr [$owner->getSlug()][$projectVolume->getSlug()]= $projectVolume;
         }
 
-        ksort($arr);
+        ksort($volumeArr);
 
-        $sorted = [];
-        foreach ($arr as $key => $volumes) {
-            ksort($arr[$key]);
+        $sorted = new ArrayCollection();
+        foreach ($volumeArr as $volumes) {
+            ksort($volumes);
 
-            $sorted = array_merge($sorted, $arr[$key]);
+            foreach ($volumes as $projectVolumeName => $serviceVolume) {
+                $sorted->set($projectVolumeName, $serviceVolume);
+            }
         }
 
         return $sorted;
@@ -638,26 +665,36 @@ class Volume
      * Sorts Service Volumes by owner Service name then Volume name
      *
      * @param Entity\ServiceVolume[] $serviceVolumes
-     * @return Entity\ServiceVolume[]
+     * @return ArrayCollection|Entity\ServiceVolume[]
      */
-    private function sortServiceVolumes(array $serviceVolumes) : array
+    private function sortServiceVolumes(array $serviceVolumes) : ArrayCollection
     {
-        $arr = [];
+        $volumeArr = [];
 
         foreach ($serviceVolumes as $serviceVolume) {
             $projectVolume = $serviceVolume->getProjectVolume();
-            $owner         = $projectVolume->getOwner();
+            $owner         = $projectVolume ? $projectVolume->getOwner() : null;
 
-            $arr [$owner->getSlug()][$projectVolume->getName()]= $serviceVolume;
+            $projectVolumeName = $projectVolume
+                ? $projectVolume->getSlug()
+                : $serviceVolume->getSlug();
+
+            $ownerName = $owner
+                ? $owner->getSlug()
+                : $serviceVolume->getSlug();
+
+            $volumeArr [$ownerName][$projectVolumeName]= $serviceVolume;
         }
 
-        ksort($arr);
+        ksort($volumeArr);
 
-        $sorted = [];
-        foreach ($arr as $key => $volumes) {
-            ksort($arr[$key]);
+        $sorted = new ArrayCollection();
+        foreach ($volumeArr as $volumes) {
+            ksort($volumes);
 
-            $sorted = array_merge($sorted, $arr[$key]);
+            foreach ($volumes as $projectVolumeName => $serviceVolume) {
+                $sorted->set($projectVolumeName, $serviceVolume);
+            }
         }
 
         return $sorted;
