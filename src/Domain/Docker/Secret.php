@@ -173,7 +173,7 @@ class Secret
      * @param Entity\Service $service
      * @return ArrayCollection|Entity\ServiceSecret[] Keyed by Entity\Secret.name
      */
-    public function getInternal(Entity\Service $service) : array
+    public function getInternal(Entity\Service $service) : ArrayCollection
     {
         return $this->sortServiceSecrets($this->repo->findInternal($service));
     }
