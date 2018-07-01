@@ -308,4 +308,219 @@ class SecretTest extends DomainAbstract
         $resultGrantableServiceSecret = $grantable->get('project-secret-b');
         $this->assertSame($grantableProjectSecretB, $resultGrantableServiceSecret->getProjectSecret());
     }
+
+    public function testSaveUpdatesAndCreates()
+    {
+        $project = $this->createProject('project');
+        $service = $this->createService('service');
+
+        $project->addService($service);
+
+        $internalServiceSecretA = $this->createServiceSecret('internal-service-secret-a');
+        $internalServiceSecretA->setService($service)
+            ->setTarget('internal-service-secret-a target')
+            ->setIsInternal(true);
+        $internalProjectSecretA = $this->createProjectSecret('internal-project-secret-a');
+        $internalProjectSecretA->setProject($project)
+            ->setData('internal-project-secret-a data')
+            ->setFile('internal-project-secret-a file')
+            ->addServiceSecret($internalServiceSecretA)
+            ->setOwner($service);
+
+        $internalServiceSecretB = $this->createServiceSecret('internal-service-secret-b');
+        $internalServiceSecretB->setService($service)
+            ->setTarget('internal-service-secret-b target')
+            ->setIsInternal(true);
+        $internalProjectSecretB = $this->createProjectSecret('internal-project-secret-b');
+        $internalProjectSecretB->setProject($project)
+            ->setData('internal-project-secret-b data')
+            ->setFile('internal-project-secret-b file')
+            ->addServiceSecret($internalServiceSecretB)
+            ->setOwner($service);
+
+        ////
+
+        $notInternalServiceSecret = $this->createServiceSecret('not-internal-service-secret');
+        $notInternalServiceSecret->setService($service)
+            ->setTarget('not-internal-service-secret target')
+            ->setIsInternal(false);
+        $notInternalProjectSecret = $this->createProjectSecret('not-internal-project-secret');
+        $notInternalProjectSecret->setProject($project)
+            ->setData('not-internal-project-secret data')
+            ->setFile('not-internal-project-secret file')
+            ->addServiceSecret($notInternalServiceSecret)
+            ->setOwner($service);
+
+        $deleteServiceSecret = $this->createServiceSecret('delete-service-secret');
+        $deleteServiceSecret->setService($service)
+            ->setTarget('not-internal-service-secret target')
+            ->setIsInternal(false);
+        $deleteProjectSecret = $this->createProjectSecret('delete-project-secret');
+        $deleteProjectSecret->setProject($project)
+            ->setData('delete-project-secret data')
+            ->setFile('delete-project-secret file')
+            ->addServiceSecret($deleteServiceSecret)
+            ->setOwner($service);
+
+        $serviceB = $this->createService('service-b');
+        $project->addService($serviceB);
+
+        $serviceBDeleteSecret = $this->createServiceSecret('service-b-delete-secret');
+        $deleteProjectSecret->addServiceSecret($serviceBDeleteSecret);
+
+        $internalSecrets = [
+            $internalServiceSecretA,
+            $internalServiceSecretB,
+            $notInternalServiceSecret,
+        ];
+
+        $configs = [
+            'internal-service-secret-a'   => [
+                'name' => 'internal-service-secret-a new name',
+                'data' => 'internal-service-secret-a new data',
+            ],
+            'internal-service-secret-b'   => [
+                'name' => 'internal-service-secret-b new name',
+                'data' => 'internal-service-secret-b new data',
+            ],
+            'not-internal-service-secret' => [
+                'name' => 'not-internal-service-secret new name',
+                'data' => 'not-internal-service-secret new data',
+            ],
+            'new-secret'                  => [
+                'name' => 'new-secret name',
+                'data' => 'new-secret data',
+            ],
+        ];
+
+        $this->secret->save($service, $internalSecrets, $configs);
+
+        $this->assertFalse($service->getSecrets()->contains($deleteServiceSecret));
+        $this->assertNull($deleteServiceSecret->getProjectSecret());
+        $this->assertCount(0, $deleteProjectSecret->getServiceSecrets());
+
+        $this->assertTrue($service->getSecrets()->contains($internalServiceSecretA));
+        $this->assertTrue($service->getSecrets()->contains($internalServiceSecretB));
+
+        $this->assertEquals('internal-service-secret-a new data', $internalProjectSecretA->getData());
+        $this->assertEquals('internal-service-secret-b new data', $internalProjectSecretB->getData());
+
+        $this->assertTrue($service->getSecrets()->contains($notInternalServiceSecret));
+        $this->assertEquals('not-internal-service-secret new data', $notInternalProjectSecret->getData());
+
+        $service->getSecrets()->removeElement($internalServiceSecretA);
+        $service->getSecrets()->removeElement($internalServiceSecretB);
+        $service->getSecrets()->removeElement($notInternalServiceSecret);
+
+        /** @var Entity\ServiceSecret $newSeviceSecret */
+        $newSeviceSecret = $service->getSecrets()->first();
+        $newProjectSecret = $newSeviceSecret->getProjectSecret();
+        $this->assertEquals('new-secret data', $newProjectSecret->getData());
+    }
+
+    public function testGrantRemovesSecretsNoLongerGranted()
+    {
+        $project = $this->createProject('project');
+
+        $serviceA = $this->createService('service-a')
+            ->setProject($project);
+
+        $serviceSecretA = $this->createServiceSecret('service-secret-a');
+        $serviceSecretA->setService($serviceA)
+            ->setTarget('service-secret-a target');
+        $projectSecretA = $this->createProjectSecret('project-secret-a');
+        $projectSecretA->setProject($project)
+            ->setData('project-secret-a data')
+            ->setFile('project-secret-a file')
+            ->addServiceSecret($serviceSecretA)
+            ->setOwner($serviceA);
+
+        $serviceB = $this->createService('service-b')
+            ->setProject($project);
+
+        $serviceSecretAGrant = $this->createServiceSecret('service-secret-a-grant');
+        $serviceSecretAGrant->setService($serviceB)
+            ->setTarget('service-secret-a-grant target');
+        $projectSecretA->addServiceSecret($serviceSecretAGrant);
+
+        $toGrant = [];
+
+        $this->secret->grant($serviceB, $toGrant);
+
+        $this->assertCount(0, $serviceB->getSecrets());
+    }
+
+    public function testGrantAddsSecretsToService()
+    {
+        $project = $this->createProject('project');
+
+        $serviceA = $this->createService('service-a')
+            ->setProject($project);
+
+        $serviceSecretA = $this->createServiceSecret('service-secret-a');
+        $serviceSecretA->setService($serviceA)
+            ->setTarget('service-secret-a target');
+        $projectSecretA = $this->createProjectSecret('project-secret-a');
+        $projectSecretA->setProject($project)
+            ->setData('project-secret-a data')
+            ->setFile('project-secret-a file')
+            ->addServiceSecret($serviceSecretA)
+            ->setOwner($serviceA);
+
+        $serviceSecretB = $this->createServiceSecret('service-secret-b');
+        $serviceSecretB->setService($serviceA)
+            ->setTarget('service-secret-b target');
+        $projectSecretB = $this->createProjectSecret('project-secret-b');
+        $projectSecretB->setProject($project)
+            ->setData('project-secret-b data')
+            ->setFile('project-secret-b file')
+            ->addServiceSecret($serviceSecretB)
+            ->setOwner($serviceA);
+
+        $serviceB = $this->createService('service-b')
+            ->setProject($project);
+
+        $serviceSecretAGrant = $this->createServiceSecret('service-secret-a-grant');
+        $serviceSecretAGrant->setService($serviceB)
+            ->setTarget('service-secret-a-grant target');
+        $projectSecretA->addServiceSecret($serviceSecretAGrant);
+
+        $toGrant = [
+            [
+                'id'     => 'project-secret-a',
+                'name'   => 'project-secret-a-name',
+                'target' => 'project-secret-a-target',
+            ],
+            [
+                'id'     => 'project-secret-b',
+                'name'   => 'project-secret-b-name',
+                'target' => 'project-secret-b-target',
+            ],
+            [
+                'id'     => null,
+                'name'   => '',
+                'target' => '',
+            ],
+            [
+                'id'     => 'non-existant-id',
+                'name'   => '',
+                'target' => '',
+            ],
+        ];
+
+        $this->secret->grant($serviceB, $toGrant);
+
+        $this->assertFalse($serviceB->getSecrets()->contains($serviceSecretAGrant));
+
+        /** @var Entity\ServiceSecret $grantA */
+        $grantA = $serviceB->getSecrets()->first();
+        /** @var Entity\ServiceSecret $grantB */
+        $grantB = $serviceB->getSecrets()->next();
+
+        $this->assertSame($projectSecretA, $grantA->getProjectSecret());
+        $this->assertEquals($grantA->getName(), 'project-secret-a-name');
+
+        $this->assertSame($projectSecretB, $grantB->getProjectSecret());
+        $this->assertEquals($grantB->getName(), 'project-secret-b-name');
+    }
 }

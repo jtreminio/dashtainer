@@ -362,8 +362,6 @@ class Secret
         Entity\Service $service,
         array $toGrant
     ) {
-        $project = $service->getProject();
-
         // Clear existing granted Secrets from Service
         foreach ($this->repo->findGranted($service) as $serviceSecret) {
             if ($projectSecret = $serviceSecret->getProjectSecret()) {
@@ -377,6 +375,8 @@ class Secret
         if (empty($toGrant)) {
             return;
         }
+
+        $project = $service->getProject();
 
         $projectSecrets = [];
         foreach ($this->repo->findByIds($project, array_column($toGrant, 'id')) as $projectSecret) {
