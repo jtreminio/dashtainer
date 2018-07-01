@@ -270,6 +270,7 @@ class SecretTest extends DomainAbstract
         $internalSecretsArray = [
             'internal_secret_a',
             'internal_secret_b',
+            'fake-meta',
         ];
 
         $result = $this->secret->getForExistingService($currentService, $serviceType, $internalSecretsArray);
