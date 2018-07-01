@@ -100,6 +100,26 @@ class NetworkTest extends DomainAbstract
         $this->assertFalse($unjoined->contains($networkA));
     }
 
+    public function testSaveDoesNothingOnNoChanges()
+    {
+        $privateNetwork = $this->createPrivateNetwork();
+
+        $service = $this->createService('service');
+        $service->addNetwork($privateNetwork);
+
+        $project = $this->createProject('project');
+        $project->addNetwork($privateNetwork)
+            ->addService($service);
+
+        $privateNetworkClone = clone $privateNetwork;
+
+        $configs = [];
+
+        $this->network->save($service, $configs);
+
+        $this->assertEquals($privateNetworkClone, $privateNetwork);
+    }
+
     public function testSaveAddsServiceToNetworksAndRemovesUnwanted()
     {
         $privateNetwork = $this->createPrivateNetwork();
@@ -134,6 +154,9 @@ class NetworkTest extends DomainAbstract
                 'id'   => 'new-network',
                 'name' => 'new-network',
             ],
+            'empty' => [
+                'id' => null,
+            ]
         ];
 
         $this->network->save($service, $configs);

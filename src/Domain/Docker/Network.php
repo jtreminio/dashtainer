@@ -27,7 +27,7 @@ class Network
     public function getForNewService(
         Entity\Project $project,
         array $internalNetworksArray
-    ) {
+    ) : array {
         $joined   = new Collections\ArrayCollection();
         $unjoined = new Collections\ArrayCollection();
 
@@ -63,7 +63,7 @@ class Network
     public function getForExistingService(
         Entity\Service $service,
         array $internalNetworksArray
-    ) {
+    ) : array {
         $project = $service->getProject();
 
         $joined   = new Collections\ArrayCollection();
@@ -119,11 +119,11 @@ class Network
      */
     public function save(Entity\Service $service, array $configs)
     {
-        $project = $service->getProject();
-
         if (empty($configs)) {
             return;
         }
+
+        $project = $service->getProject();
 
         $networks = [];
         foreach ($this->repo->findByProject($project) as $network) {
