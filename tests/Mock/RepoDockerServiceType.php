@@ -26,4 +26,18 @@ class RepoDockerServiceType extends ServiceType
 
         return null;
     }
+
+    public function findAllBySlugs(array $slugs) : array
+    {
+        $results = [];
+        foreach ($this->serviceTypes as $serviceType) {
+            if (!in_array($serviceType->getSlug(), $slugs)) {
+                continue;
+            }
+
+            $results []= $serviceType;
+        }
+
+        return $results;
+    }
 }
