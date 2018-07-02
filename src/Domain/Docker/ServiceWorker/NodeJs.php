@@ -2,105 +2,64 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
 
 class NodeJs extends WorkerAbstract
 {
     public const SERVICE_TYPE_SLUG = 'node-js';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\NodeJsCreate */
+    protected $form;
+
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        return new Form\Docker\Service\NodeJsCreate();
+        return new Form\Service\NodeJsCreate();
     }
 
-    /**
-     * @param Form\Docker\Service\NodeJsCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public function create()
     {
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
-            ->setImage("node:{$form->version}")
-            ->setVersion($form->version)
-            ->setExpose([$form->port])
-            ->setCommand([$form->command])
+        $this->service->setName($this->form->name)
+            ->setImage("node:{$this->form->version}")
+            ->setVersion($this->form->version)
+            ->setExpose([$this->form->port])
+            ->setCommand([$this->form->command])
             ->setWorkingDir('/var/www');
 
-        $portMeta = new Entity\Docker\ServiceMeta();
+        $portMeta = new Entity\ServiceMeta();
         $portMeta->setName('port')
-            ->setData([$form->port])
-            ->setService($service);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $portMeta);
-        $this->serviceRepo->flush();
-
-        return $service;
+            ->setData([$this->form->port])
+            ->setService($this->service);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
+        $this->service->setExpose([$this->form->port])
+            ->setCommand([$this->form->command]);
+
+        $portMeta = $this->service->getMeta('port');
+        $portMeta->setData([$this->form->port]);
+    }
+
+    public function getCreateParams() : array
+    {
+        return [
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getViewParams() : array
     {
-        $portMeta = $service->getMeta('port');
+        $portMeta = $this->service->getMeta('port');
 
-        return array_merge(parent::getViewParams($service), [
+        return [
             'port'          => $portMeta->getData()[0],
-            'command'       => $service->getCommand(),
+            'command'       => $this->service->getCommand(),
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    /**
-     * @param Entity\Docker\Service            $service
-     * @param Form\Docker\Service\NodeJsCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $service->setExpose([$form->port])
-            ->setCommand([$form->command]);
-
-        $portMeta = $service->getMeta('port');
-        $portMeta->setData([$form->port]);
-
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $portMeta);
-        $this->serviceRepo->flush();
-    }
-
-    protected function internalNetworksArray() : array
-    {
-        return [];
-    }
-
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [],

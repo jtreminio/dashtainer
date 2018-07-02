@@ -6,7 +6,7 @@
         <label class="form-label" for="name">Service Name</label>
         <input type="text" class="form-control" maxlength="64"
                id="name" name="name" placeholder=""
-               value="{{ serviceName }}" required data-mask-type="dns"
+               value="{{ service.name }}" required data-mask-type="dns"
                data-update-text="service-name-tag"
                data-error-container="name" />
         <div class="invalid-feedback" data-error-container-name="name"></div>
@@ -31,7 +31,7 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:<span
+        <span id="service-name-tag">{{ service.name }}</span>:<span
             id="service-port-tag">8000</span></span>
 </div>
 
@@ -56,5 +56,5 @@
 {% set volume = volumes.other.remove('root') %}
 {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
-<input type="hidden" id="version" name="version" value="{{ version }}" />
+<input type="hidden" id="version" name="version" value="{{ service.version }}" />
 {% endblock %}

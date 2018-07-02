@@ -2,71 +2,75 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 
 class Adminer extends WorkerAbstract
 {
     public const SERVICE_TYPE_SLUG = 'adminer';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\AdminerCreate */
+    protected $form;
+
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        return new Form\Docker\Service\AdminerCreate();
+        return new Form\Service\AdminerCreate();
     }
 
-    /**
-     * @param Form\Docker\Service\AdminerCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public function create()
     {
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
+        $project = $this->service->getProject();
+
+        $this->service->setName($this->form->name)
             ->setImage('adminer')
             ->setEnvironments([
-                'ADMINER_DESIGN'  => $form->design,
-                'ADMINER_PLUGINS' => join(' ', $form->plugins),
+                'ADMINER_DESIGN'  => $this->form->design,
+                'ADMINER_PLUGINS' => join(' ', $this->form->plugins),
             ])
-            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway');
 
         $frontendRule = sprintf('Host:%s.%s.localhost',
-            $service->getSlug(),
-            $service->getProject()->getSlug()
+            $this->service->getSlug(),
+            $project->getSlug()
         );
 
-        $service->addLabel('traefik.frontend.rule', $frontendRule);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-
-        return $service;
+        $this->service->addLabel('traefik.frontend.rule', $frontendRule);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
-            'fileHighlight' => 'php',
+        $this->service->setEnvironments([
+            'ADMINER_DESIGN'  => $this->form->design,
+            'ADMINER_PLUGINS' => join(' ', $this->form->plugins),
         ]);
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getCreateParams() : array
     {
-        $env = $service->getEnvironments();
+        $designsMeta = $this->serviceType->getMeta('designs');
+        $pluginsMeta = $this->serviceType->getMeta('plugins');
+
+        $design = array_pop($designsMeta->getData()['default']);
+
+        return [
+            'design'           => $design,
+            'plugins'          => [],
+            'availableDesigns' => $designsMeta->getData()['available'],
+            'availablePlugins' => $pluginsMeta->getData()['available'],
+            'fileHighlight'    => 'php',
+        ];
+    }
+
+    public function getViewParams() : array
+    {
+        $env = $this->service->getEnvironments();
 
         $design  = $env['ADMINER_DESIGN'];
         $plugins = !empty($env['ADMINER_PLUGINS'])
             ? explode(' ', $env['ADMINER_PLUGINS'])
             : [];
 
-        $designsMeta = $service->getType()->getMeta('designs');
+        $designsMeta = $this->serviceType->getMeta('designs');
 
         $availableDesigns = [];
         $availableDesigns += $designsMeta->getData()['default'];
@@ -76,7 +80,7 @@ class Adminer extends WorkerAbstract
             unset($availableDesigns[$key]);
         }
 
-        $pluginsMeta = $service->getType()->getMeta('plugins');
+        $pluginsMeta = $this->serviceType->getMeta('plugins');
 
         $availablePlugins = $pluginsMeta->getData()['available'];
         foreach ($plugins as $plugin) {
@@ -85,53 +89,23 @@ class Adminer extends WorkerAbstract
             }
         }
 
-        return array_merge(parent::getViewParams($service), [
+        return [
             'design'           => $design,
             'plugins'          => $plugins,
             'availableDesigns' => $availableDesigns,
             'availablePlugins' => $availablePlugins,
             'fileHighlight'    => 'php',
-        ]);
+        ];
     }
 
-    /**
-     * @param Entity\Docker\Service             $service
-     * @param Form\Docker\Service\AdminerCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $service->setEnvironments([
-            'ADMINER_DESIGN'  => $form->design,
-            'ADMINER_PLUGINS' => join(' ', $form->plugins),
-        ]);
-
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-    }
-
-    protected function internalNetworksArray() : array
+    public function getInternalNetworks() : array
     {
         return [
             'public',
         ];
     }
 
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [],

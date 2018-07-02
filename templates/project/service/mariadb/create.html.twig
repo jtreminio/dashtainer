@@ -10,7 +10,7 @@
             </div>
             <input type="text" class="form-control" maxlength="64"
                    id="name" name="name" placeholder=""
-                   value="{{ serviceName }}" required data-mask-type="dns"
+                   value="{{ service.name }}" required data-mask-type="dns"
                    data-update-text="service-name-tag"
                    data-error-container="name" />
         </div>
@@ -23,7 +23,7 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:3306</span>
+        <span id="service-name-tag">{{ service.name }}</span>:3306</span>
 </div>
 
 <hr class="my-6" />
@@ -167,7 +167,7 @@
                 <p>
                     Any <code>.sh</code>, <code>.sql</code> and <code>.sql.gz</code>
                     within the
-                    <code><span id="initdir">{{ serviceName }}</span>/init</code>
+                    <code><span id="initdir">{{ service.name }}</span>/init</code>
                     directory will be executed or imported into the defined database.
                     Files will be executed in alphabetical order.
                 </p>
@@ -176,5 +176,5 @@
     {% endblock %}
 {% endembed %}
 
-<input type="hidden" id="version" name="version" value="{{ version }}" />
+<input type="hidden" id="version" name="version" value="{{ service.version }}" />
 {% endblock %}

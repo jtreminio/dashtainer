@@ -10,7 +10,7 @@
                         <ul class="nav nav-tabs mb-3" data-steps-list>
                             <li class="col nav-item complete">
                                 <a class="nav-link" href="{{ path('project.view.get', {
-                                    'projectId': project.id
+                                    'projectId': service.project.id
                                 }) }}">Step 1<br />
                                     <span class="small">View Project</span></a>
                             </li>
@@ -18,10 +18,10 @@
                                 <a class="nav-link" href="#">Step 2<br />
                                     <span class="small">Viewing Service</span></a>
                             </li>
-                            <li class="col nav-item {{ project.services is not empty ? 'complete' }}">
+                            <li class="col nav-item {{ service.project.services is not empty ? 'complete' }}">
                                 <a class="nav-link"
-                                    {% if project.services is not empty %}
-                                        href="{{ path('project.download.get', {'projectId': project.id}) }}
+                                    {% if service.project.services is not empty %}
+                                        href="{{ path('project.download.get', {'projectId': service.project.id}) }}
                                     {% endif %}">Step 3<br />
                                     <span class="small">Download Project</span></a>
                             </li>
@@ -44,12 +44,12 @@
         <div class="list-group-transparent mb-5">
             <div class="d-flex flex-row hor-menu">
                 <a href="{{ path('project.service.update.get', {
-                    'projectId': project.id,
+                    'projectId': service.project.id,
                     'serviceId': service.id,
                 }) }}" class="list-group-item"><span
                         class="icon mr-3"><i class="fe fe-edit"></i></span>Edit Service</a>
                 <a href="{{ path('project.view.get', {
-                    'projectId': project.id
+                    'projectId': service.project.id
                 }) }}" class="list-group-item"><span
                         class="icon mr-3"><i class="fe fe-list"></i></span>View Services</a>
                 <a href="#" class="list-group-item"
@@ -69,6 +69,6 @@
     </div>
 </div>
 
-{% include '@Dashtainer/project/snippets/service_create.html.twig' %}
+{% include '@Dashtainer/project/snippets/service_create.html.twig' with {'project': service.project} %}
 {% include '@Dashtainer/project/service/snippets/delete.html.twig' %}
 {% endblock %}

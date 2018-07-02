@@ -8,7 +8,7 @@
                 </button>
             </div>
             <form action="{{ path('project.service.delete.post', {
-                    'projectId': project.id,
+                    'projectId': service.project.id,
                     'serviceId': service.id,
                 }) }}"
                   method="post" data-ajax>

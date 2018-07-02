@@ -9,7 +9,7 @@
             <div class="tags">
                 {% for networkService in network.services if networkService.parent is empty %}
                     <a href="{{ path('project.service.view.get', {
-                        'projectId': project.id,
+                        'projectId': service.project.id,
                         'serviceId': networkService.id,
                     }) }}" target="_blank" class="tag">{{ networkService.name }}</a>
                 {% endfor %}

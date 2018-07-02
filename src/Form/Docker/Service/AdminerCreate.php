@@ -3,12 +3,11 @@
 namespace Dashtainer\Form\Docker\Service;
 
 use Dashtainer\Util;
-use Dashtainer\Validator\Constraints as DashAssert;
 
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class AdminerCreate extends CreateAbstract implements Util\HydratorInterface
+class AdminerCreate extends CreateAbstract
 {
     use Util\HydratorTrait;
 

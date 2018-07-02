@@ -4,6 +4,7 @@ namespace Dashtainer\Repository\Docker;
 
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Repository;
+use function PHPSTORM_META\type;
 
 class Service extends Repository\ObjectPersistAbstract
 {
@@ -101,6 +102,27 @@ class Service extends Repository\ObjectPersistAbstract
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * @param Entity\Project $project
+     * @param string         $typeName
+     * @return Entity\Service[]
+     */
+    public function findByProjectAndTypeName(Entity\Project $project, string $typeName) : array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->join('s.type', 'st')
+            ->andWhere('s.project = :project')
+            ->andWhere('st.name = :typeName')
+            ->setParameters([
+                'project'  => $project,
+                'typeName' => $typeName,
+            ]);
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function findChildByType(
         Entity\Service $parent,
         Entity\ServiceType $childType
@@ -114,6 +136,24 @@ class Service extends Repository\ObjectPersistAbstract
             ->setParameters([
                 'parent' => $parent,
                 'type'   => $childType,
+            ]);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    public function findChildByTypeName(
+        Entity\Service $parent,
+        string $typeName
+    ) : ?Entity\Service {
+        $qb = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from('Dashtainer:Docker\Service', 's')
+            ->join('s.type', 'st')
+            ->andWhere('s.parent = :parent')
+            ->andWhere('st.name = :typeName')
+            ->setParameters([
+                'parent'   => $parent,
+                'typeName' => $typeName,
             ]);
 
         return $qb->getQuery()->getOneOrNullResult();

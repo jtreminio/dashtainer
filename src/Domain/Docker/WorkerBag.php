@@ -19,7 +19,6 @@ class WorkerBag
 
         foreach ($serviceType->getAllBySlugs(array_keys($this->workers)) as $type) {
             $this->workers[$type->getSlug()]->setServiceType($type);
-            $this->workers[$type->getSlug()]->setWorkerBag($this);
         }
     }
 

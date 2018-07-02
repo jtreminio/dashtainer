@@ -3,10 +3,9 @@
 {% block serviceContent %}
 <div class="row">
     <div class="form-group col">
-        <label class="form-label">Service Name</label>
-        <input type="hidden" value="{{ service.name }}"
-               data-update-text="service-name-tag" />
-        <div class="form-control">{{ service.name }}</div>
+        <label class="form-label" for="name">Service Name</label>
+        <input type="text" class="form-control"
+               id="name" value="{{ service.name }}" disabled />
     </div>
 </div>
 
@@ -206,4 +205,6 @@
         </div>
     </div>
 </div>
+
+<input type="hidden" id="version" name="version" value="{{ service.version }}" />
 {% endblock %}

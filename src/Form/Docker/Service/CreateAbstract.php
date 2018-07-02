@@ -2,7 +2,6 @@
 
 namespace Dashtainer\Form\Docker\Service;
 
-use Dashtainer\Entity;
 use Dashtainer\Util;
 use Dashtainer\Validator\Constraints as DashAssert;
 
@@ -17,18 +16,7 @@ abstract class CreateAbstract implements Util\HydratorInterface
      */
     public $name;
 
-    /**
-     * @var Entity\Docker\Project
-     * @Assert\NotBlank(message = "Invalid project selected")
-     */
-    public $project;
-
     public $service_name_used = false;
-
-    /**
-     * @Assert\NotBlank(message = "Please choose a service type")
-     */
-    public $type;
 
     // [id, name]
     public $networks = [];

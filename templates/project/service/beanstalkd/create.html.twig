@@ -6,7 +6,7 @@
         <label class="form-label" for="name">Service Name</label>
         <input type="text" class="form-control" maxlength="64"
                id="name" name="name" placeholder=""
-               value="{{ serviceName }}" required data-mask-type="dns"
+               value="{{ service.name }}" required data-mask-type="dns"
                data-update-text="service-name-tag,volumes_dir_internal-datadir-bind-span"
                data-error-container="name" />
         <div class="invalid-feedback" data-error-container-name="name"></div>
@@ -18,7 +18,7 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:13000</span>
+        <span id="service-name-tag">{{ service.name }}</span>:13000</span>
 </div>
 
 <hr class="my-6" />

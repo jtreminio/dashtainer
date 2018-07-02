@@ -23,8 +23,8 @@ class Service extends Controller
     /** @var Domain\Docker\ServiceCategory */
     protected $serviceCatDomain;
 
-    /** @var Domain\Docker\WorkerBag */
-    protected $workerBag;
+    /** @var Domain\Docker\WorkerHandler */
+    protected $workerHandler;
 
     /** @var Validator\Validator */
     protected $validator;
@@ -33,13 +33,13 @@ class Service extends Controller
         Domain\Docker\Project $projectDomain,
         Domain\Docker\ServiceCategory $serviceCatDomain,
         Domain\Docker\Service $serviceDomain,
-        Domain\Docker\WorkerBag $workerBag,
+        Domain\Docker\WorkerHandler $workerHandler,
         Validator\Validator $validator
     ) {
         $this->projectDomain    = $projectDomain;
         $this->serviceDomain    = $serviceDomain;
         $this->serviceCatDomain = $serviceCatDomain;
-        $this->workerBag        = $workerBag;
+        $this->workerHandler    = $workerHandler;
 
         $this->validator = $validator;
     }
@@ -65,11 +65,15 @@ class Service extends Controller
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        if (!$worker = $this->workerBag->getWorkerFromType($serviceTypeSlug)) {
+        if (!$this->workerHandler->setWorkerFromServiceType($serviceTypeSlug)) {
             return $this->render('@Dashtainer/project/not-found.html.twig');
         }
 
-        $worker->setVersion($version);
+        $service = new Entity\Docker\Service();
+        $service->setProject($project)
+            ->setVersion($version);
+
+        $this->workerHandler->setService($service);
 
         $template = sprintf('@Dashtainer/project/service/%s/create.html.twig',
             strtolower($serviceTypeSlug)
@@ -77,11 +81,8 @@ class Service extends Controller
 
         return $this->render($template, array_merge([
             'user'              => $user,
-            'project'           => $project,
             'serviceCategories' => $this->serviceCatDomain->getAll(),
-            'serviceType'       => $worker->getServiceType(),
-
-        ], $worker->getCreateParams($project)));
+        ], $this->workerHandler->getCreateParams()));
     }
 
     /**
@@ -108,23 +109,23 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        if (!$worker = $this->workerBag->getWorkerFromType($serviceTypeSlug)) {
+        if (!$this->workerHandler->setWorkerFromServiceType($serviceTypeSlug)) {
             return new AjaxResponse([
                 'type' => AjaxResponse::AJAX_REDIRECT,
                 'data' => '',
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $form = $worker->getCreateForm();
+        $service = new Entity\Docker\Service();
+        $service->setProject($project);
+
+        $this->workerHandler->setService($service);
+
+        $form = $this->workerHandler->getForm();
         $form->fromArray($request->request->all());
 
-        $worker->setVersion($form->version ?? null);
-
-        $form->project = $project;
-        $form->type    = $worker->getServiceType();
-
         $form->service_name_used = $this->serviceDomain->getByName($project, $form->name);
-        $form->ports_used = $this->serviceDomain->getUsedPublishedPorts($project);
+        $form->ports_used        = $this->serviceDomain->getUsedPublishedPorts($project);
 
         $this->validator->setSource($form);
 
@@ -135,7 +136,7 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $worker->create($form);
+        $this->workerHandler->create();
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
@@ -172,18 +173,15 @@ class Service extends Controller
 
         $serviceType = $service->getType();
 
-        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
-        $worker->setVersion($service->getVersion());
+        $this->workerHandler->setService($service);
 
         $template = sprintf('@Dashtainer/project/service/%s/view.html.twig',
             strtolower($serviceType->getSlug())
         );
 
         return $this->render($template, array_merge([
-            'service'           => $service,
-            'project'           => $project,
             'serviceCategories' => $this->serviceCatDomain->getAll(),
-        ], $worker->getViewParams($service)));
+        ], $this->workerHandler->getViewParams()));
     }
 
     /**
@@ -213,17 +211,15 @@ class Service extends Controller
 
         $serviceType = $service->getType();
 
-        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
-        $worker->setVersion($service->getVersion());
+        $this->workerHandler->setService($service);
 
         $template = sprintf('@Dashtainer/project/service/%s/update.html.twig',
             strtolower($serviceType->getSlug())
         );
 
         return $this->render($template, array_merge([
-            'service' => $service,
-            'project' => $project,
-        ], $worker->getViewParams($service)));
+            'user' => $user,
+        ], $this->workerHandler->getViewParams()));
     }
 
     /**
@@ -258,17 +254,12 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $serviceType = $service->getType();
+        $this->workerHandler->setService($service);
 
-        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
-        $worker->setVersion($form->version ?? null);
-
-        $form = $worker->getCreateForm();
+        $form = $this->workerHandler->getForm();
         $form->fromArray($request->request->all());
-        $form->project = $project;
-        $form->type    = $serviceType;
-        $form->name    = $service->getName();
 
+        $form->name       = $service->getName();
         $form->ports_used = $this->serviceDomain->getUsedPublishedPorts($project, $service);
 
         $this->validator->setSource($form);
@@ -280,12 +271,12 @@ class Service extends Controller
             ], AjaxResponse::HTTP_BAD_REQUEST);
         }
 
-        $worker->update($service, $form);
+        $this->workerHandler->update();
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,
             'data' => $this->generateUrl('project.service.view.get', [
-                'projectId' => $form->project->getId(),
+                'projectId' => $project->getId(),
                 'serviceId' => $service->getId(),
             ]),
         ], AjaxResponse::HTTP_OK);
@@ -320,11 +311,8 @@ class Service extends Controller
             ], AjaxResponse::HTTP_OK);
         }
 
-        $serviceType = $service->getType();
-
-        $worker = $this->workerBag->getWorkerFromType($serviceType->getSlug());
-
-        $worker->delete($service);
+        $this->workerHandler->setService($service);
+        $this->workerHandler->delete();
 
         return new AjaxResponse([
             'type' => AjaxResponse::AJAX_REDIRECT,

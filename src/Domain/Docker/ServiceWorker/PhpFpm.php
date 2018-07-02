@@ -2,106 +2,129 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Domain;
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Repository\Docker as Repository;
 
-class PhpFpm extends WorkerAbstract
+class PhpFpm
+    extends WorkerAbstract
+    implements WorkerParentInterface, WorkerServiceRepoInterface
 {
     public const SERVICE_TYPE_SLUG = 'php-fpm';
 
-    /** @var Blackfire */
-    protected $blackfireWorker;
+    /** @var Form\Service\PhpFpmCreate */
+    protected $form;
 
-    /**
-     * @required
-     * @param Blackfire $blackfireWorker
-     */
-    public function setBlackfireWorker(Blackfire $blackfireWorker)
+    /** @var Repository\Service */
+    protected $repo;
+
+    public function setRepo(Repository\Service $repo)
     {
-        $this->blackfireWorker = $blackfireWorker;
+        $this->repo = $repo;
     }
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        return new Form\Docker\Service\PhpFpmCreate();
+        return new Form\Service\PhpFpmCreate();
     }
 
-    /**
-     * @param Form\Docker\Service\PhpFpmCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public function create()
     {
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
-            ->setVersion($form->version);
+        $this->service->setName($this->form->name)
+            ->setVersion($this->form->version);
 
-        $phpPackages = $form->php_packages;
+        $phpPackages = $this->form->php_packages;
 
-        if ($form->xdebug['install'] ?? false) {
+        if ($this->form->xdebug['install'] ?? false) {
             $phpPackages []= 'php-xdebug';
         }
 
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
-                'PHP_PACKAGES'      => array_unique($phpPackages),
-                'PEAR_PACKAGES'     => array_unique($form->pear_packages),
-                'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-                'COMPOSER_INSTALL'  => $form->composer['install'] ?? 0,
-                'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? 0,
-            ]);
+        $args = [
+            'SYSTEM_PACKAGES'  => array_unique($this->form->system_packages),
+            'PHP_PACKAGES'     => array_unique($phpPackages),
+            'PEAR_PACKAGES'    => array_unique($this->form->pear_packages),
+            'PECL_PACKAGES'    => array_unique($this->form->pecl_packages),
+            'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
+        ];
 
-        $service->setBuild($build);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-
-        if (!empty($form->blackfire['install'])) {
-            $this->createUpdateBlackfireChild($service, $form);
+        if ($this->form->blackfire['install'] ?? false) {
+            $args ['BLACKFIRE_SERVER']= "blackfire-{$this->service->getSlug()}";
         }
 
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
+            ->setDockerfile('Dockerfile')
+            ->setArgs($args);
 
-        return $service;
+        $this->service->setBuild($build);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
+    {
+        $phpPackages = $this->form->php_packages;
+
+        if ($this->form->xdebug['install'] ?? false) {
+            $phpPackages []= 'php-xdebug';
+        } else {
+            $phpPackages = array_diff($phpPackages, ['php-xdebug']);
+        }
+
+        $args = [
+            'SYSTEM_PACKAGES'  => array_unique($this->form->system_packages),
+            'PHP_PACKAGES'     => array_unique($phpPackages),
+            'PEAR_PACKAGES'    => array_unique($this->form->pear_packages),
+            'PECL_PACKAGES'    => array_unique($this->form->pecl_packages),
+            'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
+        ];
+
+        if ($this->form->blackfire['install'] ?? false) {
+            $args ['BLACKFIRE_SERVER']= "blackfire-{$this->service->getSlug()}";
+        }
+
+        $build = $this->service->getBuild();
+        $build->setArgs($args);
+
+        $this->service->setBuild($build);
+    }
+
+    public function getCreateParams() : array
     {
         $serviceType = $this->getServiceType();
 
-        return array_merge(parent::getCreateParams($project), [
-            'phpVersionedPackages' => $serviceType->getMeta("packages-{$this->version}"),
-            'phpGeneralPackages'   => $serviceType->getMeta('packages-general'),
-            'fileHighlight'        => 'ini',
-        ]);
+        $phpVersionedPackagesMeta = $serviceType->getMeta("packages-{$this->service->getVersion()}");
+
+        return [
+            'phpPackagesSelected'    => $phpVersionedPackagesMeta->getData()['default'],
+            'phpPackagesAvailable'   => $phpVersionedPackagesMeta->getData()['available'],
+            'pearPackagesSelected'   => [],
+            'peclPackagesSelected'   => [],
+            'systemPackagesSelected' => [],
+            'composer'               => ['install' => true],
+            'xdebug'                 => ['install' => false],
+            'blackfire'              => [
+                'install'      => false,
+                'server_id'    => '',
+                'server_token' => '',
+            ],
+            'fileHighlight'          => 'ini',
+        ];
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getViewParams() : array
     {
-        $version = $service->getVersion();
+        $version = $this->service->getVersion();
 
-        $build = $service->getBuild()->getArgs();
+        $build = $this->service->getBuild()->getArgs();
 
         $phpPackagesSelected = $build['PHP_PACKAGES'];
 
         $phpPackagesAvailable = [];
-        if ($phpVersionedPackages = $service->getType()->getMeta("packages-{$version}")) {
+        if ($phpVersionedPackages = $this->service->getType()->getMeta("packages-{$version}")) {
             $phpPackagesAvailable += $phpVersionedPackages->getData()['default'];
             $phpPackagesAvailable += $phpVersionedPackages->getData()['available'];
         }
 
-        if ($phpGeneralPackages = $service->getType()->getMeta('packages-general')) {
+        if ($phpGeneralPackages = $this->service->getType()->getMeta('packages-general')) {
             $phpPackagesAvailable += $phpGeneralPackages->getData()['default'];
             $phpPackagesAvailable += $phpGeneralPackages->getData()['available'];
         }
@@ -126,7 +149,7 @@ class PhpFpm extends WorkerAbstract
             'server_token' => '',
         ];
 
-        if ($blackfireService = $this->getBlackfireChild($service)) {
+        if ($blackfireService = $this->getBlackfireChild()) {
             $bfEnv = $blackfireService->getEnvironments();
 
             $blackfire['install']      = 1;
@@ -134,7 +157,7 @@ class PhpFpm extends WorkerAbstract
             $blackfire['server_token'] = $bfEnv['BLACKFIRE_SERVER_TOKEN'];
         }
 
-        return array_merge(parent::getViewParams($service), [
+        return [
             'phpPackagesSelected'    => $phpPackagesSelected,
             'phpPackagesAvailable'   => $phpPackagesAvailable,
             'pearPackagesSelected'   => $pearPackagesSelected,
@@ -144,145 +167,90 @@ class PhpFpm extends WorkerAbstract
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,
             'fileHighlight'          => 'ini',
-        ]);
+        ];
     }
 
-    /**
-     * @param Entity\Docker\Service            $service
-     * @param Form\Docker\Service\PhpFpmCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
+    public function getInternalVolumes() : array
     {
-        $phpPackages = $form->php_packages;
+        $version = $this->getService()->getVersion();
 
-        if ($form->xdebug['install'] ?? false) {
-            $phpPackages []= 'php-xdebug';
-        } else {
-            $phpPackages = array_diff($phpPackages, ['php-xdebug']);
-        }
-
-        $build = $service->getBuild();
-        $build->setArgs([
-            'SYSTEM_PACKAGES'   => array_unique($form->system_packages),
-            'PHP_PACKAGES'      => array_unique($phpPackages),
-            'PEAR_PACKAGES'     => array_unique($form->pear_packages),
-            'PECL_PACKAGES'     => array_unique($form->pecl_packages),
-            'COMPOSER_INSTALL'  => $form->composer['install'] ?? 0,
-            'BLACKFIRE_INSTALL' => $form->blackfire['install'] ?? 0,
-        ]);
-
-        $service->setBuild($build);
-
-        $this->serviceRepo->persist($service);
-
-        // create or update blackfire service
-        if (!empty($form->blackfire['install'])) {
-            $this->createUpdateBlackfireChild($service, $form);
-        }
-
-        // delete blackfire service
-        if (empty($form->blackfire['install'])) {
-            $this->deleteBlackfireChild($service);
-        }
-
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-    }
-
-    protected function createUpdateBlackfireChild(
-        Entity\Docker\Service $parent,
-        Form\Docker\Service\PhpFpmCreate $form
-    ) : Entity\Docker\Service {
-        /** @var Form\Docker\Service\BlackfireCreate $blackfireForm */
-        $blackfireForm = $this->blackfireWorker->getCreateForm();
-
-        $blackfireForm->fromArray($form->blackfire);
-        $blackfireForm->project  = $form->project;
-        $blackfireForm->networks = $form->networks;
-
-        if (!$blackfireService = $this->getBlackfireChild($parent)) {
-            $blackfireType = $this->blackfireWorker->getServiceType();
-            $blackfireSlug = $blackfireType->getSlug();
-
-            $blackfireForm->name = "{$blackfireSlug}-{$form->name}";
-            $blackfireForm->type = $blackfireType;
-
-            $blackfireService = $this->blackfireWorker->create($blackfireForm);
-
-            $blackfireService->setParent($parent);
-            $parent->addChild($blackfireService);
-
-            $this->serviceRepo->persist($blackfireService, $parent);
-
-            return $blackfireService;
-        }
-
-        $this->blackfireWorker->update($blackfireService, $blackfireForm);
-
-        return $blackfireService;
-    }
-
-    protected function getBlackfireChild(
-        Entity\Docker\Service $parent
-    ) : ?Entity\Docker\Service {
-        return $this->serviceRepo->findChildByType(
-            $parent,
-            $this->blackfireWorker->getServiceType()
-        );
-    }
-
-    protected function deleteBlackfireChild(Entity\Docker\Service $parent)
-    {
-        $blackfireService = $this->serviceRepo->findChildByType(
-            $parent,
-            $this->blackfireWorker->getServiceType()
-        );
-
-        if (!$blackfireService) {
-            return;
-        }
-
-        $parent->removeChild($blackfireService);
-
-        $this->delete($blackfireService);
-    }
-
-    protected function internalNetworksArray() : array
-    {
-        return [];
-    }
-
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
-    {
         return [
             'files' => [
-                "php-ini-{$this->version}",
-                "php-ini-cli-{$this->version}",
-                "fpm-conf-{$this->version}",
-                "xdebug-ini-{$this->version}",
-                "xdebug-ini-cli-{$this->version}",
+                "php-ini-{$version}",
+                "php-ini-cli-{$version}",
+                "fpm-conf-{$version}",
+                "xdebug-ini-{$version}",
+                "xdebug-ini-cli-{$version}",
                 'fpm-bin',
                 'xdebug-bin',
-                "Dockerfile-{$this->version}",
+                "dockerfile-{$version}",
             ],
             'other' => [
                 'root',
             ],
         ];
+    }
+
+    public function manageChildren() : array
+    {
+        $data = [
+            'create' => [],
+            'update' => [],
+            'delete' => [],
+        ];
+
+        $existingBlackfireChild = $this->getBlackfireChild();
+
+        // existing, delete
+        if (empty($this->form->blackfire['install']) && $existingBlackfireChild) {
+            $data['delete'] []= $existingBlackfireChild;
+        }
+
+        // existing, update
+        if (!empty($this->form->blackfire['install']) && $existingBlackfireChild) {
+            $blackfireForm = Blackfire::getFormInstance();
+            $blackfireForm->fromArray($this->form->blackfire);
+
+            foreach ($this->service->getNetworks() as $network) {
+                $blackfireForm->networks [$network->getId()]= [
+                    'id'   => $network->getId(),
+                    'name' => $network->getName(),
+                ];
+            }
+
+            $data['update'] []= [
+                'service' => $existingBlackfireChild,
+                'form'    => $blackfireForm,
+            ];
+        }
+
+        // not existing, create
+        if (!empty($this->form->blackfire['install']) && !$existingBlackfireChild) {
+            $blackfireForm = Blackfire::getFormInstance();
+            $blackfireForm->fromArray($this->form->blackfire);
+            $blackfireForm->name = "blackfire-{$this->service->getSlug()}";
+
+            foreach ($this->service->getNetworks() as $network) {
+                $blackfireForm->networks [$network->getId()]= [
+                    'id'   => $network->getId(),
+                    'name' => $network->getName(),
+                ];
+            }
+
+            $data['create'] []= [
+                'serviceTypeSlug' => Blackfire::SERVICE_TYPE_SLUG,
+                'form'            => $blackfireForm,
+            ];
+        }
+
+        return $data;
+    }
+
+    protected function getBlackfireChild() : ?Entity\Service
+    {
+        return $this->repo->findChildByTypeName(
+            $this->service,
+            Blackfire::SERVICE_TYPE_SLUG
+        );
     }
 }

@@ -6,7 +6,7 @@
         <label class="form-label" for="name">Service Name</label>
         <input type="text" class="form-control" maxlength="64"
                id="name" name="name" placeholder=""
-               value="{{ serviceName }}" required data-mask-type="dns"
+               value="{{ service.name }}" required data-mask-type="dns"
                data-update-text="service-name-tag"
                data-error-container="name" />
         <div class="invalid-feedback" data-error-container-name="name"></div>
@@ -18,7 +18,7 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:9000</span>
+        <span id="service-name-tag">{{ service.name }}</span>:9000</span>
 </div>
 
 <hr class="my-6" />
@@ -35,19 +35,10 @@
         <label class="form-label" for="php-packages">PHP Packages</label>
         <select class="form-control" id="php-packages" name="php_packages[]"
                 multiple data-error-container="php-packages" data-selectize-tags>
-            {% if phpVersionedPackages %}
-                {% for package in phpVersionedPackages.data.default %}
-                    <option value="{{ package }}" selected>{{ package }}</option>
-                {% endfor %}
-                {% for package in phpVersionedPackages.data.available %}
-                    <option value="{{ package }}">{{ package }}</option>
-                {% endfor %}
-            {% endif %}
-
-            {% for package in phpGeneralPackages.data.default %}
+            {% for package in phpPackagesSelected %}
                 <option value="{{ package }}" selected>{{ package }}</option>
             {% endfor %}
-            {% for package in phpGeneralPackages.data.available %}
+            {% for package in phpPackagesAvailable %}
                 <option value="{{ package }}">{{ package }}</option>
             {% endfor %}
         </select>
@@ -65,6 +56,9 @@
         <label class="form-label" for="pear-packages">PEAR Packages</label>
         <select class="form-control" id="pear-packages" name="pear_packages[]"
                 multiple data-error-container="pear-packages" data-selectize-tags>
+            {% for package in pearPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
         </select>
         <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
         <small class="text-muted">
@@ -81,6 +75,9 @@
         <label class="form-label" for="pecl-packages">PECL Packages</label>
         <select class="form-control" id="pecl-packages" name="pecl_packages[]"
                 multiple data-error-container="pecl-packages" data-selectize-tags>
+            {% for package in peclPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
         </select>
         <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
         <small class="text-muted">
@@ -97,6 +94,9 @@
         <label class="form-label" for="system-packages">System Packages</label>
         <select class="form-control" id="system-packages" name="system_packages[]"
                 multiple data-error-container="system-packages" data-selectize-tags>
+            {% for package in systemPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
         </select>
         <div class="invalid-feedback" data-error-container-name="system-packages"></div>
         <small class="text-muted">
@@ -119,6 +119,7 @@
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input"
                                value="1" id="composer-install"
+                               {{ composer.install ? 'checked' }}
                                name="composer[install]" checked />
                         <label class="custom-control-label"
                                for="composer-install">Install</label>
@@ -143,6 +144,7 @@
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input"
                                value="1" id="xdebug-install"
+                               {{ xdebug.install ? 'checked' }}
                                name="xdebug[install]" />
                         <label class="custom-control-label"
                                for="xdebug-install">Install</label>
@@ -170,6 +172,7 @@
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input"
                                value="1" id="blackfire-install"
+                               {{ blackfire.install ? 'checked' }}
                                name="blackfire[install]" />
                         <label class="custom-control-label"
                                for="blackfire-install">Install</label>
@@ -183,7 +186,7 @@
                                for="blackfire-server_id">Blackfire Server ID</label>
                         <input type="text" class="form-control" maxlength="64"
                                id="blackfire-server_id" name="blackfire[server_id]"
-                               placeholder="" value=""
+                               placeholder="" value="{{ blackfire.server_id }}"
                                data-error-container="blackfire-server_id" />
                         <div class="invalid-feedback"
                              data-error-container-name="blackfire-server_id"></div>
@@ -196,7 +199,7 @@
                                for="blackfire-server_token">Blackfire Server Token</label>
                         <input type="text" class="form-control" maxlength="64"
                                id="blackfire-server_token" name="blackfire[server_token]"
-                               placeholder="" value=""
+                               placeholder="" value="{{ blackfire.server_token }}"
                                data-error-container="blackfire-server_token" />
                         <div class="invalid-feedback"
                              data-error-container-name="blackfire-server_token"></div>
@@ -207,5 +210,5 @@
     </div>
 </div>
 
-<input type="hidden" id="version" name="version" value="{{ version }}" />
+<input type="hidden" id="version" name="version" value="{{ service.version }}" />
 {% endblock %}

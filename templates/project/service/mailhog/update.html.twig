@@ -3,8 +3,9 @@
 {% block serviceContent %}
 <div class="row">
     <div class="form-group col">
-        <label class="form-label">Service Name</label>
-        <div class="form-control">{{ service.name }}</div>
+        <label class="form-label" for="name">Service Name</label>
+        <input type="text" class="form-control"
+               id="name" value="{{ service.name }}" disabled />
     </div>
 </div>
 

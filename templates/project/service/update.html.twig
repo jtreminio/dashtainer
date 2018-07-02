@@ -14,8 +14,8 @@
                         <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">
                                 Projects</a></li>
                         <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                                'projectId': project.id,
-                            }) }}">{{ project.name }}</a></li>
+                                'projectId': service.project.id,
+                            }) }}">{{ service.project.name }}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
                             Update {{ service.type.name }} Service</li>
                     </ol>
@@ -31,7 +31,7 @@
     <div class="col-lg-3 order-lg-0 mb-4">
         <div data-sticky>
             <a href="{{ path('project.view.get', {
-                    'projectId': project.id
+                    'projectId': service.project.id
                 }) }}" class="btn btn-block btn-primary mb-6">
                 <i class="fe fe-arrow-left mr-2"></i>Back to Project
             </a>
@@ -69,7 +69,7 @@
         </div>
 
         <form action="{{ path('project.service.update.post', {
-            'projectId': project.id,
+            'projectId': service.project.id,
             'serviceId': service.id,
         }) }}" method="post" data-ajax>
             <div class="card">

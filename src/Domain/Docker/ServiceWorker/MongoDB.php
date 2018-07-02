@@ -2,96 +2,66 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
 
 class MongoDB extends WorkerAbstract
 {
     public const SERVICE_TYPE_SLUG = 'mongodb';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\MongoDBCreate */
+    protected $form;
+
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        return new Form\Docker\Service\MongoDBCreate();
+        return new Form\Service\MongoDBCreate();
     }
 
-    /**
-     * @param Form\Docker\Service\MongoDBCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public function create()
     {
-        $version = (string) number_format($form->version, 1);
+        $version = (string) number_format($this->form->version, 1);
 
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
+        $this->service->setName($this->form->name)
             ->setImage("mongo:{$version}")
             ->setVersion($version)
-            ->setRestart(Entity\Docker\Service::RESTART_ALWAYS);
+            ->setRestart(Entity\Service::RESTART_ALWAYS);
 
-        $form->secrets['mongodb_host']['data'] = $service->getSlug();
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-
-        return $service;
+        $this->form->secrets['mongodb_host']['data'] = $this->service->getSlug();
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
+    }
+
+    public function getCreateParams() : array
+    {
+        return [
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getViewParams() : array
     {
-        return array_merge(parent::getViewParams($service), [
+        return [
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    /**
-     * @param Entity\Docker\Service             $service
-     * @param Form\Docker\Service\MongoDBCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-    }
-
-    protected function internalNetworksArray() : array
-    {
-        return [];
-    }
-
-    protected function internalPortsArray() : array
+    public function getInternalPorts() : array
     {
         return [
             [null, 27017, 'tcp']
         ];
     }
 
-    protected function internalSecretsArray() : array
+    public function getInternalSecrets() : array
     {
         return [
             'mongodb_host',
         ];
     }
 
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [],

@@ -3,8 +3,9 @@
 {% block serviceContent %}
 <div class="row">
     <div class="form-group col">
-        <label class="form-label">Service Name</label>
-        <div class="form-control">{{ service.name }}</div>
+        <label class="form-label" for="name">Service Name</label>
+        <input type="text" class="form-control"
+               id="name" value="{{ service.name }}" disabled />
     </div>
 </div>
 
@@ -13,7 +14,7 @@
     This service is available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ service.name }}</span>:3306</span>
+        <span id="service-name-tag">{{ service.name }}</span>:13000</span>
 </div>
 
 <hr class="my-6" />

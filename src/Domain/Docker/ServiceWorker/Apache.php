@@ -2,80 +2,116 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Repository\Docker as Repository;
 
-class Apache extends WorkerAbstract
+class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
 {
     public const SERVICE_TYPE_SLUG = 'apache';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\ApacheCreate */
+    protected $form;
+
+    /** @var Repository\Service */
+    protected $repo;
+
+    public function setRepo(Repository\Service $repo)
     {
-        return new Form\Docker\Service\ApacheCreate();
+        $this->repo = $repo;
     }
 
-    /**
-     * @param Form\Docker\Service\ApacheCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        return new Form\Service\ApacheCreate();
+    }
+
+    public function create()
+    {
+        $serverNames = array_merge([$this->form->server_name], $this->form->server_alias);
         $serverNames = implode(',', $serverNames);
 
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
-            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+        $this->service->setName($this->form->name)
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
             ->setDockerfile('Dockerfile')
             ->setArgs([
-                'SYSTEM_PACKAGES'        => array_unique($form->system_packages),
-                'APACHE_MODULES_ENABLE'  => array_unique($form->enabled_modules),
-                'APACHE_MODULES_DISABLE' => array_unique($form->disabled_modules),
+                'SYSTEM_PACKAGES'        => array_unique($this->form->system_packages),
+                'APACHE_MODULES_ENABLE'  => array_unique($this->form->enabled_modules),
+                'APACHE_MODULES_DISABLE' => array_unique($this->form->disabled_modules),
             ]);
 
-        $service->setBuild($build);
+        $this->service->setBuild($build);
 
         $vhost = [
-            'server_name'   => $form->server_name,
-            'server_alias'  => $form->server_alias,
-            'document_root' => $form->document_root,
-            'handler'       => $form->handler,
+            'server_name'   => $this->form->server_name,
+            'server_alias'  => $this->form->server_alias,
+            'document_root' => $this->form->document_root,
+            'handler'       => $this->form->handler,
         ];
 
-        $vhostMeta = new Entity\Docker\ServiceMeta();
+        $vhostMeta = new Entity\ServiceMeta();
         $vhostMeta->setName('vhost')
             ->setData($vhost)
-            ->setService($service);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $vhostMeta);
-        $this->serviceRepo->flush();
-
-        return $service;
+            ->setService($this->service);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
-            'handlers'      => $this->getHandlersForView($project),
-            'fileHighlight' => 'apacheconf',
-        ]);
+        $serverNames = array_merge([$this->form->server_name], $this->form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
+        $this->service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
+
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
+            ->setDockerfile('Dockerfile')
+            ->setArgs([
+                'SYSTEM_PACKAGES'        => array_unique($this->form->system_packages),
+                'APACHE_MODULES_ENABLE'  => array_unique($this->form->enabled_modules),
+                'APACHE_MODULES_DISABLE' => array_unique($this->form->disabled_modules),
+            ]);
+
+        $this->service->setBuild($build);
+
+        $vhost = [
+            'server_name'   => $this->form->server_name,
+            'server_alias'  => $this->form->server_alias,
+            'document_root' => $this->form->document_root,
+            'handler'       => $this->form->handler,
+        ];
+
+        $vhostMeta = $this->service->getMeta('vhost');
+        $vhostMeta->setData($vhost);
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getCreateParams() : array
     {
-        $args = $service->getBuild()->getArgs();
+        $modules = $this->serviceType->getMeta('modules');
+
+        return [
+            'apacheModulesEnable'    => $modules->getData()['default'],
+            'apacheModulesDisable'   => $modules->getData()['disable'],
+            'availableApacheModules' => $modules->getData()['available'],
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'awesome.localhost',
+                'server_alias'  => ['www.awesome.localhost'],
+                'document_root' => '/var/www',
+                'handler'       => '',
+            ],
+            'handlers'               => $this->getHandlersForView(),
+            'fileHighlight'          => 'apacheconf',
+        ];
+    }
+
+    public function getViewParams() : array
+    {
+        $args = $this->service->getBuild()->getArgs();
 
         $apacheModulesEnable    = $args['APACHE_MODULES_ENABLE'];
         $apacheModulesDisable   = $args['APACHE_MODULES_DISABLE'];
@@ -83,13 +119,13 @@ class Apache extends WorkerAbstract
 
         $availableApacheModules = [];
 
-        $apacheModules          = $service->getType()->getMeta('modules');
+        $apacheModules          = $this->service->getType()->getMeta('modules');
         $availableApacheModules += $apacheModules->getData()['default'];
         $availableApacheModules += $apacheModules->getData()['available'];
 
-        $vhostMeta = $service->getMeta('vhost');
+        $vhostMeta = $this->service->getMeta('vhost');
 
-        return array_merge(parent::getViewParams($service), [
+        return [
             'apacheModulesEnable'    => $apacheModulesEnable,
             'apacheModulesDisable'   => $apacheModulesDisable,
             'availableApacheModules' => $availableApacheModules,
@@ -100,58 +136,18 @@ class Apache extends WorkerAbstract
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'handlers'               => $this->getHandlersForView($service->getProject()),
+            'handlers'               => $this->getHandlersForView(),
             'fileHighlight'          => 'apacheconf',
-        ]);
-    }
-
-    /**
-     * @param Entity\Docker\Service            $service
-     * @param Form\Docker\Service\ApacheCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
-        $serverNames = implode(',', $serverNames);
-
-        $service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
-
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'        => array_unique($form->system_packages),
-                'APACHE_MODULES_ENABLE'  => array_unique($form->enabled_modules),
-                'APACHE_MODULES_DISABLE' => array_unique($form->disabled_modules),
-            ]);
-
-        $service->setBuild($build);
-
-        $vhost = [
-            'server_name'   => $form->server_name,
-            'server_alias'  => $form->server_alias,
-            'document_root' => $form->document_root,
-            'handler'       => $form->handler,
         ];
-
-        $vhostMeta = $service->getMeta('vhost');
-        $vhostMeta->setData($vhost);
-
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $vhostMeta);
-        $this->serviceRepo->flush();
     }
 
-    protected function getHandlersForView(Entity\Docker\Project $project) : array
+    protected function getHandlersForView() : array
     {
-        $phpFpmWorker   = $this->workerBag->getWorkerFromType(PhpFpm::SERVICE_TYPE_SLUG);
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $project = $this->service->getProject();
+
+        $phpFpmServices = $this->repo->findByProjectAndTypeName(
             $project,
-            $phpFpmWorker->getServiceType()
+            PhpFpm::SERVICE_TYPE_SLUG
         );
 
         $phpfpm = [];
@@ -159,10 +155,9 @@ class Apache extends WorkerAbstract
             $phpfpm []= "{$service->getName()}:9000";
         }
 
-        $nodeJsWorker   = $this->workerBag->getWorkerFromType(NodeJs::SERVICE_TYPE_SLUG);
-        $nodeJsServices = $this->serviceRepo->findByProjectAndType(
+        $nodeJsServices = $this->repo->findByProjectAndTypeName(
             $project,
-            $nodeJsWorker->getServiceType()
+            NodeJs::SERVICE_TYPE_SLUG
         );
 
         $nodejs = [];
@@ -179,31 +174,21 @@ class Apache extends WorkerAbstract
         ];
     }
 
-    protected function internalNetworksArray() : array
+    public function getInternalNetworks() : array
     {
         return [
             'public',
         ];
     }
 
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [
                 'apache2-conf',
                 'ports-conf',
                 'vhost-conf',
-                'Dockerfile',
+                'dockerfile',
             ],
             'other' => [
                 'root',

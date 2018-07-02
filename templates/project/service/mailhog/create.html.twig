@@ -6,7 +6,7 @@
         <label class="form-label" for="name">Service Name</label>
         <input type="text" class="form-control" maxlength="64"
                id="name" name="name" placeholder=""
-               value="{{ serviceName }}" required data-mask-type="dns"
+               value="{{ service.name }}" required data-mask-type="dns"
                data-update-text="service-name-tag,server-name-tag,volumes_dir_internal-datadir-bind-span"
                data-error-container="name" />
         <div class="invalid-feedback" data-error-container-name="name"></div>
@@ -18,11 +18,11 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:1025</span>
+        <span id="service-name-tag">{{ service.name }}</span>:1025</span>
 
     and <strong>publicly</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
-        http://<span id="server-name-tag">{{ serviceName }}</span>.localhost:8025</span>
+        http://<span id="server-name-tag">{{ service.name }}</span>.localhost:8025</span>
 </div>
 {% endblock %}

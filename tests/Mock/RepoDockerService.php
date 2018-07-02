@@ -70,6 +70,24 @@ class RepoDockerService extends Service
         return $services;
     }
 
+    public function findByProjectAndTypeName(Entity\Project $project, string $typeName) : array
+    {
+        $services = [];
+
+        foreach ($project->getServices() as $service) {
+            $serviceType = $service->getType();
+
+            // ->andWhere('st.name = :typeName')
+            if ($serviceType->getName() !== $typeName) {
+                continue;
+            }
+
+            $services []= $service;
+        }
+
+        return $services;
+    }
+
     public function findChildByType(
         Entity\Service $parent,
         Entity\ServiceType $childType
@@ -80,6 +98,23 @@ class RepoDockerService extends Service
 
             // ->andWhere('s.type = :type')
             if ($serviceType->getName() === $childType->getName()) {
+                return $child;
+            }
+        }
+
+        return null;
+    }
+
+    public function findChildByTypeName(
+        Entity\Service $parent,
+        string $typeName
+    ) : ?Entity\Service {
+        // ->andWhere('s.parent = :parent')
+        foreach ($parent->getChildren() as $child) {
+            $serviceType = $child->getType();
+
+            // ->andWhere('st.name = :typeName')
+            if ($serviceType->getName() === $typeName) {
                 return $child;
             }
         }

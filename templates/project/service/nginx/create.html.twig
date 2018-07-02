@@ -6,7 +6,7 @@
         <label class="form-label" for="name">Service Name</label>
         <input type="text" class="form-control" maxlength="64"
                id="name" name="name" placeholder=""
-               value="{{ serviceName }}" required data-mask-type="dns"
+               value="{{ service.name }}" required data-mask-type="dns"
                data-update-text="service-name-tag"
                data-error-container="name" />
         <div class="invalid-feedback" data-error-container-name="name"></div>
@@ -18,12 +18,12 @@
     This service will be available <strong>privately</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-lock"></i></span>
-        <span id="service-name-tag">{{ serviceName }}</span>:80</span>
+        <span id="service-name-tag">{{ service.name }}</span>:80</span>
 
     and <strong>publicly</strong> at
     <span class="badge badge-primary text-lg">
         <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
-        http://<span id="server-name-tag">awesome.localhost</span></span>
+        http://<span id="server-name-tag">{{ vhost.server_name }}</span></span>
      and server aliases you define below
 </div>
 
@@ -41,6 +41,9 @@
         <label class="form-label" for="system-packages">System Packages</label>
         <select class="form-control" id="system-packages" name="system_packages[]"
                 multiple data-error-container="system-packages" data-selectize-tags>
+            {% for package in systemPackagesSelected %}
+                <option value="{{ package }}" selected>{{ package }}</option>
+            {% endfor %}
         </select>
         <div class="invalid-feedback" data-error-container-name="system-packages"></div>
         <small class="text-muted">
@@ -58,7 +61,7 @@
         <label class="form-label" for="server_name">Server Name</label>
         <input type="text" class="form-control"
                id="server_name" name="server_name" placeholder=""
-               value="awesome.localhost"
+               value="{{ vhost.server_name }}"
                data-update-text="server-name-tag" />
         <small class="text-muted">
             Your server name <strong>must</strong> be <code>.localhost</code>
@@ -73,7 +76,9 @@
         <select class="form-control" id="server_alias"
                 name="server_alias[]"
                 multiple data-selectize-tags>
-            <option value="www.awesome.localhost" selected>www.awesome.localhost</option>
+            {% for alias in vhost.server_alias %}
+                <option value="{{ alias }}" selected>{{ alias }}</option>
+            {% endfor %}
         </select>
         <small class="text-muted">
             Your server aliases <strong>must</strong> be <code>.localhost</code>
@@ -87,7 +92,7 @@
         <label class="form-label" for="document_root">Document Root</label>
         <input type="text" class="form-control"
                id="document_root" name="document_root" placeholder=""
-               value="/var/www" />
+               value="{{ vhost.document_root }}" />
         <small class="text-muted">
             Location of your site's index.php file, or other landing page.
             Symfony 2 &amp; 3 use <code>web</code>. Laravel and Symfony 4 use
@@ -138,39 +143,39 @@
                 <div class="dropdown-menu">
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'basic_html',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic HTML</a>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'basic_phpfpm',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic PHP-FPM</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'symfony2_3',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 2 &amp; 3</a>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'symfony4',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Symfony 4</a>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'laravel',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Laravel</a>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'wordpress',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Wordpress</a>
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item"
                        href="{{ path('project.service.nginx.vhost.post', {
-                            'projectId': project.id,
+                            'projectId': service.project.id,
                             'type': 'basic_nodejs',
                         }) }}" data-code-from-remote="#volumes_file-{{ volume.id }}-data">Basic Node.js</a>
                 </div>

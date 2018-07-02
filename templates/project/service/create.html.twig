@@ -14,10 +14,10 @@
                         <li class="breadcrumb-item"><a href="{{ path('project.index.get') }}">
                                 Projects</a></li>
                         <li class="breadcrumb-item"><a href="{{ path('project.view.get', {
-                                'projectId': project.id,
-                            }) }}">{{ project.name }}</a></li>
+                                'projectId': service.project.id,
+                            }) }}">{{ service.project.name }}</a></li>
                         <li class="breadcrumb-item active" aria-current="page">
-                            Create {{ serviceType.name }} Service</li>
+                            Create {{ service.type.name }} Service</li>
                     </ol>
                 </nav>
             </div>
@@ -31,7 +31,7 @@
     <div class="col-lg-3 order-lg-0 mb-4">
         <div data-sticky>
             <a href="{{ path('project.view.get', {
-                    'projectId': project.id
+                    'projectId': service.project.id
                 }) }}" class="btn btn-block btn-primary mb-6">
                 <i class="fe fe-arrow-left mr-2"></i>Back to Project
             </a>
@@ -58,13 +58,13 @@
     <div class="col-lg-9" id="service">
         <div class="page-header mt-0 mb-2">
             <div class="d-flex align-items-end w-100">
-                <h1 class="page-title">Create {{ serviceType.name }} Service</h1>
+                <h1 class="page-title">Create {{ service.type.name }} Service</h1>
             </div>
         </div>
 
         <form action="{{ path('project.service.create.post', {
-            'projectId': project.id,
-            'serviceTypeSlug': serviceType.slug,
+            'projectId': service.project.id,
+            'serviceTypeSlug': service.type.slug,
         }) }}" method="post" data-ajax>
             <div class="card">
                 <div class="card-body">
@@ -96,5 +96,5 @@
     </div>
 </div>
 
-{% include '@Dashtainer/project/snippets/service_create.html.twig' %}
+{% include '@Dashtainer/project/snippets/service_create.html.twig' with {'project': service.project} %}
 {% endblock %}

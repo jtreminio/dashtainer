@@ -719,9 +719,9 @@
             xdebug.remote_port = 9000
 -
     type: PHP-FPM
-    name: Dockerfile-5.6
+    name: dockerfile-5.6
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -784,34 +784,34 @@
                 && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=0
-            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+            ARG BLACKFIRE_SERVER
+            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/fpm/conf.d/blackfire.ini \
             ;fi
 
-            COPY xdebug /usr/bin/xdebug
-            RUN chmod +x /usr/bin/xdebug
+            COPY xdebug-bin /usr/bin/xdebug
+            COPY fpm-bin /usr/bin/php-fpm
+
+            RUN chmod +x /usr/bin/xdebug \
+                && chmod +x /usr/bin/php-fpm \
+                && ln -sf /usr/sbin/php-fpm5.6 /usr/sbin/php-fpm
 
             EXPOSE 9000
-
-            COPY php-fpm-startup /usr/bin/php-fpm
-            RUN chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm5.6 /usr/sbin/php-fpm
 
             CMD /usr/bin/php-fpm
 -
     type: PHP-FPM
-    name: Dockerfile-7.0
+    name: dockerfile-7.0
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -874,34 +874,34 @@
                 && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=0
-            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+            ARG BLACKFIRE_SERVER
+            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/fpm/conf.d/blackfire.ini \
             ;fi
 
-            COPY xdebug /usr/bin/xdebug
-            RUN chmod +x /usr/bin/xdebug
+            COPY xdebug-bin /usr/bin/xdebug
+            COPY fpm-bin /usr/bin/php-fpm
+
+            RUN chmod +x /usr/bin/xdebug \
+                && chmod +x /usr/bin/php-fpm \
+                && ln -sf /usr/sbin/php-fpm7.0 /usr/sbin/php-fpm
 
             EXPOSE 9000
-
-            COPY php-fpm-startup /usr/bin/php-fpm
-            RUN chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.0 /usr/sbin/php-fpm
 
             CMD /usr/bin/php-fpm
 -
     type: PHP-FPM
-    name: Dockerfile-7.1
+    name: dockerfile-7.1
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -964,34 +964,34 @@
                 && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=0
-            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+            ARG BLACKFIRE_SERVER
+            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/fpm/conf.d/blackfire.ini \
             ;fi
 
-            COPY xdebug /usr/bin/xdebug
-            RUN chmod +x /usr/bin/xdebug
+            COPY xdebug-bin /usr/bin/xdebug
+            COPY fpm-bin /usr/bin/php-fpm
+
+            RUN chmod +x /usr/bin/xdebug \
+                && chmod +x /usr/bin/php-fpm \
+                && ln -sf /usr/sbin/php-fpm7.1 /usr/sbin/php-fpm
 
             EXPOSE 9000
-
-            COPY php-fpm-startup /usr/bin/php-fpm
-            RUN chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.1 /usr/sbin/php-fpm
 
             CMD /usr/bin/php-fpm
 -
     type: PHP-FPM
-    name: Dockerfile-7.2
+    name: dockerfile-7.2
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -1054,27 +1054,27 @@
                 && mkdir /.composer && chmod 1777 /.composer \
             ;fi
 
-            ARG BLACKFIRE_INSTALL=0
-            RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
+            ARG BLACKFIRE_SERVER
+            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
                 version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
                 && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
                     https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
+                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
                     ${PHP_DIR}/fpm/conf.d/blackfire.ini \
             ;fi
 
-            COPY xdebug /usr/bin/xdebug
-            RUN chmod +x /usr/bin/xdebug
+            COPY xdebug-bin /usr/bin/xdebug
+            COPY fpm-bin /usr/bin/php-fpm
+
+            RUN chmod +x /usr/bin/xdebug \
+                && chmod +x /usr/bin/php-fpm \
+                && ln -sf /usr/sbin/php-fpm7.2 /usr/sbin/php-fpm
 
             EXPOSE 9000
-
-            COPY php-fpm-startup /usr/bin/php-fpm
-            RUN chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.2 /usr/sbin/php-fpm
 
             CMD /usr/bin/php-fpm
 -
@@ -1348,9 +1348,9 @@
         type: bind
 -
     type: Apache
-    name: Dockerfile
+    name: dockerfile
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -1516,9 +1516,9 @@
         type: bind
 -
     type: Nginx
-    name: Dockerfile
+    name: dockerfile
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile
@@ -5221,9 +5221,9 @@
 
 -
     type: Beanstalkd
-    name: Dockerfile
+    name: dockerfile
     data:
-        name: Dockerfile
+        name: dockerfile
         source: Dockerfile
         target: ~
         highlight: dockerfile

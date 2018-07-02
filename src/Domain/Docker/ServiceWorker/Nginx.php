@@ -2,82 +2,111 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Form\Docker as Form;
+use Dashtainer\Repository\Docker as Repository;
 
-class Nginx extends WorkerAbstract
+class Nginx extends WorkerAbstract implements WorkerServiceRepoInterface
 {
     public const SERVICE_TYPE_SLUG = 'nginx';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\NginxCreate */
+    protected $form;
+
+    /** @var Repository\Service */
+    protected $repo;
+
+    public function setRepo(Repository\Service $repo)
     {
-        return new Form\Docker\Service\NginxCreate();
+        $this->repo = $repo;
     }
 
-    /**
-     * @param Form\Docker\Service\NginxCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
+        return new Form\Service\NginxCreate();
+    }
+
+    public function create()
+    {
+        $serverNames = array_merge([$this->form->server_name], $this->form->server_alias);
         $serverNames = implode(',', $serverNames);
 
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project)
-            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $service->getName())
+        $this->service->setName($this->form->name)
+            ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
             ->setDockerfile('Dockerfile')
             ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($form->system_packages),
+                'SYSTEM_PACKAGES' => array_unique($this->form->system_packages),
             ]);
 
-        $service->setBuild($build);
+        $this->service->setBuild($build);
 
         $vhost = [
-            'server_name'   => $form->server_name,
-            'server_alias'  => $form->server_alias,
-            'document_root' => $form->document_root,
-            'handler'       => $form->handler,
+            'server_name'   => $this->form->server_name,
+            'server_alias'  => $this->form->server_alias,
+            'document_root' => $this->form->document_root,
+            'handler'       => $this->form->handler,
         ];
 
-        $vhostMeta = new Entity\Docker\ServiceMeta();
+        $vhostMeta = new Entity\ServiceMeta();
         $vhostMeta->setName('vhost')
             ->setData($vhost)
-            ->setService($service);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $vhostMeta);
-        $this->serviceRepo->flush();
-
-        return $service;
+            ->setService($this->service);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
-            'handlers'      => $this->getHandlersForView($project),
-            'fileHighlight' => 'nginx',
-        ]);
+        $serverNames = array_merge([$this->form->server_name], $this->form->server_alias);
+        $serverNames = implode(',', $serverNames);
+
+        $this->service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
+
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
+            ->setDockerfile('Dockerfile')
+            ->setArgs([
+                'SYSTEM_PACKAGES' => array_unique($this->form->system_packages),
+            ]);
+
+        $this->service->setBuild($build);
+
+        $vhost = [
+            'server_name'   => $this->form->server_name,
+            'server_alias'  => $this->form->server_alias,
+            'document_root' => $this->form->document_root,
+            'handler'       => $this->form->handler,
+        ];
+
+        $vhostMeta = $this->service->getMeta('vhost');
+        $vhostMeta->setData($vhost);
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getCreateParams() : array
     {
-        $systemPackagesSelected = $service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
+        return [
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'awesome.localhost',
+                'server_alias'  => ['www.awesome.localhost'],
+                'document_root' => '/var/www',
+                'handler'       => '',
+            ],
+            'handlers'               => $this->getHandlersForView(),
+            'fileHighlight'          => 'nginx',
+        ];
+    }
 
-        $vhostMeta = $service->getMeta('vhost');
+    public function getViewParams() : array
+    {
+        $systemPackagesSelected = $this->service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
 
-        return array_merge(parent::getViewParams($service), [
+        $vhostMeta = $this->service->getMeta('vhost');
+
+        return [
             'systemPackagesSelected' => $systemPackagesSelected,
             'vhost'                  => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
@@ -85,56 +114,18 @@ class Nginx extends WorkerAbstract
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'handlers'               => $this->getHandlersForView($service->getProject()),
+            'handlers'               => $this->getHandlersForView(),
             'fileHighlight'          => 'ini',
-        ]);
-    }
-
-    /**
-     * @param Entity\Docker\Service           $service
-     * @param Form\Docker\Service\NginxCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($form->system_packages),
-            ]);
-
-        $service->setBuild($build);
-
-        $serverNames = array_merge([$form->server_name], $form->server_alias);
-        $serverNames = implode(',', $serverNames);
-
-        $service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
-
-        $vhost = [
-            'server_name'   => $form->server_name,
-            'server_alias'  => $form->server_alias,
-            'document_root' => $form->document_root,
-            'handler'       => $form->handler,
         ];
-
-        $vhostMeta = $service->getMeta('vhost');
-        $vhostMeta->setData($vhost);
-
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service, $vhostMeta);
-        $this->serviceRepo->flush();
     }
 
-    protected function getHandlersForView(Entity\Docker\Project $project) : array
+    protected function getHandlersForView() : array
     {
-        $phpFpmWorker   = $this->workerBag->getWorkerFromType(PhpFpm::SERVICE_TYPE_SLUG);
-        $phpFpmServices = $this->serviceRepo->findByProjectAndType(
+        $project = $this->service->getProject();
+
+        $phpFpmServices = $this->repo->findByProjectAndTypeName(
             $project,
-            $phpFpmWorker->getServiceType()
+            PhpFpm::SERVICE_TYPE_SLUG
         );
 
         $phpfpm = [];
@@ -142,10 +133,9 @@ class Nginx extends WorkerAbstract
             $phpfpm []= "{$service->getName()}:9000";
         }
 
-        $nodeJsWorker   = $this->workerBag->getWorkerFromType(NodeJs::SERVICE_TYPE_SLUG);
-        $nodeJsServices = $this->serviceRepo->findByProjectAndType(
+        $nodeJsServices = $this->repo->findByProjectAndTypeName(
             $project,
-            $nodeJsWorker->getServiceType()
+            NodeJs::SERVICE_TYPE_SLUG
         );
 
         $nodejs = [];
@@ -162,24 +152,14 @@ class Nginx extends WorkerAbstract
         ];
     }
 
-    protected function internalNetworksArray() : array
+    public function getInternalNetworks() : array
     {
         return [
             'public',
         ];
     }
 
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [
@@ -187,7 +167,7 @@ class Nginx extends WorkerAbstract
                 'core-conf',
                 'proxy-conf',
                 'vhost-conf',
-                'Dockerfile',
+                'dockerfile',
             ],
             'other' => [
                 'root',

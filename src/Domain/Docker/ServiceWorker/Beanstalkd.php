@@ -2,95 +2,54 @@
 
 namespace Dashtainer\Domain\Docker\ServiceWorker;
 
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 
 class Beanstalkd extends WorkerAbstract
 {
     public const SERVICE_TYPE_SLUG = 'beanstalkd';
 
-    public function getCreateForm() : Form\Docker\Service\CreateAbstract
+    /** @var Form\Service\BeanstalkdCreate */
+    protected $form;
+
+    public static function getFormInstance() : Form\Service\CreateAbstract
     {
-        return new Form\Docker\Service\BeanstalkdCreate();
+        return new Form\Service\BeanstalkdCreate();
     }
 
-    /**
-     * @param Form\Docker\Service\BeanstalkdCreate $form
-     * @return Entity\Docker\Service
-     */
-    public function create($form) : Entity\Docker\Service
+    public function create()
     {
-        $service = new Entity\Docker\Service();
-        $service->setName($form->name)
-            ->setType($form->type)
-            ->setProject($form->project);
+        $this->service->setName($this->form->name);
 
-        $build = $service->getBuild();
-        $build->setContext("./{$service->getSlug()}")
+        $build = $this->service->getBuild();
+        $build->setContext("./{$this->service->getSlug()}")
             ->setDockerfile('Dockerfile');
 
-        $service->setBuild($build);
-
-        $this->createNetworks($service, $form);
-        $this->createPorts($service, $form);
-        $this->createSecrets($service, $form);
-        $this->createVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-
-        return $service;
+        $this->service->setBuild($build);
     }
 
-    public function getCreateParams(Entity\Docker\Project $project) : array
+    public function update()
     {
-        return array_merge(parent::getCreateParams($project), [
+    }
+
+    public function getCreateParams() : array
+    {
+        return [
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    public function getViewParams(Entity\Docker\Service $service) : array
+    public function getViewParams() : array
     {
-        return array_merge(parent::getViewParams($service), [
+        return [
             'fileHighlight' => 'ini',
-        ]);
+        ];
     }
 
-    /**
-     * @param Entity\Docker\Service                $service
-     * @param Form\Docker\Service\BeanstalkdCreate $form
-     */
-    public function update(Entity\Docker\Service $service, $form)
-    {
-        $this->updateNetworks($service, $form);
-        $this->updatePorts($service, $form);
-        $this->updateSecrets($service, $form);
-        $this->updateVolumes($service, $form);
-
-        $this->serviceRepo->persist($service);
-        $this->serviceRepo->flush();
-    }
-
-    protected function internalNetworksArray() : array
-    {
-        return [];
-    }
-
-    protected function internalPortsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalSecretsArray() : array
-    {
-        return [];
-    }
-
-    protected function internalVolumesArray() : array
+    public function getInternalVolumes() : array
     {
         return [
             'files' => [
-                'Dockerfile'
+                'dockerfile'
             ],
             'other' => [
                 'datadir'
