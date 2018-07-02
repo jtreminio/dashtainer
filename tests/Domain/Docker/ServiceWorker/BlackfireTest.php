@@ -3,12 +3,12 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Blackfire;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
 class BlackfireTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\BlackfireCreate */
+    /** @var Form\Service\BlackfireCreate */
     protected $form;
 
     /** @var Blackfire */
@@ -18,47 +18,40 @@ class BlackfireTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $this->form = new Form\Docker\Service\BlackfireCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
-        $this->form->name    = 'service-name';
-
+        $this->form = Blackfire::getFormInstance();
+        $this->form->name         = 'service-name';
         $this->form->server_id    = 'server_id';
         $this->form->server_token = 'server_token';
 
-        $this->worker = new Blackfire(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new Blackfire();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType);
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $environments = $service->getEnvironments();
+        $environments = $this->service->getEnvironments();
 
-        $this->assertEquals('blackfire/blackfire', $service->getImage());
+        $this->assertEquals('blackfire/blackfire', $this->service->getImage());
         $this->assertEquals($this->form->server_id, $environments['BLACKFIRE_SERVER_ID']);
         $this->assertEquals($this->form->server_token, $environments['BLACKFIRE_SERVER_TOKEN']);
     }
 
     public function testUpdate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $form = clone $this->form;
+        $this->form->server_id    = 'new_server_id';
+        $this->form->server_token = 'new_server_token';
 
-        $form->server_id    = 'new_server_id';
-        $form->server_token = 'new_server_token';
+        $this->worker->update();
 
-        $updatedService = $this->worker->update($service, $form);
+        $environments = $this->service->getEnvironments();
 
-        $environments = $updatedService->getEnvironments();
-
-        $this->assertEquals($form->server_id, $environments['BLACKFIRE_SERVER_ID']);
-        $this->assertEquals($form->server_token, $environments['BLACKFIRE_SERVER_TOKEN']);
+        $this->assertEquals($this->form->server_id, $environments['BLACKFIRE_SERVER_ID']);
+        $this->assertEquals($this->form->server_token, $environments['BLACKFIRE_SERVER_TOKEN']);
     }
 }

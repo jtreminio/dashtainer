@@ -3,13 +3,12 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\MariaDB;
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
 class MariaDBTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\MariaDBCreate */
+    /** @var Form\Service\MariaDBCreate */
     protected $form;
 
     /** @var MariaDB */
@@ -19,196 +18,39 @@ class MariaDBTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $this->form = new Form\Docker\Service\MariaDBCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
+        $this->form = MariaDB::getFormInstance();
         $this->form->name    = 'service-name';
+        $this->form->version = '1.2';
 
-        $this->form->system_file = [
-            'my.cnf'          => 'my.cnf contents',
-            'config-file.cnf' => 'config-file.cnf contents',
-        ];
-        $this->form->datastore   = 'local';
-        $this->form->version     = '1.2';
-
-        $this->form->port         = null;
-        $this->form->port_confirm = false;
-        $this->form->port_used    = false;
-
-        $this->form->mysql_root_password = 'rootpw';
-        $this->form->mysql_database      = 'dbname';
-        $this->form->mysql_user          = 'dbuser';
-        $this->form->mysql_password      = 'userpw';
-
-        $this->worker = new MariaDB(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new MariaDB();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType);
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $environment = $service->getEnvironments();
+        $environment = $this->service->getEnvironments();
 
         $this->assertEquals(
-            '/run/secrets/service-name-mysql_root_password',
+            '/run/secrets/mysql_root_password',
             $environment['MYSQL_ROOT_PASSWORD_FILE']
         );
         $this->assertEquals(
-            '/run/secrets/service-name-mysql_database',
+            '/run/secrets/mysql_database',
             $environment['MYSQL_DATABASE_FILE']
         );
         $this->assertEquals(
-            '/run/secrets/service-name-mysql_user',
+            '/run/secrets/mysql_user',
             $environment['MYSQL_USER_FILE']
         );
         $this->assertEquals(
-            '/run/secrets/service-name-mysql_password',
+            '/run/secrets/mysql_password',
             $environment['MYSQL_PASSWORD_FILE']
         );
 
-        $secret_mysql_root_password = $service->getSecret('service-name-mysql_root_password');
-        $secret_mysql_database      = $service->getSecret('service-name-mysql_database');
-        $secret_mysql_user          = $service->getSecret('service-name-mysql_user');
-        $secret_mysql_password      = $service->getSecret('service-name-mysql_password');
-
-        $this->assertEquals(
-            $this->form->mysql_root_password,
-            $secret_mysql_root_password->getProjectSecret()->getContents()
-        );
-        $this->assertEquals(
-            $this->form->mysql_database,
-            $secret_mysql_database->getProjectSecret()->getContents()
-        );
-        $this->assertEquals(
-            $this->form->mysql_user,
-            $secret_mysql_user->getProjectSecret()->getContents()
-        );
-        $this->assertEquals(
-            $this->form->mysql_password,
-            $secret_mysql_password->getProjectSecret()->getContents()
-        );
-
-        $myCnfVolume      = $service->getVolume('my.cnf');
-        $configFileVolume = $service->getVolume('config-file.cnf');
-
-        $this->assertNotNull($myCnfVolume);
-        $this->assertNotNull($configFileVolume);
-        $this->assertNotNull($service->getMeta('datastore'));
-        $this->assertNotNull($service->getMeta('version'));
-        $this->assertNotNull($service->getMeta('bind-port'));
-    }
-
-    /**
-     * @var array $usedPorts
-     * @var int   $openPort
-     * @dataProvider providerGetCreateParamsReturnsFirstUnusedBindPort
-     */
-    public function testGetCreateParamsReturnsFirstUnusedBindPort(array $usedPorts, int $openPort)
-    {
-        foreach ($usedPorts as $port) {
-            $meta = new Entity\Docker\ServiceMeta();
-            $meta->setName('bind-port')
-                ->setData([$port]);
-
-            $service = new Entity\Docker\Service();
-            $service->addMeta($meta);
-
-            $this->project->addService($service);
-        }
-
-        $this->form->port         = $openPort;
-        $this->form->port_confirm = true;
-
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $this->assertEquals($openPort, $params['bindPort']);
-    }
-
-    public function providerGetCreateParamsReturnsFirstUnusedBindPort()
-    {
-        yield [
-            [],
-            3307
-        ];
-
-        yield [
-            [3307, 3308, 3309],
-            3310
-        ];
-
-        yield [
-            [3307, 3309, 3311],
-            3308
-        ];
-    }
-
-    public function testGetViewParams()
-    {
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $this->assertSame(
-            $service->getVolume('my.cnf'),
-            $params['systemFiles']['my.cnf']
-        );
-        $this->assertSame(
-            $service->getVolume('config-file.cnf'),
-            $params['systemFiles']['config-file.cnf']
-        );
-
-        $this->assertEquals($this->form->version, $params['version']);
-        $this->assertEquals(3307, $params['bindPort']);
-        $this->assertEquals($this->form->port_confirm, $params['portConfirm']);
-        $this->assertEquals($this->form->mysql_root_password, $params['mysql_root_password']);
-        $this->assertEquals($this->form->mysql_database, $params['mysql_database']);
-        $this->assertEquals($this->form->mysql_user, $params['mysql_user']);
-        $this->assertEquals($this->form->mysql_password, $params['mysql_password']);
-    }
-
-    public function testUpdate()
-    {
-        $service = $this->worker->create($this->form);
-
-        $form = clone $this->form;
-
-        $form->mysql_root_password = 'newrootpw';
-        $form->mysql_database      = 'newdb';
-        $form->mysql_user          = 'newuser';
-        $form->mysql_password      = 'newuserpw';
-
-        $form->port_confirm = true;
-        $form->port         = 3307;
-
-        $form->system_file['my.cnf']          = 'new_mycnf data';
-        $form->system_file['config-file.cnf'] = 'new configfile data';
-
-        $updatedService = $this->worker->update($service, $form);
-
-        $uMyCnfVol      = $updatedService->getVolume('my.cnf');
-        $uConfigFileVol = $updatedService->getVolume('config-file.cnf');
-        $uPortMeta      = $updatedService->getMeta('bind-port');
-        $uServicePorts  = $updatedService->getPorts();
-        $uEnvironments  = $updatedService->getEnvironments();
-
-        $expectedEnvironments = [
-            'MYSQL_ROOT_PASSWORD_FILE' => '/run/secrets/service-name-mysql_root_password',
-            'MYSQL_DATABASE_FILE'      => '/run/secrets/service-name-mysql_database',
-            'MYSQL_USER_FILE'          => '/run/secrets/service-name-mysql_user',
-            'MYSQL_PASSWORD_FILE'      => '/run/secrets/service-name-mysql_password',
-        ];
-
-        $expectedServicePorts = ["{$form->port}:3306"];
-
-        $this->assertEquals($form->system_file['my.cnf'], $uMyCnfVol->getData());
-        $this->assertEquals($form->system_file['config-file.cnf'], $uConfigFileVol->getData());
-        $this->assertEquals([$form->port], $uPortMeta->getData());
-        $this->assertEquals($expectedServicePorts, $uServicePorts);
-        $this->assertEquals($expectedEnvironments, $uEnvironments);
+        $this->assertEquals('mariadb:1.2', $this->service->getImage());
     }
 }

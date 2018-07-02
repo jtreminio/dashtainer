@@ -3,14 +3,13 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Nginx;
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
-use Dashtainer\Tests\Mock\RepoDockerService;
+use Dashtainer\Tests\Mock;
 
 class NginxTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\NginxCreate */
+    /** @var Form\Service\NginxCreate */
     protected $form;
 
     /** @var Nginx */
@@ -20,65 +19,52 @@ class NginxTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('php-fpm');
+        $phpfpmServiceType = $this->createServiceType('php-fpm');
+        $phpServiceA = $this->createService('php-fpm-a')
+            ->setType($phpfpmServiceType);
+        $phpServiceB = $this->createService('php-fpm-b')
+            ->setType($phpfpmServiceType);
 
-        $nodeJsServiceType = new Entity\Docker\ServiceType();
-        $nodeJsServiceType->setName('node-js')
-            ->setSlug('node-js');
+        $nodeJsServiceType = $this->createServiceType('node-js');
+        $portA = $this->createServiceMeta('port')
+            ->setData([123]);
+        $nodejsServiceA = $this->createService('nodejs-a')
+            ->setType($nodeJsServiceType)
+            ->addMeta($portA);
 
-        $this->serviceTypeRepo->addServiceType($phpfpmServiceType);
-        $this->serviceTypeRepo->addServiceType($nodeJsServiceType);
+        $portB = $this->createServiceMeta('port')
+            ->setData([123]);
+        $nodejsServiceB = $this->createService('nodejs-b')
+            ->setType($nodeJsServiceType)
+            ->addMeta($portB);
 
-        $this->serviceRepo = new RepoDockerService($this->em);
+        $this->service->getProject()
+            ->addService($phpServiceA)
+            ->addService($phpServiceB)
+            ->addService($nodejsServiceA)
+            ->addService($nodejsServiceB);
 
-        $this->form = new Form\Docker\Service\NginxCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
-        $this->form->name    = 'service-name';
-
+        $this->form = Nginx::getFormInstance();
+        $this->form->name = 'service-name';
         $this->form->server_name   = 'server_name';
         $this->form->server_alias  = ['server_alias'];
         $this->form->document_root = '~/www/project';
-        $this->form->handler       = 'php-fpm-7.2';
-        $this->form->project_files = [
-            'type'  => 'local',
-            'local' => [
-                'source' => '~/www/project',
-            ]
-        ];
-        $this->form->vhost_conf    = <<<'EOD'
-example
-vhost
-config
-EOD;
-        $this->form->system_file   = [
-            'Dockerfile' => 'Dockerfile contents',
-            'nginx.conf' => 'nginx.conf contents',
-            'core.conf'  => 'core.conf contents',
-            'proxy.conf' => 'proxy.conf contents',
-        ];
+        $this->form->handler       = 'php-fpm-7.2:9000';
 
-        $this->worker = new Nginx(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new Nginx();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType)
+            ->setRepo(new Mock\RepoDockerService($this->getEm()));
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $labels = $service->getLabels();
+        $labels = $this->service->getLabels();
 
-        $this->assertSame($this->form->name, $service->getName());
-        $this->assertSame($this->form->type, $service->getType());
-        $this->assertSame($this->form->project, $service->getProject());
-
-        $build = $service->getBuild();
+        $build = $this->service->getBuild();
         $this->assertEquals('./service-name', $build->getContext());
         $this->assertEquals('Dockerfile', $build->getDockerfile());
 
@@ -102,123 +88,89 @@ EOD;
             'document_root' => $this->form->document_root,
             'handler'       => $this->form->handler,
         ];
-        $vhostMeta = $service->getMeta('vhost');
+        $vhostMeta = $this->service->getMeta('vhost');
         $this->assertEquals($expectedVhostMeta, $vhostMeta->getData());
-
-        $this->assertNotNull($service->getVolume('Dockerfile'));
-        $this->assertNotNull($service->getVolume('nginx.conf'));
-        $this->assertNotNull($service->getVolume('core.conf'));
-        $this->assertNotNull($service->getVolume('proxy.conf'));
-        $this->assertNotNull($service->getVolume('vhost.conf'));
-
-        $this->assertNotNull($service->getVolume('project_files_source'));
-    }
-
-    public function testGetCreateParams()
-    {
-        $phpFpmService = new Entity\Docker\Service();
-        $phpFpmService->setName('php-fpm');
-
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('fcgi');
-
-        $phpFpmService->setType($phpfpmServiceType);
-        $this->project->addService($phpFpmService);
-
-        $expected = [
-            'handlers' => [
-                'PHP-FPM' => [$phpFpmService->getSlug() . ':9000'],
-                'Node.js' => [],
-            ],
-        ];
-
-        $result = $this->worker->getCreateParams($this->project);
-
-        $this->assertEquals($expected['handlers'], $result['handlers']);
-    }
-
-    public function testGetViewParams()
-    {
-        $phpFpmService = new Entity\Docker\Service();
-        $phpFpmService->setName('php-fpm');
-
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('php-fpm');
-
-        $phpFpmService->setType($phpfpmServiceType);
-        $this->project->addService($phpFpmService);
-
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $this->assertSame(
-            $service->getVolume('Dockerfile'),
-            $params['systemFiles']['Dockerfile']
-        );
-        $this->assertSame(
-            $service->getVolume('nginx.conf'),
-            $params['systemFiles']['nginx.conf']
-        );
-        $this->assertSame(
-            $service->getVolume('core.conf'),
-            $params['systemFiles']['core.conf']
-        );
-        $this->assertSame(
-            $service->getVolume('proxy.conf'),
-            $params['systemFiles']['proxy.conf']
-        );
     }
 
     public function testUpdate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $form = clone $this->form;
+        $this->form->system_packages = ['systemPackageA'];
+        $this->form->server_name     = 'updatedServerName';
+        $this->form->server_alias    = ['aliasA', 'aliasB'];
+        $this->form->document_root   = '/path/to/glory';
+        $this->form->handler         = '';
 
-        $form->project = $this->project;
-        $form->type    = $this->serviceType;
-        $form->name    = 'service-name';
+        $this->worker->update();
 
-        $form->system_packages = ['systemPackageA'];
-
-        $form->server_name   = 'updatedServerName';
-        $form->server_alias  = ['aliasA', 'aliasB'];
-        $form->document_root = '/path/to/glory';
-        $form->handler       = '';
-
-        $form->system_file['Dockerfile'] = 'new dockerfile data';
-        $form->system_file['nginx.conf'] = 'new nginx.conf data';
-        $form->system_file['core.conf']  = 'new core.conf data';
-        $form->system_file['proxy.conf'] = 'new proxy.conf data';
-        $form->vhost_conf                = 'new vhost.conf data';
-        $form->project_files             = [
-            'type'  => 'local',
-            'local' => [ 'source' => '/path/to/glory' ]
-        ];
-
-        $updatedService = $this->worker->update($service, $form);
-
-        $updatedBuild = $updatedService->getBuild();
-
-        $this->assertEquals($form->system_packages, $updatedBuild->getArgs()['SYSTEM_PACKAGES']);
+        $build = $this->service->getBuild();
 
         $this->assertEquals(
-            'Host:updatedServerName,aliasA,aliasB',
-            $updatedService->getLabels()['traefik.frontend.rule']
+            $this->form->system_packages,
+            $build->getArgs()['SYSTEM_PACKAGES']
         );
+        $this->assertEquals(
+            'Host:updatedServerName,aliasA,aliasB',
+            $this->service->getLabels()['traefik.frontend.rule']
+        );
+    }
 
-        $fileDockerFile = $updatedService->getVolume('Dockerfile');
-        $uNginxConf     = $updatedService->getVolume('nginx.conf');
-        $uCoreConf      = $updatedService->getVolume('core.conf');
-        $uProxyConf     = $updatedService->getVolume('proxy.conf');
-        $fileVhost      = $updatedService->getVolume('vhost.conf');
+    public function testGetCreateParams()
+    {
+        $expected = [
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'awesome.localhost',
+                'server_alias'  => ['www.awesome.localhost'],
+                'document_root' => '/var/www',
+                'handler'       => '',
+            ],
+            'handlers'               => [
+                'PHP-FPM' => [
+                    'php-fpm-a:9000',
+                    'php-fpm-b:9000',
+                ],
+                'Node.js' => [
+                    'nodejs-a:123',
+                    'nodejs-b:123',
+                ],
+            ],
+            'fileHighlight'          => 'nginx',
+        ];
 
-        $this->assertEquals($form->system_file['Dockerfile'], $fileDockerFile->getData());
-        $this->assertEquals($form->system_file['nginx.conf'], $uNginxConf->getData());
-        $this->assertEquals($form->system_file['core.conf'], $uCoreConf->getData());
-        $this->assertEquals($form->system_file['proxy.conf'], $uProxyConf->getData());
-        $this->assertEquals($form->vhost_conf, $fileVhost->getData());
+        $result = $this->worker->getCreateParams();
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testGetViewParams()
+    {
+        $this->worker->create();
+
+        $expected = [
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'server_name',
+                'server_alias'  => ['server_alias'],
+                'document_root' => '~/www/project',
+                'handler'       => 'php-fpm-7.2:9000',
+            ],
+            'handlers'               => [
+                'PHP-FPM' => [
+                    'php-fpm-a:9000',
+                    'php-fpm-b:9000',
+                ],
+                'Node.js' => [
+                    'nodejs-a:123',
+                    'nodejs-b:123',
+                ],
+            ],
+            'fileHighlight'          => 'ini',
+        ];
+
+        $params = $this->worker->getViewParams();
+
+        $this->assertEquals($expected, $params);
     }
 }

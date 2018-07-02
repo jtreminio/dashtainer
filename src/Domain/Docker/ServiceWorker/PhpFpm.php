@@ -40,10 +40,10 @@ class PhpFpm
         }
 
         $args = [
-            'SYSTEM_PACKAGES'  => array_unique($this->form->system_packages),
-            'PHP_PACKAGES'     => array_unique($phpPackages),
-            'PEAR_PACKAGES'    => array_unique($this->form->pear_packages),
-            'PECL_PACKAGES'    => array_unique($this->form->pecl_packages),
+            'SYSTEM_PACKAGES'  => array_values(array_unique($this->form->system_packages)),
+            'PHP_PACKAGES'     => array_values(array_unique($phpPackages)),
+            'PEAR_PACKAGES'    => array_values(array_unique($this->form->pear_packages)),
+            'PECL_PACKAGES'    => array_values(array_unique($this->form->pecl_packages)),
             'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
         ];
 
@@ -70,10 +70,10 @@ class PhpFpm
         }
 
         $args = [
-            'SYSTEM_PACKAGES'  => array_unique($this->form->system_packages),
-            'PHP_PACKAGES'     => array_unique($phpPackages),
-            'PEAR_PACKAGES'    => array_unique($this->form->pear_packages),
-            'PECL_PACKAGES'    => array_unique($this->form->pecl_packages),
+            'SYSTEM_PACKAGES'  => array_values(array_unique($this->form->system_packages)),
+            'PHP_PACKAGES'     => array_values(array_unique($phpPackages)),
+            'PEAR_PACKAGES'    => array_values(array_unique($this->form->pear_packages)),
+            'PECL_PACKAGES'    => array_values(array_unique($this->form->pecl_packages)),
             'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
         ];
 
@@ -158,11 +158,11 @@ class PhpFpm
         }
 
         return [
-            'phpPackagesSelected'    => $phpPackagesSelected,
-            'phpPackagesAvailable'   => $phpPackagesAvailable,
-            'pearPackagesSelected'   => $pearPackagesSelected,
-            'peclPackagesSelected'   => $peclPackagesSelected,
-            'systemPackagesSelected' => $systemPackagesSelected,
+            'phpPackagesSelected'    => array_values($phpPackagesSelected),
+            'phpPackagesAvailable'   => array_values($phpPackagesAvailable),
+            'pearPackagesSelected'   => array_values($pearPackagesSelected),
+            'peclPackagesSelected'   => array_values($peclPackagesSelected),
+            'systemPackagesSelected' => array_values($systemPackagesSelected),
             'composer'               => $composer,
             'xdebug'                 => $xdebug,
             'blackfire'              => $blackfire,

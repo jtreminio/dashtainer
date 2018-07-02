@@ -3,14 +3,13 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Apache;
-use Dashtainer\Entity;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
-use Dashtainer\Tests\Mock\RepoDockerService;
+use Dashtainer\Tests\Mock;
 
 class ApacheTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\ApacheCreate */
+    /** @var Form\Service\ApacheCreate */
     protected $form;
 
     /** @var Apache */
@@ -20,33 +19,42 @@ class ApacheTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('php-fpm');
+        $phpfpmServiceType = $this->createServiceType('php-fpm');
+        $phpServiceA = $this->createService('php-fpm-a')
+            ->setType($phpfpmServiceType);
+        $phpServiceB = $this->createService('php-fpm-b')
+            ->setType($phpfpmServiceType);
 
-        $nodeJsServiceType = new Entity\Docker\ServiceType();
-        $nodeJsServiceType->setName('node-js')
-            ->setSlug('node-js');
+        $nodeJsServiceType = $this->createServiceType('node-js');
+        $portA = $this->createServiceMeta('port')
+            ->setData([123]);
+        $nodejsServiceA = $this->createService('nodejs-a')
+            ->setType($nodeJsServiceType)
+            ->addMeta($portA);
 
-        $this->serviceTypeRepo->addServiceType($phpfpmServiceType);
-        $this->serviceTypeRepo->addServiceType($nodeJsServiceType);
+        $portB = $this->createServiceMeta('port')
+            ->setData([123]);
+        $nodejsServiceB = $this->createService('nodejs-b')
+            ->setType($nodeJsServiceType)
+            ->addMeta($portB);
 
-        $this->serviceRepo = new RepoDockerService($this->em);
+        $this->service->getProject()
+            ->addService($phpServiceA)
+            ->addService($phpServiceB)
+            ->addService($nodejsServiceA)
+            ->addService($nodejsServiceB);
 
-        $moduleMeta = new Entity\Docker\ServiceTypeMeta();
-        $moduleMeta->setName('modules')
+        $moduleMeta = $this->createServiceTypeMeta('modules')
             ->setData([
                 'default'   => ['default_data'],
+                'disable'   => ['disable_default'],
                 'available' => ['available_data']
             ]);
 
         $this->serviceType->addMeta($moduleMeta);
 
-        $this->form = new Form\Docker\Service\ApacheCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
-        $this->form->name    = 'service-name';
-
+        $this->form = Apache::getFormInstance();
+        $this->form->name             = 'service-name';
         $this->form->enabled_modules  = ['mpm_event', 'proxy_fcgi', 'rewrite'];
         $this->form->disabled_modules = ['mpm_prefork', 'mpm_worker', 'dupe', 'dupe'];
         $this->form->server_name      = 'server_name';
@@ -54,39 +62,22 @@ class ApacheTest extends ServiceWorkerBase
         $this->form->document_root    = '~/www/project';
         $this->form->handler          = 'php-fpm-7.2:9000';
 
-        $this->form->project_files = [
-            'type'  => 'local',
-            'local' => [
-                'source' => '~/www/project',
-            ]
-        ];
-        $this->form->vhost_conf = <<<'EOD'
-example
-vhost
-config
-EOD;
-        $this->form->system_file = [
-            'Dockerfile'   => 'Dockerfile contents',
-            'apache2.conf' => 'apache2.conf contents',
-            'ports.conf'   => 'ports.conf contents',
-        ];
-
-        $this->worker = new Apache(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new Apache();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType)
+            ->setRepo(new Mock\RepoDockerService($this->getEm()));
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $labels = $service->getLabels();
+        $labels = $this->service->getLabels();
 
         $expectedModulesDisabled = ['mpm_prefork', 'mpm_worker', 'dupe'];
-        $build = $service->getBuild();
+
+        $build = $this->service->getBuild();
         $this->assertEquals('./service-name', $build->getContext());
         $this->assertEquals('Dockerfile', $build->getDockerfile());
         $this->assertEquals($expectedModulesDisabled, $build->getArgs()['APACHE_MODULES_DISABLE']);
@@ -111,128 +102,106 @@ EOD;
             'document_root' => $this->form->document_root,
             'handler'       => $this->form->handler,
         ];
-        $vhostMeta = $service->getMeta('vhost');
+        $vhostMeta = $this->service->getMeta('vhost');
         $this->assertEquals($expectedVhostMeta, $vhostMeta->getData());
-
-        $this->assertNotNull($service->getVolume('Dockerfile'));
-        $this->assertNotNull($service->getVolume('apache2.conf'));
-        $this->assertNotNull($service->getVolume('ports.conf'));
-        $this->assertNotNull($service->getVolume('vhost.conf'));
-        $this->assertNotNull($service->getVolume('project_files_source'));
-    }
-
-    public function testGetCreateParams()
-    {
-        $phpFpmService = new Entity\Docker\Service();
-        $phpFpmService->setName('php-fpm');
-
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('php-fpm');
-
-        $phpFpmService->setType($phpfpmServiceType);
-        $this->project->addService($phpFpmService);
-
-        $expected = [
-            'handlers' => [
-                'PHP-FPM' => [$phpFpmService->getSlug() . ':9000'],
-                'Node.js' => [],
-            ],
-        ];
-
-        $result = $this->worker->getCreateParams($this->project);
-
-        $this->assertEquals($expected['handlers'], $result['handlers']);
-    }
-
-    public function testGetViewParams()
-    {
-        $phpFpmService = new Entity\Docker\Service();
-        $phpFpmService->setName('php-fpm');
-
-        $phpfpmServiceType = new Entity\Docker\ServiceType();
-        $phpfpmServiceType->setName('php-fpm')
-            ->setSlug('fcgi');
-
-        $phpFpmService->setType($phpfpmServiceType);
-        $this->project->addService($phpFpmService);
-
-        $userFileA = [
-            'filename' => 'user file a.txt',
-            'target'   => '/etc/foo/bar',
-            'data'     => 'you are awesome!',
-        ];
-
-        $this->form->user_file = [$userFileA];
-
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $this->assertSame(
-            $service->getVolume('Dockerfile'),
-            $params['systemFiles']['Dockerfile']
-        );
-        $this->assertSame(
-            $service->getVolume('apache2.conf'),
-            $params['systemFiles']['apache2.conf']
-        );
-        $this->assertSame(
-            $service->getVolume('ports.conf'),
-            $params['systemFiles']['ports.conf']
-        );
-
-        $this->assertSame(
-            $service->getVolume('userfilea.txt'),
-            array_pop($params['userFiles'])
-        );
     }
 
     public function testUpdate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $form = clone $this->form;
+        $this->form->system_packages  = ['systemPackageA'];
+        $this->form->enabled_modules  = ['enabledModuleA'];
+        $this->form->disabled_modules = ['disabledModuleA'];
+        $this->form->server_name      = 'updatedServerName';
+        $this->form->server_alias     = ['aliasA', 'aliasB'];
+        $this->form->document_root    = '/path/to/glory';
+        $this->form->handler          = '';
 
-        $form->system_packages  = ['systemPackageA'];
-        $form->enabled_modules  = ['enabledModuleA'];
-        $form->disabled_modules = ['disabledModuleA'];
+        $this->worker->update();
 
-        $form->server_name   = 'updatedServerName';
-        $form->server_alias  = ['aliasA', 'aliasB'];
-        $form->document_root = '/path/to/glory';
-        $form->handler       = '';
+        $build = $this->service->getBuild();
 
-        $form->system_file['Dockerfile']   = 'new dockerfile data';
-        $form->system_file['apache2.conf'] = 'new apache2.conf data';
-        $form->system_file['ports.conf']   = 'new ports.conf data';
-
-        $form->vhost_conf    = 'new vhost.conf data';
-        $form->project_files = [
-            'type'  => 'local',
-            'local' => [ 'source' => '/path/to/glory' ]
-        ];
-
-        $updatedService = $this->worker->update($service, $form);
-
-        $updatedBuild = $updatedService->getBuild();
-
-        $this->assertEquals($form->system_packages, $updatedBuild->getArgs()['SYSTEM_PACKAGES']);
-        $this->assertEquals($form->enabled_modules, $updatedBuild->getArgs()['APACHE_MODULES_ENABLE']);
-        $this->assertEquals($form->disabled_modules, $updatedBuild->getArgs()['APACHE_MODULES_DISABLE']);
+        $this->assertEquals(
+            $this->form->system_packages,
+            $build->getArgs()['SYSTEM_PACKAGES']
+        );
+        $this->assertEquals(
+            $this->form->enabled_modules,
+            $build->getArgs()['APACHE_MODULES_ENABLE']
+        );
+        $this->assertEquals(
+            $this->form->disabled_modules,
+            $build->getArgs()['APACHE_MODULES_DISABLE']
+        );
 
         $this->assertEquals(
             'Host:updatedServerName,aliasA,aliasB',
-            $updatedService->getLabels()['traefik.frontend.rule']
+            $this->service->getLabels()['traefik.frontend.rule']
         );
+    }
 
-        $fileDockerFile = $updatedService->getVolume('Dockerfile');
-        $fileApache2    = $updatedService->getVolume('apache2.conf');
-        $filePorts      = $updatedService->getVolume('ports.conf');
-        $fileVhost      = $updatedService->getVolume('vhost.conf');
+    public function testGetCreateParams()
+    {
+        $expected = [
+            'apacheModulesEnable'    => ['default_data'],
+            'apacheModulesDisable'   => ['disable_default'],
+            'availableApacheModules' => ['available_data'],
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'awesome.localhost',
+                'server_alias'  => ['www.awesome.localhost'],
+                'document_root' => '/var/www',
+                'handler'       => '',
+            ],
+            'handlers'               => [
+                'PHP-FPM' => [
+                    'php-fpm-a:9000',
+                    'php-fpm-b:9000',
+                ],
+                'Node.js' => [
+                    'nodejs-a:123',
+                    'nodejs-b:123',
+                ],
+            ],
+            'fileHighlight'          => 'apacheconf',
+        ];
 
-        $this->assertEquals($form->system_file['Dockerfile'], $fileDockerFile->getData());
-        $this->assertEquals($form->system_file['apache2.conf'], $fileApache2->getData());
-        $this->assertEquals($form->system_file['ports.conf'], $filePorts->getData());
-        $this->assertEquals($form->vhost_conf, $fileVhost->getData());
+        $result = $this->worker->getCreateParams();
+
+        $this->assertEquals($expected, $result);
+    }
+
+    public function testGetViewParams()
+    {
+        $this->worker->create();
+
+        $expected = [
+            'apacheModulesEnable'    => ['mpm_event', 'proxy_fcgi', 'rewrite'],
+            'apacheModulesDisable'   => ['mpm_prefork', 'mpm_worker', 'dupe'],
+            'availableApacheModules' => ['default_data'],
+            'systemPackagesSelected' => [],
+            'vhost'                  => [
+                'server_name'   => 'server_name',
+                'server_alias'  => ['server_alias'],
+                'document_root' => '~/www/project',
+                'handler'       => 'php-fpm-7.2:9000',
+            ],
+            'handlers'               => [
+                'PHP-FPM' => [
+                    'php-fpm-a:9000',
+                    'php-fpm-b:9000',
+                ],
+                'Node.js' => [
+                    'nodejs-a:123',
+                    'nodejs-b:123',
+                ],
+            ],
+            'fileHighlight'          => 'apacheconf',
+        ];
+
+        $params = $this->worker->getViewParams();
+
+        $this->assertEquals($expected, $params);
     }
 }

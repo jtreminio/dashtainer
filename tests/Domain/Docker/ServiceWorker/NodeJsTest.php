@@ -3,12 +3,12 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\NodeJs;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
 class NodeJsTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\NodeJsCreate */
+    /** @var Form\Service\NodeJsCreate */
     protected $form;
 
     /** @var NodeJs */
@@ -18,87 +18,62 @@ class NodeJsTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $this->form = new Form\Docker\Service\NodeJsCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
+        $this->form = NodeJs::getFormInstance();
         $this->form->name    = 'service-name';
+        $this->form->version = '1.2';
+        $this->form->port    = '8080';
+        $this->form->command = 'npm run';
 
-        $this->form->version       = '9';
-        $this->form->port          = '8080';
-        $this->form->command       = 'npm run';
-        $this->form->project_files = [
-            'type'  => 'local',
-            'local' => [
-                'source' => '~/www/project',
-            ]
-        ];
-
-        $this->worker = new NodeJs(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new NodeJs();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType);
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $versionMeta = $service->getMeta('version');
-        $portMeta    = $service->getMeta('port');
+        $portMeta = $this->service->getMeta('port');
 
-        $this->assertEquals("node:{$this->form->version}", $service->getImage());
-        $this->assertEquals([$this->form->port], $service->getExpose());
-        $this->assertEquals([$this->form->command], $service->getCommand());
-        $this->assertEquals([$this->form->version], $versionMeta->getData());
+        $this->assertEquals("node:{$this->form->version}", $this->service->getImage());
+        $this->assertEquals([$this->form->port], $this->service->getExpose());
+        $this->assertEquals([$this->form->command], $this->service->getCommand());
         $this->assertEquals([$this->form->port], $portMeta->getData());
 
-        $this->assertNotNull($service->getVolume('project_files_source'));
-    }
-
-    public function testGetViewParams()
-    {
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $versionMeta = $service->getMeta('version');
-        $portMeta    = $service->getMeta('port');
-
-        $this->assertSame(
-            $versionMeta->getData()[0],
-            $params['version']
-        );
-        $this->assertSame(
-            $portMeta->getData()[0],
-            $params['port']
-        );
-        $this->assertSame(
-            $service->getCommand(),
-            $params['command']
-        );
+        $this->assertEquals('node:1.2', $this->service->getImage());
     }
 
     public function testUpdate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $form = clone $this->form;
+        $this->form->port    = '1000';
+        $this->form->command = 'new command';
 
-        $form->port    = '1000';
-        $form->command = 'new command';
+        $this->worker->update();
 
-        $updatedService = $this->worker->update($service, $form);
-
-        $updatedPortMeta = $updatedService->getMeta('port');
+        $portMeta = $this->service->getMeta('port');
 
         $this->assertSame(
-            $updatedPortMeta->getData()[0],
-            $form->port
+            $portMeta->getData()[0],
+            $this->form->port
         );
         $this->assertSame(
-            $service->getCommand(),
-            [$form->command]
+            $this->service->getCommand(),
+            [$this->form->command]
         );
+    }
+
+    public function testGetViewParams()
+    {
+        $this->worker->create();
+
+        $params = $this->worker->getViewParams();
+
+        $portMeta = $this->service->getMeta('port');
+
+        $this->assertEquals($portMeta->getData()[0], $params['port']);
+        $this->assertEquals($this->service->getCommand(), $params['command']);
     }
 }

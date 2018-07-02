@@ -3,12 +3,12 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\Beanstalkd;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
 class BeanstalkdTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\BeanstalkdCreate */
+    /** @var Form\Service\BeanstalkdCreate */
     protected $form;
 
     /** @var Beanstalkd */
@@ -18,59 +18,20 @@ class BeanstalkdTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $this->form = new Form\Docker\Service\BeanstalkdCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
-        $this->form->name    = 'service-name';
+        $this->form = Beanstalkd::getFormInstance();
+        $this->form->name = 'service-name';
 
-        $this->form->system_file = [
-            'Dockerfile' => 'Dockerfile contents',
-        ];
-        $this->form->datastore   = 'local';
-
-        $this->worker = new Beanstalkd(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new Beanstalkd();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType);
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $build = $service->getBuild();
+        $build = $this->service->getBuild();
         $this->assertEquals('./service-name', $build->getContext());
-        $this->assertEquals('Dockerfile', $build->getDockerfile());
-
-        $this->assertNotNull($service->getVolume('Dockerfile'));
-    }
-
-    public function testGetViewParams()
-    {
-        $service = $this->worker->create($this->form);
-        $params  = $this->worker->getViewParams($service);
-
-        $this->assertEquals('local', $params['datastore']);
-        $this->assertSame(
-            $service->getVolume('Dockerfile'),
-            $params['systemFiles']['Dockerfile']
-        );
-    }
-
-    public function testUpdate()
-    {
-        $service = $this->worker->create($this->form);
-
-        $form = clone $this->form;
-
-        $form->system_file['Dockerfile'] = 'new dockerfile data';
-
-        $updatedService = $this->worker->update($service, $form);
-
-        $uDockerfileVol = $updatedService->getVolume('Dockerfile');
-
-        $this->assertEquals($form->system_file['Dockerfile'], $uDockerfileVol->getData());
     }
 }

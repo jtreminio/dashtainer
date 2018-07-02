@@ -3,12 +3,12 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\MailHog;
-use Dashtainer\Form;
+use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 
 class MailHogTest extends ServiceWorkerBase
 {
-    /** @var Form\Docker\Service\MailHogCreate */
+    /** @var Form\Service\MailHogCreate */
     protected $form;
 
     /** @var MailHog */
@@ -18,30 +18,23 @@ class MailHogTest extends ServiceWorkerBase
     {
         parent::setUp();
 
-        $this->form = new Form\Docker\Service\MailHogCreate();
-        $this->form->project = $this->project;
-        $this->form->type    = $this->serviceType;
-        $this->form->name    = 'service-name';
+        $this->form = MailHog::getFormInstance();
+        $this->form->name = 'service-name';
 
-        $this->worker = new MailHog(
-            $this->serviceRepo,
-            $this->serviceTypeRepo,
-            $this->networkDomain,
-            $this->secretDomain
-        );
+        $this->worker = new MailHog();
+        $this->worker->setForm($this->form)
+            ->setService($this->service)
+            ->setServiceType($this->serviceType);
     }
 
-    public function testCreateReturnsServiceEntity()
+    public function testCreate()
     {
-        $service = $this->worker->create($this->form);
+        $this->worker->create();
 
-        $labels = $service->getLabels();
+        $labels = $this->service->getLabels();
 
-        $this->assertSame($this->form->name, $service->getName());
-        $this->assertSame($this->form->type, $service->getType());
-        $this->assertSame($this->form->project, $service->getProject());
-
-        $this->assertEquals('mailhog/mailhog:latest', $service->getImage());
+        $this->assertSame($this->form->name, $this->service->getName());
+        $this->assertEquals('mailhog/mailhog:latest', $this->service->getImage());
 
         $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
