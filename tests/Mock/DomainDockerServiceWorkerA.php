@@ -19,43 +19,34 @@ class DomainDockerServiceWorkerA extends WorkerAbstract
 
     public function create()
     {
-        $this->service->setName($this->form->name);
+        $this->service->setName($this->form->name)
+            ->setVersion($this->form->version);
     }
 
     public function update()
     {
+        $this->service->setVersion($this->form->version);
     }
 
     public function getCreateParams() : array
     {
-        return [];
+        return [
+            'param1' => 'value1',
+        ];
     }
 
     public function getViewParams() : array
     {
-        return [];
-    }
-
-    public function getInternalNetworks() : array
-    {
-        return [];
+        return [
+            'param1' => 'value1',
+            'param2' => 'value2',
+        ];
     }
 
     public function getInternalPorts() : array
     {
-        return [];
-    }
-
-    public function getInternalSecrets() : array
-    {
-        return [];
-    }
-
-    public function getInternalVolumes() : array
-    {
         return [
-            'files' => [],
-            'other' => [],
+            [null, 123, 'tcp']
         ];
     }
 }

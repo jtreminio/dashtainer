@@ -3,6 +3,7 @@
 namespace Dashtainer\Tests\Domain\Docker;
 
 use Dashtainer\Entity\Docker as Entity;
+use Dashtainer\Entity\User;
 
 use Doctrine\ORM;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -148,6 +149,16 @@ abstract class DomainAbstract extends KernelTestCase
         $entity = new Entity\ServiceVolume();
         $entity->fromArray(['id' => $name]);
         $entity->setName($entity->getId());
+
+        return $entity;
+    }
+
+    protected function createUser(string $name) : User
+    {
+        $entity = new User();
+        $entity->fromArray(['id' => $name]);
+        $entity->setUsername($entity->getId())
+            ->setEmail($entity->getId() . '@foo.localhost');
 
         return $entity;
     }

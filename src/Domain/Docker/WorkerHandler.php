@@ -69,6 +69,11 @@ class WorkerHandler
         return true;
     }
 
+    public function getWorker() : ServiceWorker\WorkerInterface
+    {
+        return $this->worker;
+    }
+
     /**
      * @param Form\Service\CreateAbstract $form
      * @return $this

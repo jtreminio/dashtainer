@@ -28,34 +28,16 @@ class DomainDockerServiceWorkerB extends WorkerAbstract
 
     public function getCreateParams() : array
     {
-        return [];
+        return [
+            'param3' => 'value3',
+        ];
     }
 
     public function getViewParams() : array
     {
-        return [];
-    }
-
-    public function getInternalNetworks() : array
-    {
-        return [];
-    }
-
-    public function getInternalPorts() : array
-    {
-        return [];
-    }
-
-    public function getInternalSecrets() : array
-    {
-        return [];
-    }
-
-    public function getInternalVolumes() : array
-    {
         return [
-            'files' => [],
-            'other' => [],
+            'param3' => 'value3',
+            'param4' => 'value4',
         ];
     }
 }
