@@ -33,15 +33,12 @@ class PhpFpm
         $this->service->setName($this->form->name)
             ->setVersion($this->form->version);
 
-        $phpPackages = $this->form->php_packages;
-
         if ($this->form->xdebug['install'] ?? false) {
-            $phpPackages []= 'php-xdebug';
+            $this->form->system_packages []= 'php-xdebug';
         }
 
         $args = [
             'SYSTEM_PACKAGES'  => array_values(array_unique($this->form->system_packages)),
-            'PHP_PACKAGES'     => array_values(array_unique($phpPackages)),
             'PEAR_PACKAGES'    => array_values(array_unique($this->form->pear_packages)),
             'PECL_PACKAGES'    => array_values(array_unique($this->form->pecl_packages)),
             'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
@@ -61,17 +58,17 @@ class PhpFpm
 
     public function update()
     {
-        $phpPackages = $this->form->php_packages;
-
         if ($this->form->xdebug['install'] ?? false) {
-            $phpPackages []= 'php-xdebug';
+            $this->form->system_packages []= 'php-xdebug';
         } else {
-            $phpPackages = array_diff($phpPackages, ['php-xdebug']);
+            $this->form->system_packages = array_diff(
+                $this->form->system_packages,
+                ['php-xdebug']
+            );
         }
 
         $args = [
             'SYSTEM_PACKAGES'  => array_values(array_unique($this->form->system_packages)),
-            'PHP_PACKAGES'     => array_values(array_unique($phpPackages)),
             'PEAR_PACKAGES'    => array_values(array_unique($this->form->pear_packages)),
             'PECL_PACKAGES'    => array_values(array_unique($this->form->pecl_packages)),
             'COMPOSER_INSTALL' => $this->form->composer['install'] ?? 0,
@@ -90,57 +87,66 @@ class PhpFpm
     public function getCreateParams() : array
     {
         $serviceType = $this->getServiceType();
+        $version     = $this->service->getVersion();
 
-        $phpVersionedPackagesMeta = $serviceType->getMeta("packages-{$this->service->getVersion()}");
+        $phpVersionedPackagesMeta = $serviceType->getMeta("packages-{$version}");
+        $phpGeneralPackagesMeta   = $serviceType->getMeta('packages-general');
+
+        $systemPackagesSelected  = array_merge(
+            $phpVersionedPackagesMeta->getData()['default'],
+            $phpGeneralPackagesMeta->getData()['default']
+        );
+        $systemPackagesAvailable = array_merge(
+            $phpVersionedPackagesMeta->getData()['available'],
+            $phpGeneralPackagesMeta->getData()['available']
+        );
+
+        $systemPackagesSelected  = array_unique($systemPackagesSelected);
+        $systemPackagesAvailable = array_unique($systemPackagesAvailable);
 
         return [
-            'phpPackagesSelected'    => $phpVersionedPackagesMeta->getData()['default'],
-            'phpPackagesAvailable'   => $phpVersionedPackagesMeta->getData()['available'],
-            'pearPackagesSelected'   => [],
-            'peclPackagesSelected'   => [],
-            'systemPackagesSelected' => [],
-            'composer'               => ['install' => true],
-            'xdebug'                 => ['install' => false],
-            'blackfire'              => [
+            'systemPackagesSelected'  => $systemPackagesSelected,
+            'systemPackagesAvailable' => $systemPackagesAvailable,
+            'pearPackagesSelected'    => [],
+            'peclPackagesSelected'    => [],
+            'composer'                => ['install' => true],
+            'xdebug'                  => ['install' => false],
+            'blackfire'               => [
                 'install'      => false,
                 'server_id'    => '',
                 'server_token' => '',
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight'           => 'ini',
         ];
     }
 
     public function getViewParams() : array
     {
-        $version = $this->service->getVersion();
+        $serviceType = $this->getServiceType();
+        $version     = $this->service->getVersion();
+        $build       = $this->service->getBuild()->getArgs();
 
-        $build = $this->service->getBuild()->getArgs();
+        $phpVersionedPackagesMeta = $serviceType->getMeta("packages-{$version}");
+        $phpGeneralPackagesMeta   = $serviceType->getMeta('packages-general');
 
-        $phpPackagesSelected = $build['PHP_PACKAGES'];
+        $systemPackagesSelected  = $build['SYSTEM_PACKAGES'];
+        $systemPackagesAvailable = array_merge(
+            $phpVersionedPackagesMeta->getData()['default'],
+            $phpGeneralPackagesMeta->getData()['default'],
+            $phpVersionedPackagesMeta->getData()['available'],
+            $phpGeneralPackagesMeta->getData()['available']
+        );
 
-        $phpPackagesAvailable = [];
-        if ($phpVersionedPackages = $this->service->getType()->getMeta("packages-{$version}")) {
-            $phpPackagesAvailable += $phpVersionedPackages->getData()['default'];
-            $phpPackagesAvailable += $phpVersionedPackages->getData()['available'];
-        }
-
-        if ($phpGeneralPackages = $this->service->getType()->getMeta('packages-general')) {
-            $phpPackagesAvailable += $phpGeneralPackages->getData()['default'];
-            $phpPackagesAvailable += $phpGeneralPackages->getData()['available'];
-        }
-
-        $phpPackagesAvailable = array_diff($phpPackagesAvailable, $phpPackagesSelected);
-
-        $pearPackagesSelected   = $build['PEAR_PACKAGES'];
-        $peclPackagesSelected   = $build['PECL_PACKAGES'];
-        $systemPackagesSelected = $build['SYSTEM_PACKAGES'];
+        $systemPackagesAvailable = array_diff($systemPackagesAvailable, $systemPackagesSelected);
+        $systemPackagesSelected  = array_unique($systemPackagesSelected);
+        $systemPackagesAvailable = array_unique($systemPackagesAvailable);
 
         $composer = [
             'install' => $build['COMPOSER_INSTALL'],
         ];
 
         $xdebug = [
-            'install' => in_array('php-xdebug', $phpPackagesSelected),
+            'install' => in_array('php-xdebug', $systemPackagesSelected),
         ];
 
         $blackfire = [
@@ -158,15 +164,14 @@ class PhpFpm
         }
 
         return [
-            'phpPackagesSelected'    => array_values($phpPackagesSelected),
-            'phpPackagesAvailable'   => array_values($phpPackagesAvailable),
-            'pearPackagesSelected'   => array_values($pearPackagesSelected),
-            'peclPackagesSelected'   => array_values($peclPackagesSelected),
-            'systemPackagesSelected' => array_values($systemPackagesSelected),
-            'composer'               => $composer,
-            'xdebug'                 => $xdebug,
-            'blackfire'              => $blackfire,
-            'fileHighlight'          => 'ini',
+            'systemPackagesSelected'  => array_values($systemPackagesSelected),
+            'systemPackagesAvailable' => array_values($systemPackagesAvailable),
+            'pearPackagesSelected'    => array_values($build['PEAR_PACKAGES']),
+            'peclPackagesSelected'    => array_values($build['PECL_PACKAGES']),
+            'composer'                => $composer,
+            'xdebug'                  => $xdebug,
+            'blackfire'               => $blackfire,
+            'fileHighlight'           => 'ini',
         ];
     }
 

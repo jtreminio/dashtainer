@@ -3,7 +3,6 @@
 namespace Dashtainer\Tests\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Domain\Docker\ServiceWorker\PhpFpm;
-use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Form\Docker as Form;
 use Dashtainer\Tests\Domain\Docker\ServiceWorkerBase;
 use Dashtainer\Tests\Mock;
@@ -38,10 +37,9 @@ class PhpFpmTest extends ServiceWorkerBase
         $this->form = PhpFpm::getFormInstance();
         $this->form->name            = 'service-name';
         $this->form->version         = 7.2;
-        $this->form->php_packages    = ['php-packageA', 'php-packageB', 'php-packageA'];
+        $this->form->system_packages = ['php-packageA', 'php-packageB', 'php-packageA'];
         $this->form->pear_packages   = ['pear-packageA', 'pear-packageB', 'pear-packageA'];
         $this->form->pecl_packages   = ['pecl-packageA', 'pecl-packageB', 'pecl-packageA'];
-        $this->form->system_packages = ['system-packageA', 'system-packageB', 'system-packageA'];
         $this->form->composer        = ['install' => 1];
         $this->form->xdebug          = ['install' => 0];
         $this->form->blackfire       = [
@@ -66,8 +64,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $build = $this->service->getBuild();
 
         $expectedArgs = [
-            'SYSTEM_PACKAGES'  => ['system-packageA', 'system-packageB'],
-            'PHP_PACKAGES'     => ['php-packageA', 'php-packageB'],
+            'SYSTEM_PACKAGES'  => ['php-packageA', 'php-packageB'],
             'PEAR_PACKAGES'    => ['pear-packageA', 'pear-packageB'],
             'PECL_PACKAGES'    => ['pecl-packageA', 'pecl-packageB'],
             'COMPOSER_INSTALL' => 1,
@@ -86,8 +83,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $build = $this->service->getBuild();
 
         $expectedArgs = [
-            'SYSTEM_PACKAGES'  => ['system-packageA', 'system-packageB'],
-            'PHP_PACKAGES'     => ['php-packageA', 'php-packageB', 'php-xdebug'],
+            'SYSTEM_PACKAGES'  => ['php-packageA', 'php-packageB', 'php-xdebug'],
             'PEAR_PACKAGES'    => ['pear-packageA', 'pear-packageB'],
             'PECL_PACKAGES'    => ['pecl-packageA', 'pecl-packageB'],
             'COMPOSER_INSTALL' => 1,
@@ -116,7 +112,6 @@ class PhpFpmTest extends ServiceWorkerBase
         $this->worker->create();
 
         $this->form->system_packages = [];
-        $this->form->php_packages    = [];
         $this->form->pear_packages   = [];
         $this->form->pecl_packages   = [];
         $this->form->composer        = 0;
@@ -128,7 +123,6 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $expectedArgs = [
             'SYSTEM_PACKAGES'  => [],
-            'PHP_PACKAGES'     => [],
             'PEAR_PACKAGES'    => [],
             'PECL_PACKAGES'    => [],
             'COMPOSER_INSTALL' => 0,
@@ -144,7 +138,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $build = $this->service->getBuild();
         $args  = $build->getArgs();
 
-        $this->assertEquals(['php-packageA', 'php-packageB'], $args['PHP_PACKAGES']);
+        $this->assertEquals(['php-packageA', 'php-packageB'], $args['SYSTEM_PACKAGES']);
 
         $this->form->xdebug = ['install' => 1,];
 
@@ -153,7 +147,7 @@ class PhpFpmTest extends ServiceWorkerBase
         $build = $this->service->getBuild();
         $args  = $build->getArgs();
 
-        $this->assertEquals(['php-packageA', 'php-packageB', 'php-xdebug'], $args['PHP_PACKAGES']);
+        $this->assertEquals(['php-packageA', 'php-packageB', 'php-xdebug'], $args['SYSTEM_PACKAGES']);
     }
 
     public function testUpdateAddsBlackfire()
@@ -181,20 +175,24 @@ class PhpFpmTest extends ServiceWorkerBase
 
     public function testGetCreateParams()
     {
+        $systemPackagesAvailable = [
+            'php-packageA', 'php-packageB', 'php-packageC',
+            'general-packageA', 'general-packageB', 'general-packageC',
+        ];
+
         $expected = [
-            'phpPackagesSelected'    => ['php-packageA'],
-            'phpPackagesAvailable'   => ['php-packageA', 'php-packageB', 'php-packageC'],
-            'pearPackagesSelected'   => [],
-            'peclPackagesSelected'   => [],
-            'systemPackagesSelected' => [],
-            'composer'               => ['install' => true],
-            'xdebug'                 => ['install' => false],
-            'blackfire'              => [
+            'systemPackagesSelected'  => ['php-packageA', 'general-packageA'],
+            'systemPackagesAvailable' => $systemPackagesAvailable,
+            'pearPackagesSelected'    => [],
+            'peclPackagesSelected'    => [],
+            'composer'                => ['install' => true],
+            'xdebug'                  => ['install' => false],
+            'blackfire'               => [
                 'install'      => false,
                 'server_id'    => '',
                 'server_token' => '',
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight'           => 'ini',
         ];
 
         $result = $this->worker->getCreateParams();
@@ -206,20 +204,24 @@ class PhpFpmTest extends ServiceWorkerBase
     {
         $this->worker->create();
 
+        $systemPackagesAvailable = [
+            'general-packageA', 'php-packageC',
+            'general-packageB', 'general-packageC',
+        ];
+
         $expected = [
-            'phpPackagesSelected'    => ['php-packageA', 'php-packageB'],
-            'phpPackagesAvailable'   => ['php-packageC'],
-            'pearPackagesSelected'   => ['pear-packageA', 'pear-packageB'],
-            'peclPackagesSelected'   => ['pecl-packageA', 'pecl-packageB'],
-            'systemPackagesSelected' => ['system-packageA', 'system-packageB'],
-            'composer'               => ['install' => true],
-            'xdebug'                 => ['install' => false],
-            'blackfire'              => [
+            'systemPackagesSelected'  => ['php-packageA', 'php-packageB'],
+            'systemPackagesAvailable' => $systemPackagesAvailable,
+            'pearPackagesSelected'    => ['pear-packageA', 'pear-packageB'],
+            'peclPackagesSelected'    => ['pecl-packageA', 'pecl-packageB'],
+            'composer'                => ['install' => true],
+            'xdebug'                  => ['install' => false],
+            'blackfire'               => [
                 'install'      => false,
                 'server_id'    => '',
                 'server_token' => '',
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight'           => 'ini',
         ];
 
         $params = $this->worker->getViewParams();
@@ -237,20 +239,24 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $this->worker->create();
 
+        $systemPackagesAvailable = [
+            'general-packageA', 'php-packageC',
+            'general-packageB', 'general-packageC',
+        ];
+
         $expected = [
-            'phpPackagesSelected'    => ['php-packageA', 'php-packageB', 'php-xdebug'],
-            'phpPackagesAvailable'   => ['php-packageC'],
-            'pearPackagesSelected'   => ['pear-packageA', 'pear-packageB'],
-            'peclPackagesSelected'   => ['pecl-packageA', 'pecl-packageB'],
-            'systemPackagesSelected' => ['system-packageA', 'system-packageB'],
-            'composer'               => ['install' => true],
-            'xdebug'                 => ['install' => true],
-            'blackfire'              => [
+            'systemPackagesSelected'  => ['php-packageA', 'php-packageB', 'php-xdebug'],
+            'systemPackagesAvailable' => $systemPackagesAvailable,
+            'pearPackagesSelected'    => ['pear-packageA', 'pear-packageB'],
+            'peclPackagesSelected'    => ['pecl-packageA', 'pecl-packageB'],
+            'composer'                => ['install' => true],
+            'xdebug'                  => ['install' => true],
+            'blackfire'               => [
                 'install'      => false,
                 'server_id'    => '',
                 'server_token' => '',
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight'           => 'ini',
         ];
 
         $params = $this->worker->getViewParams();
@@ -268,6 +274,11 @@ class PhpFpmTest extends ServiceWorkerBase
 
         $this->worker->create();
 
+        $systemPackagesAvailable = [
+            'general-packageA', 'php-packageC',
+            'general-packageB', 'general-packageC',
+        ];
+
         $blackfire = $this->createService('blackfire-service-name')
             ->setParent($this->service)
             ->setImage('blackfire/blackfire')
@@ -280,19 +291,18 @@ class PhpFpmTest extends ServiceWorkerBase
             ->addService($blackfire);
 
         $expected = [
-            'phpPackagesSelected'    => ['php-packageA', 'php-packageB'],
-            'phpPackagesAvailable'   => ['php-packageC'],
-            'pearPackagesSelected'   => ['pear-packageA', 'pear-packageB'],
-            'peclPackagesSelected'   => ['pecl-packageA', 'pecl-packageB'],
-            'systemPackagesSelected' => ['system-packageA', 'system-packageB'],
-            'composer'               => ['install' => true],
-            'xdebug'                 => ['install' => false],
-            'blackfire'              => [
+            'systemPackagesSelected'  => ['php-packageA', 'php-packageB'],
+            'systemPackagesAvailable' => $systemPackagesAvailable,
+            'pearPackagesSelected'    => ['pear-packageA', 'pear-packageB'],
+            'peclPackagesSelected'    => ['pecl-packageA', 'pecl-packageB'],
+            'composer'                => ['install' => true],
+            'xdebug'                  => ['install' => false],
+            'blackfire'               => [
                 'install'      => true,
                 'server_id'    => 'blackfire_server_id',
                 'server_token' => 'blackfire_server_token',
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight'           => 'ini',
         ];
 
         $params = $this->worker->getViewParams();

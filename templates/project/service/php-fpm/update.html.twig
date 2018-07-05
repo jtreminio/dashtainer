@@ -28,21 +28,23 @@
 
 <div class="row">
     <div class="form-group col">
-        <label class="form-label" for="php-packages">PHP Packages</label>
-        <select class="form-control" id="php-packages" name="php_packages[]"
-                multiple data-error-container="php-packages" data-selectize-tags>
-            {% for package in phpPackagesSelected %}
+        <label class="form-label" for="system-packages">System Packages</label>
+        <select class="form-control" id="system-packages" name="system_packages[]"
+                multiple data-error-container="system-packages" data-selectize-tags>
+            {% for package in systemPackagesSelected %}
                 <option value="{{ package }}" selected>{{ package }}</option>
             {% endfor %}
-            {% for package in phpPackagesAvailable %}
+            {% for package in systemPackagesAvailable %}
                 <option value="{{ package }}">{{ package }}</option>
             {% endfor %}
         </select>
-        <div class="invalid-feedback" data-error-container-name="php-packages"></div>
+        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
         <small class="text-muted">
+            Will be installed using <code>apt-get</code>.
             Package list
             <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
                target="_blank">available here</a>.
+            <code>PHP-FPM</code> and <code>PHP-CLI</code> packages installed by default.
         </small>
     </div>
 </div>
@@ -81,22 +83,6 @@
             <a href="https://pecl.php.net/packages.php"
                target="_blank">available here</a>.
             PECL is deprecated, you should consider something else.
-        </small>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="system-packages">System Packages</label>
-        <select class="form-control" id="system-packages" name="system_packages[]"
-                multiple data-error-container="system-packages" data-selectize-tags>
-            {% for package in systemPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-        <small class="text-muted">
-            Will be installed using <code>apt-get</code>.
         </small>
     </div>
 </div>

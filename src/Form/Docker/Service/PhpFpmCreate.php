@@ -17,13 +17,11 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $version;
 
-    public $php_packages = [];
+    public $system_packages = [];
 
     public $pear_packages = [];
 
     public $pecl_packages = [];
-
-    public $system_packages = [];
 
     public $composer = [];
 

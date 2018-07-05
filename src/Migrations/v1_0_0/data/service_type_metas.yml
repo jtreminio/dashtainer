@@ -29,8 +29,6 @@
             - php5.6-xsl
             - php5.6-zip
         default:
-            - php5.6-fpm
-            - php5.6-cli
             - php5.6-curl
             - php5.6-intl
             - php5.6-json
@@ -70,8 +68,6 @@
             - php7.0-xsl
             - php7.0-zip
         default:
-            - php7.0-fpm
-            - php7.0-cli
             - php7.0-curl
             - php7.0-intl
             - php7.0-json
@@ -111,8 +107,6 @@
             - php7.1-xsl
             - php7.1-zip
         default:
-            - php7.1-fpm
-            - php7.1-cli
             - php7.1-curl
             - php7.1-intl
             - php7.1-json
@@ -152,8 +146,6 @@
             - php7.2-xsl
             - php7.2-zip
         default:
-            - php7.2-fpm
-            - php7.2-cli
             - php7.2-curl
             - php7.2-intl
             - php7.2-json
@@ -190,6 +182,7 @@
             - php-msgpack
             - php-mysqlnd-ms
             - php-oauth
+            - php-pear
             - php-pecl-http
             - php-pecl-http-dev
             - php-phalcon
@@ -216,7 +209,8 @@
             - php-yaml
             - php-zmq
         default:
-            - php-pear
+            - git
+            - openssh-client
 -
     type: PHP-FPM
     name: php-ini-5.6
