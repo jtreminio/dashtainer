@@ -34,7 +34,8 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
         $this->service->setName($this->form->name)
             ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
-            ->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
+            ->addLabel('traefik.frontend.rule', "Host:{$serverNames}")
+            ->addLabel('traefik.port', 8080);
 
         $build = $this->service->getBuild();
         $build->setContext("./{$this->service->getSlug()}")
@@ -186,7 +187,6 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
         return [
             'files' => [
                 'apache2-conf',
-                'ports-conf',
                 'vhost-conf',
                 'dockerfile',
             ],

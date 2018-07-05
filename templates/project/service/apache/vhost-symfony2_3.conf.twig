@@ -1,4 +1,4 @@
-<VirtualHost *:80>
+<VirtualHost *:8080>
     ServerName {{ form.server_name }}
 {% if form.server_alias %}
     ServerAlias {{ form.server_alias|join(' ') }}

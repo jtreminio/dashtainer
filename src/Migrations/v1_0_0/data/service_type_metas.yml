@@ -437,7 +437,8 @@
         type: bind
         data: |
             [global]
-            pid = /run/php-fpm.pid
+            ; Keep this for www-data permissions
+            pid = /var/run/php-fpm/php-fpm.pid
             ; Avoid logs being sent to syslog
             error_log = /proc/self/fd/2
 
@@ -466,7 +467,8 @@
         type: bind
         data: |
             [global]
-            pid = /run/php-fpm.pid
+            ; Keep this for www-data permissions
+            pid = /var/run/php-fpm/php-fpm.pid
             ; Avoid logs being sent to syslog
             error_log = /proc/self/fd/2
 
@@ -495,7 +497,8 @@
         type: bind
         data: |
             [global]
-            pid = /run/php-fpm.pid
+            ; Keep this for www-data permissions
+            pid = /var/run/php-fpm/php-fpm.pid
             ; Avoid logs being sent to syslog
             error_log = /proc/self/fd/2
 
@@ -524,7 +527,8 @@
         type: bind
         data: |
             [global]
-            pid = /run/php-fpm.pid
+            ; Keep this for www-data permissions
+            pid = /var/run/php-fpm/php-fpm.pid
             ; Avoid logs being sent to syslog
             error_log = /proc/self/fd/2
 
@@ -731,40 +735,39 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV PHP_DIR /etc/php/5.6
-            ENV PHP_FPM php5.6-fpm
-            ARG SYSTEM_PACKAGES
-            ARG PHP_PACKAGES
-            WORKDIR $PHP_DIR
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ENV PHP_VER 5.6
+            ENV COMPOSER_HOME /.composer
+
+            ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
             RUN add-apt-repository ppa:ondrej/php \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
-                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
 
             ARG PEAR_PACKAGES
             RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -781,32 +784,39 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
-                && mkdir /.composer && chmod 1777 /.composer \
+                && install -d -m 0755 -o www-data -g www-data /.composer \
             ;fi
 
             ARG BLACKFIRE_SERVER
             RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
             ;fi
 
             COPY xdebug-bin /usr/bin/xdebug
             COPY fpm-bin /usr/bin/php-fpm
 
-            RUN chmod +x /usr/bin/xdebug \
+            RUN apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+                && chmod +x /usr/bin/xdebug \
                 && chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm5.6 /usr/sbin/php-fpm
+                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
+
+            WORKDIR /var/www
+            USER ${USERNAME}
 
             EXPOSE 9000
 
             CMD /usr/bin/php-fpm
+
 -
     type: PHP-FPM
     name: dockerfile-7.0
@@ -821,40 +831,39 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV PHP_DIR /etc/php/7.0
-            ENV PHP_FPM php7.0-fpm
-            ARG SYSTEM_PACKAGES
-            ARG PHP_PACKAGES
-            WORKDIR $PHP_DIR
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ENV PHP_VER 7.0
+            ENV COMPOSER_HOME /.composer
+
+            ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
             RUN add-apt-repository ppa:ondrej/php \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
-                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
 
             ARG PEAR_PACKAGES
             RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -871,32 +880,39 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
-                && mkdir /.composer && chmod 1777 /.composer \
+                && install -d -m 0755 -o www-data -g www-data /.composer \
             ;fi
 
             ARG BLACKFIRE_SERVER
             RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
             ;fi
 
             COPY xdebug-bin /usr/bin/xdebug
             COPY fpm-bin /usr/bin/php-fpm
 
-            RUN chmod +x /usr/bin/xdebug \
+            RUN apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+                && chmod +x /usr/bin/xdebug \
                 && chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.0 /usr/sbin/php-fpm
+                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
+
+            WORKDIR /var/www
+            USER ${USERNAME}
 
             EXPOSE 9000
 
             CMD /usr/bin/php-fpm
+
 -
     type: PHP-FPM
     name: dockerfile-7.1
@@ -911,40 +927,39 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV PHP_DIR /etc/php/7.1
-            ENV PHP_FPM php7.1-fpm
-            ARG SYSTEM_PACKAGES
-            ARG PHP_PACKAGES
-            WORKDIR $PHP_DIR
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ENV PHP_VER 7.1
+            ENV COMPOSER_HOME /.composer
+
+            ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
             RUN add-apt-repository ppa:ondrej/php \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
-                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
 
             ARG PEAR_PACKAGES
             RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -961,32 +976,39 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
-                && mkdir /.composer && chmod 1777 /.composer \
+                && install -d -m 0755 -o www-data -g www-data /.composer \
             ;fi
 
             ARG BLACKFIRE_SERVER
             RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
             ;fi
 
             COPY xdebug-bin /usr/bin/xdebug
             COPY fpm-bin /usr/bin/php-fpm
 
-            RUN chmod +x /usr/bin/xdebug \
+            RUN apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+                && chmod +x /usr/bin/xdebug \
                 && chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.1 /usr/sbin/php-fpm
+                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
+
+            WORKDIR /var/www
+            USER ${USERNAME}
 
             EXPOSE 9000
 
             CMD /usr/bin/php-fpm
+
 -
     type: PHP-FPM
     name: dockerfile-7.2
@@ -1001,40 +1023,39 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV PHP_DIR /etc/php/7.2
-            ENV PHP_FPM php7.2-fpm
-            ARG SYSTEM_PACKAGES
-            ARG PHP_PACKAGES
-            WORKDIR $PHP_DIR
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ENV PHP_VER 7.2
+            ENV COMPOSER_HOME /.composer
+
+            ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
             RUN add-apt-repository ppa:ondrej/php \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
-                    ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
 
             ARG PEAR_PACKAGES
             RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -1051,32 +1072,39 @@
             RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
                 curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
-                && mkdir /.composer && chmod 1777 /.composer \
+                && install -d -m 0755 -o www-data -g www-data /.composer \
             ;fi
 
             ARG BLACKFIRE_SERVER
             RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-                && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
                 && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
                 && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/cli/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
                 && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
             ;fi
 
             COPY xdebug-bin /usr/bin/xdebug
             COPY fpm-bin /usr/bin/php-fpm
 
-            RUN chmod +x /usr/bin/xdebug \
+            RUN apt-get -y --purge autoremove \
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+                && chmod +x /usr/bin/xdebug \
                 && chmod +x /usr/bin/php-fpm \
-                && ln -sf /usr/sbin/php-fpm7.2 /usr/sbin/php-fpm
+                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
+
+            WORKDIR /var/www
+            USER ${USERNAME}
 
             EXPOSE 9000
 
             CMD /usr/bin/php-fpm
+
 -
     type: PHP-FPM
     name: fpm-bin
@@ -1089,9 +1117,7 @@
         type: bind
         data: |
             #!/bin/bash
-
             # This file is used to run the PHP-FPM daemon
-
             /usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \"\(.*\)$,\1,'| sed -u 's,"$,,' 1>&1
 -
     type: PHP-FPM
@@ -1105,9 +1131,7 @@
         type: bind
         data: |
             #!/bin/bash
-
             # This file allows debugging PHP CLI
-
             XDEBUG_CONFIG="idekey=xdebug" php -dxdebug.remote_enable=1 "$@"
 -
     type: PHP-FPM
@@ -1262,7 +1286,7 @@
         type: bind
         data: |
             DefaultRuntimeDir ${APACHE_RUN_DIR}
-            PidFile ${APACHE_PID_FILE}
+            PidFile /var/run/apache2/apache2.pid
             Timeout 300
             KeepAlive On
             MaxKeepAliveRequests 100
@@ -1276,7 +1300,7 @@
             IncludeOptional mods-enabled/*.load
             IncludeOptional mods-enabled/*.conf
 
-            Include ports.conf
+            Listen 8080
 
             <Directory />
                 Options FollowSymLinks
@@ -1314,18 +1338,6 @@
             ServerName localhost
 -
     type: Apache
-    name: ports-conf
-    data:
-        name: ports-conf
-        source: ports.conf
-        target: /etc/apache2/ports.conf
-        highlight: apacheconf
-        filetype: file
-        type: bind
-        data: |
-            Listen 80
--
-    type: Apache
     name: vhost-conf
     data:
         name: vhost-conf
@@ -1360,32 +1372,32 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV HTTPD_PREFIX /etc/apache2
-            ARG SYSTEM_PACKAGES
-            WORKDIR $HTTPD_PREFIX
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ARG SYSTEM_PACKAGES
             RUN add-apt-repository ppa:ondrej/apache2 \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
@@ -1395,13 +1407,13 @@
                     conf-enabled/serve-cgi-bin.conf \
                     mods-enabled/autoindex.conf \
                     mods-enabled/autoindex.load \
-                && echo "ServerName localhost" >> apache2.conf \
+                && install -d -m 0755 -o www-data -g www-data /var/run/apache2 \
+                && chmod 755 /var/log/apache2 \
+                && chown -R www-data:www-data /var/log/apache2 \
                 && ln -sf /dev/stdout /var/log/apache2/access.log \
                 && ln -sf /dev/stdout /var/log/apache2/vhost-access.log \
                 && ln -sf /dev/stderr /var/log/apache2/error.log \
                 && ln -sf /dev/stderr /var/log/apache2/vhost-error.log
-
-            EXPOSE 80
 
             ARG APACHE_MODULES_DISABLE
             RUN if [ ! -z "$APACHE_MODULES_DISABLE" ]; then \
@@ -1413,7 +1425,13 @@
                 a2enmod $APACHE_MODULES_ENABLE \
             ;fi
 
+            WORKDIR /var/www
+            USER ${USERNAME}
+
+            EXPOSE 8080
+
             CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+
 
 -
     type: Nginx
@@ -1426,9 +1444,8 @@
         filetype: file
         type: bind
         data: |
-            user www-data;
             worker_processes auto;
-            pid /run/nginx.pid;
+            pid /var/run/nginx/nginx.pid;
             include /etc/nginx/modules-enabled/*.conf;
 
             events {
@@ -1454,44 +1471,24 @@
                 gzip on;
                 gzip_disable "msie6";
 
-                include /etc/nginx/conf.d/*.conf;
+                client_max_body_size 10m;
+                client_body_buffer_size 128k;
+
+                proxy_redirect off;
+                proxy_connect_timeout 600s;
+                proxy_send_timeout 600s;
+                proxy_read_timeout 600s;
+                proxy_buffers 4 256k;
+                proxy_buffer_size 128k;
+                proxy_http_version 1.0;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_headers_hash_bucket_size 64;
+
                 include /etc/nginx/sites-enabled/*;
             }
--
-    type: Nginx
-    name: core-conf
-    data:
-        name: core-conf
-        source: core.conf
-        target: /etc/nginx/conf.d/core.conf
-        highlight: nginx
-        filetype: file
-        type: bind
-        data: |
-            client_max_body_size 10m;
-            client_body_buffer_size 128k;
--
-    type: Nginx
-    name: proxy-conf
-    data:
-        name: proxy-conf
-        source: proxy.conf
-        target: /etc/nginx/conf.d/proxy.conf
-        highlight: nginx
-        filetype: file
-        type: bind
-        data: |
-            proxy_redirect off;
-            proxy_connect_timeout 600s;
-            proxy_send_timeout 600s;
-            proxy_read_timeout 600s;
-            proxy_buffers 4 256k;
-            proxy_buffer_size 128k;
-            proxy_http_version 1.0;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_headers_hash_bucket_size 64;
+
 -
     type: Nginx
     name: vhost-conf
@@ -1528,44 +1525,50 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
 
-            RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
                     14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
                 && apt-get update
 
-            # Per-image commands
-            ENV NGINX_PREFIX /etc/nginx
-            ARG SYSTEM_PACKAGES
-            WORKDIR $NGINX_PREFIX
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            ARG USERNAME=root
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
+            # Per-image commands
+            ARG SYSTEM_PACKAGES
             RUN add-apt-repository ppa:ondrej/nginx \
                 && apt-get update \
                 && apt-get install --no-install-recommends --no-install-suggests -y \
                     nginx ${SYSTEM_PACKAGES} \
                 && apt-get -y --purge autoremove \
                 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && chown -R www-data:www-data /var/lib/nginx \
+                && install -d -m 0755 -o www-data -g www-data /var/cache/nginx \
+                && install -d -m 0755 -o www-data -g www-data /var/run/nginx \
                 && ln -sf /dev/stdout /var/log/nginx/access.log \
                 && ln -sf /dev/stdout /var/log/nginx/_.access.log \
                 && ln -sf /dev/stderr /var/log/nginx/error.log \
                 && ln -sf /dev/stderr /var/log/nginx/_.error.log
 
-            EXPOSE 80
+            WORKDIR /var/www
+            USER ${USERNAME}
+
+            EXPOSE 8080
 
             CMD ["nginx", "-g", "daemon off;"]
 
@@ -5233,27 +5236,37 @@
             FROM ubuntu:16.04
 
             ENV DEBIAN_FRONTEND noninteractive
-
-            RUN apt-get update && apt-get install -y apt-utils
-
-            # Install common / shared packages
-            RUN apt-get install -y \
-                curl \
-                locales \
-                software-properties-common \
-                python-software-properties
-
-            # Set up locales
-            RUN locale-gen en_US.UTF-8
             ENV LANG C.UTF-8
             ENV LANGUAGE C.UTF-8
             ENV LC_ALL C.UTF-8
-            RUN /usr/sbin/update-locale
+
+            RUN apt-get update \
+                && apt-get install --no-install-recommends --no-install-suggests -y \
+                    apt-utils curl locales software-properties-common python-software-properties \
+                && locale-gen en_US.UTF-8 \
+                && /usr/sbin/update-locale \
+                && apt-get update
+
+            # Custom user and group ID
+            ARG USER_ID=0
+            ARG GROUP_ID=0
+            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+                userdel -f www-data \
+                && if getent group www-data ; then groupdel www-data; fi \
+                && groupadd -g ${GROUP_ID} www-data \
+                && useradd -l -u ${USER_ID} -g www-data www-data \
+            ;fi
 
             # Per-image commands
-            RUN apt-get install --no-install-recommends --no-install-suggests -y beanstalkd \
+            ARG SYSTEM_PACKAGES
+            RUN apt-get install --no-install-recommends --no-install-suggests -y \
+                    beanstalkd \
                 && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+                && install -d -m 0755 -o www-data -g www-data /var/lib/beanstalkd/binlog
+
+            WORKDIR /var/lib/beanstalkd
+            USER www-data
 
             EXPOSE 13000
 

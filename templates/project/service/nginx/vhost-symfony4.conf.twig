@@ -1,5 +1,5 @@
 server {
-    listen *:80 default_server;
+    listen *:8080 default_server;
 
     server_name {{ form.server_name }} {{ form.server_alias|join(' ') }};
     root {{ form.document_root }}/public;
