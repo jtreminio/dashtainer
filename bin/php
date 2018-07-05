@@ -1,6 +1,11 @@
 #!/bin/bash
+set -e
+set -o pipefail
+
+CONTAINER=dash_php_1
+CMD="${@}"
 
 docker container exec -it \
-    -w /var/www \
-    -u "$(id -u $USER):$(id -g $USER)" \
-    dash_php_1 "$@"
+    ${CONTAINER} /bin/bash -c "${CMD}"
+
+exit 0

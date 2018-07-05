@@ -1,6 +1,6 @@
 version: '3.2'
 networks:
-  app-internal: 
+  private:
   public:
     external:
       name: traefik_webgateway
@@ -37,44 +37,47 @@ services:
       - MYSQL_USER_FILE=/run/secrets/db_user
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
     networks:
-      - app-internal
+      - private
     ports:
-      - '3600:3306'
+      - 3600:3306
     restart: always
     volumes:
-      - "dashtainer-db-datastore:/var/lib/mysql:delegated"
-      - "$PWD/mariadb/config-file.cnf:/etc/mysql/conf.d/config-file.cnf:delegated"
-      - "$PWD/mariadb/my.cnf:/etc/mysql/my.cnf:delegated"
+      - dashtainer-db-datastore:/var/lib/mysql:delegated
+      - ./mariadb/config-file.cnf:/etc/mysql/conf.d/config-file.cnf:delegated
+      - ./mariadb/my.cnf:/etc/mysql/my.cnf:delegated
   nginx:
     build:
       context: ./nginx
       dockerfile: Dockerfile
       args:
-        SYSTEM_PACKAGES: ''
+        SYSTEM_PACKAGES: ~
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+        USERNAME: ${USERNAME}
     labels:
-      - traefik.backend={$COMPOSE_PROJECT_NAME}_nginx
+      - traefik.backend=${COMPOSE_PROJECT_NAME}_nginx
       - traefik.docker.network=traefik_webgateway
-      - 'traefik.frontend.rule=Host:dashtainer.localhost'
+      - traefik.frontend.rule=Host:dashtainer.localhost
+      - traefik.port=8080
     networks:
-      - app-internal
+      - private
       - public
     volumes:
-      - "$PWD/nginx/nginx.conf:/etc/nginx/nginx.conf:delegated"
-      - "$PWD/nginx/core.conf:/etc/nginx/conf.d/core.conf:delegated"
-      - "$PWD/nginx/proxy.conf:/etc/nginx/conf.d/proxy.conf:delegated"
-      - "$PWD/nginx/vhost.conf:/etc/nginx/sites-available/default:delegated"
-      - "$PWD/../:/var/www:delegated"
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:delegated
+      - ./nginx/vhost.conf:/etc/nginx/sites-available/default:delegated
+      - ./../:/var/www:delegated
   php:
     build:
       context: ./php
       dockerfile: Dockerfile
       args:
-        SYSTEM_PACKAGES: ''
-        PHP_PACKAGES: 'php7.2-fpm php7.2-cli php7.2-curl php7.2-intl php7.2-json php7.2-mbstring php7.2-mysql php7.2-opcache php7.2-xml php-pear php7.2-zip php-xdebug'
-        PEAR_PACKAGES: ''
-        PECL_PACKAGES: ''
-        COMPOSER_INSTALL: '1'
-        BLACKFIRE_INSTALL: 0
+        SYSTEM_PACKAGES: php7.2-curl php7.2-intl php7.2-json php7.2-mbstring php7.2-mysql php7.2-opcache php7.2-xml php-pear php7.2-zip php-xdebug
+        PEAR_PACKAGES: ~
+        PECL_PACKAGES: ~
+        COMPOSER_INSTALL: 1
+        USER_ID: ${USER_ID}
+        GROUP_ID: ${GROUP_ID}
+        USERNAME: ${USERNAME}
     secrets:
       - db_host
       - db_name
@@ -83,23 +86,24 @@ services:
       - db_password
       - sf_secret_key
     networks:
-      - app-internal
+      - private
     volumes:
-      - "$PWD/php/php.ini:/etc/php/7.2/fpm/conf.d/zzzz_custom.ini:delegated"
-      - "$PWD/php/php-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_custom.ini:delegated"
-      - "$PWD/php/xdebug.ini:/etc/php/7.2/fpm/conf.d/zzzz_xdebug.ini:delegated"
-      - "$PWD/php/xdebug-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_xdebug.ini:delegated"
-      - "$PWD/php/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf:delegated"
-      - "$PWD/../:/var/www:cached"
+      - ./php/php.ini:/etc/php/7.2/fpm/conf.d/zzzz_custom.ini:delegated
+      - ./php/php-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_custom.ini:delegated
+      - ./php/xdebug.ini:/etc/php/7.2/fpm/conf.d/zzzz_xdebug.ini:delegated
+      - ./php/xdebug-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_xdebug.ini:delegated
+      - ./php/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf:delegated
+      - ./../:/var/www:cached
+      - ./../var/cache/.composer/:/.composer:delegated
   adminer:
     image: adminer
     environment:
       - ADMINER_DESIGN=pepa-linha
       - ADMINER_PLUGINS
     labels:
-      - traefik.backend={$COMPOSE_PROJECT_NAME}_adminer
+      - traefik.backend=${COMPOSE_PROJECT_NAME}_adminer
       - traefik.docker.network=traefik_webgateway
-      - 'traefik.frontend.rule=Host:adminer.dashtainer.localhost'
+      - traefik.frontend.rule=Host:adminer.dashtainer.localhost
     networks:
-      - app-internal
+      - private
       - public

@@ -9,6 +9,24 @@ steps will get you up and running within minutes.
 * [Docker Compose ≥ 1.21](https://docs.docker.com/compose/install/)
 * Clone this repo
 
+### User and Group ID
+
+Docker recommends not running container as root.
+
+For development purposes, running containers as root means any files created by the container
+will show as owned by root on your host. Things like `composer install` or similar will be
+root owned and makes deleting them a pain.
+
+Included is a helper script to generate a `.env` file that Composer will read and apply. All
+it does is pass along your user and group ID to Docker so it can create a user with the same
+values. Any files then created by the container will show as owned by your current user.
+
+* Run `./bin/init` to generate the `.env` file
+
+If you would rather the containers run as root, simply copy the included `.env.dist` to `.env`.
+
+Windows users may not need to run `./bin/init` at all.
+
 ### Container init
 
 * Run `./bin/docker-traefik-up` if you do not have another 

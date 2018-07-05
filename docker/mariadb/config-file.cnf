@@ -1,3 +1,2 @@
-# /etc/mysql/conf.d/config-file.cnf
 [mysqld]
 max_allowed_packet=1024M

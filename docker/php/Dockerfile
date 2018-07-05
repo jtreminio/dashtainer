@@ -1,40 +1,39 @@
 FROM ubuntu:16.04
 
 ENV DEBIAN_FRONTEND noninteractive
-
-RUN apt-get update && apt-get install -y apt-utils
-
-# Install common / shared packages
-RUN apt-get install -y \
-    curl \
-    locales \
-    software-properties-common \
-    python-software-properties
-
-# Set up locales
-RUN locale-gen en_US.UTF-8
 ENV LANG C.UTF-8
 ENV LANGUAGE C.UTF-8
 ENV LC_ALL C.UTF-8
-RUN /usr/sbin/update-locale
 
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
+RUN apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y \
+        apt-utils curl locales software-properties-common python-software-properties \
+    && locale-gen en_US.UTF-8 \
+    && /usr/sbin/update-locale \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
         14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
     && apt-get update
 
-# Per-image commands
-ENV PHP_DIR /etc/php/7.2
-ENV PHP_FPM php7.2-fpm
-ARG SYSTEM_PACKAGES
-ARG PHP_PACKAGES
-WORKDIR $PHP_DIR
+# Custom user and group ID
+ARG USER_ID=0
+ARG GROUP_ID=0
+ARG USERNAME=root
+RUN if [ $USER_ID -ne 0 ] && [ $GROUP_ID -ne 0 ]; then \
+    userdel -f www-data \
+    && if getent group www-data ; then groupdel www-data; fi \
+    && groupadd -g ${GROUP_ID} www-data \
+    && useradd -l -u ${USER_ID} -g www-data www-data \
+;fi
 
+# Per-image commands
+ENV PHP_VER 7.2
+ENV COMPOSER_HOME /.composer
+
+ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
 RUN add-apt-repository ppa:ondrej/php \
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y \
-        ${PHP_FPM} ${SYSTEM_PACKAGES} ${PHP_PACKAGES} \
-    && apt-get -y --purge autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+        php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
 
 ARG PEAR_PACKAGES
 RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -51,29 +50,35 @@ ARG COMPOSER_INSTALL=0
 RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
         --filename=composer \
-    && mkdir /.composer && chmod 1777 /.composer \
+    && install -d -m 0755 -o www-data -g www-data /.composer \
 ;fi
 
-ARG BLACKFIRE_INSTALL=0
-RUN if [ $BLACKFIRE_INSTALL -ne 0 ]; then \
-    version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
-    && curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-        https://blackfire.io/api/v1/releases/probe/php/linux/amd64/$version \
+ARG BLACKFIRE_SERVER
+RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
+    curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
+        https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
     && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
     && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-    && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
-        ${PHP_DIR}/cli/conf.d/blackfire.ini \
-    && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://blackfire:8707\n" > \
-        ${PHP_DIR}/fpm/conf.d/blackfire.ini \
+    && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
+        /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
+    && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
+        /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
 ;fi
 
-COPY xdebug /usr/bin/xdebug
-RUN chmod +x /usr/bin/xdebug
+COPY xdebug-bin /usr/bin/xdebug
+COPY fpm-bin /usr/bin/php-fpm
+
+RUN apt-get -y --purge autoremove \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+    && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+    && chmod +x /usr/bin/xdebug \
+    && chmod +x /usr/bin/php-fpm \
+    && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
+
+WORKDIR /var/www
+USER ${USERNAME}
 
 EXPOSE 9000
-
-COPY php-fpm-startup /usr/bin/php-fpm
-RUN chmod +x /usr/bin/php-fpm \
-    && ln -sf /usr/sbin/php-fpm7.2 /usr/sbin/php-fpm
 
 CMD /usr/bin/php-fpm

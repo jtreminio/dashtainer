@@ -1,12 +1,18 @@
 #!/bin/bash
+set -e
+set -o pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+USER_ID=$(id -u ${USER})
+GROUP_ID=$(id -g ${USER})
+CONTAINER="node:9"
+CMD="${@}"
 
 docker container run -it --rm \
     -v ${DIR}/../:/var/www \
-    -v ${DIR}/../var/cache/npm-cache:/.npm \
-    -v ${DIR}/../var/cache/yarn-cache:/.cache/yarn \
-    -v ${DIR}/../var/cache/yarn:/.yarn \
+    -v ${DIR}/../var/cache/.npm-cache:/.npm \
+    -v ${DIR}/../var/cache/.yarn-cache:/.cache/yarn \
+    -v ${DIR}/../var/cache/.yarn:/.yarn \
     -w /var/www \
-    -u "$(id -u $USER):$(id -g $USER)" \
-    node:9 "$@"
+    -u ${USER_ID}:${GROUP_ID} \
+    ${CONTAINER} "$@"
