@@ -51,9 +51,9 @@ services:
       dockerfile: Dockerfile
       args:
         SYSTEM_PACKAGES: ~
-        USER_ID: ${USER_ID}
-        GROUP_ID: ${GROUP_ID}
-        USERNAME: ${USERNAME}
+        USER_ID: ${USER_ID:-0}
+        GROUP_ID: ${GROUP_ID:-0}
+        USERNAME: ${USERNAME:-0}
     labels:
       - traefik.backend=${COMPOSE_PROJECT_NAME}_nginx
       - traefik.docker.network=traefik_webgateway
@@ -75,9 +75,9 @@ services:
         PEAR_PACKAGES: ~
         PECL_PACKAGES: ~
         COMPOSER_INSTALL: 1
-        USER_ID: ${USER_ID}
-        GROUP_ID: ${GROUP_ID}
-        USERNAME: ${USERNAME}
+        USER_ID: ${USER_ID:-0}
+        GROUP_ID: ${GROUP_ID:-0}
+        USERNAME: ${USERNAME:-0}
     secrets:
       - db_host
       - db_name
