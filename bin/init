@@ -3,15 +3,11 @@ set -e
 set -o pipefail
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_NAME="dash"
-USER_ID=$(id -u ${USER})
-USER_GROUP_ID=$(id -g ${USER})
 
 cat > "${DIR}/../docker/.env" << EOF
-COMPOSE_PROJECT_NAME=${PROJECT_NAME}
-USERNAME=www-data
-USER_ID=${USER_ID}
-GROUP_ID=${USER_GROUP_ID}
+COMPOSE_PROJECT_NAME=dash
+USER_ID=$(id -u ${USER})
+GROUP_ID=$(id -g ${USER})
 EOF
 
 exit 0

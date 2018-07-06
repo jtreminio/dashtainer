@@ -15,9 +15,8 @@ RUN apt-get update \
     && apt-get update
 
 # Custom user and group ID
-ARG USER_ID=0
-ARG GROUP_ID=0
-ARG USERNAME=root
+ARG USER_ID
+ARG GROUP_ID
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     userdel -f www-data \
     && if getent group www-data ; then groupdel www-data; fi \
@@ -29,11 +28,13 @@ RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
 ENV PHP_VER 7.2
 ENV COMPOSER_HOME /.composer
 
-ARG SYSTEM_PACKAGES="git openssh-client php${PHP_VER}-curl php${PHP_VER}-mysql"
+ARG SYSTEM_PACKAGES
 RUN add-apt-repository ppa:ondrej/php \
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y \
-        php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES}
+        php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
+    && apt-get -y --purge autoremove \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ARG PEAR_PACKAGES
 RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -48,9 +49,9 @@ RUN if [ ! -z "$PECL_PACKAGES" ]; then \
 
 ARG COMPOSER_INSTALL=0
 RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
-    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
+    install -d -m 0755 -o www-data -g www-data /.composer \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
         --filename=composer \
-    && install -d -m 0755 -o www-data -g www-data /.composer \
 ;fi
 
 ARG BLACKFIRE_SERVER
@@ -68,16 +69,14 @@ RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
 COPY xdebug-bin /usr/bin/xdebug
 COPY fpm-bin /usr/bin/php-fpm
 
-RUN apt-get -y --purge autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-    && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+RUN install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
     && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
     && chmod +x /usr/bin/xdebug \
     && chmod +x /usr/bin/php-fpm \
     && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
 
 WORKDIR /var/www
-USER ${USERNAME}
+USER www-data
 
 EXPOSE 9000
 

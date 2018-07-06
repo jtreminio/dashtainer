@@ -15,9 +15,8 @@ RUN apt-get update \
     && apt-get update
 
 # Custom user and group ID
-ARG USER_ID=0
-ARG GROUP_ID=0
-ARG USERNAME=root
+ARG USER_ID
+ARG GROUP_ID
 RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
     userdel -f www-data \
     && if getent group www-data ; then groupdel www-data; fi \
@@ -42,7 +41,7 @@ RUN add-apt-repository ppa:ondrej/nginx \
     && ln -sf /dev/stderr /var/log/nginx/_.error.log
 
 WORKDIR /var/www
-USER ${USERNAME}
+USER www-data
 
 EXPOSE 8080
 
