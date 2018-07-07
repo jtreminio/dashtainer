@@ -284,7 +284,16 @@ class WorkerHandler
 
     protected function createNetworks()
     {
-        $this->networkDomain->save($this->getService(), $this->getForm()->networks);
+        $service  = $this->getService();
+        $form     = $this->getForm();
+        $networks = $this->getCreateNetworks();
+
+        $this->networkDomain->save(
+            $service,
+            $networks['joined']->toArray(),
+            $form->networks
+        );
+
         $this->networkDomain->deleteEmptyNetworks($this->worker->getProject());
     }
 

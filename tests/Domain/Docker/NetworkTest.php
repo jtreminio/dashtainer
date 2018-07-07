@@ -112,10 +112,11 @@ class NetworkTest extends DomainAbstract
             ->addService($service);
 
         $privateNetworkClone = clone $privateNetwork;
+        $internalNetworks    = [$privateNetworkClone];
 
         $configs = [];
 
-        $this->network->save($service, $configs);
+        $this->network->save($service, $internalNetworks, $configs);
 
         $this->assertEquals($privateNetworkClone, $privateNetwork);
     }
@@ -159,7 +160,12 @@ class NetworkTest extends DomainAbstract
             ]
         ];
 
-        $this->network->save($service, $configs);
+        $internalNetworks = [
+            $privateNetwork,
+            $publicNetwork
+        ];
+
+        $this->network->save($service, $internalNetworks, $configs);
 
         $networks = $service->getNetworks();
 

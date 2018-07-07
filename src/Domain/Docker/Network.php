@@ -115,14 +115,53 @@ class Network
 
     /**
      * @param Entity\Service $service
-     * @param array          $configs
+     * @param array          $internalNetworks Required networks for this Service
+     * @param array          $configs          User-provided data from form
      */
-    public function save(Entity\Service $service, array $configs)
-    {
-        if (empty($configs)) {
-            return;
+    public function save(
+        Entity\Service $service,
+        array $internalNetworks,
+        array $configs
+    ) {
+        $configs = $this->saveInternal($service, $internalNetworks, $configs);
+        $this->saveNotInternal($service, $configs);
+    }
+
+    /**
+     * Adds Service to internal Networks
+     *
+     * All Services will have 0 or more internal Networks they must join.
+     *
+     * @param Entity\Service   $service
+     * @param Entity\Network[] $internalNetworks Required networks for this Service
+     * @param array            $configs          User-provided data from form
+     * @return array Array without internal Networks, containing only non-internal User Networks
+     */
+    protected function saveInternal(
+        Entity\Service $service,
+        array $internalNetworks,
+        array $configs
+    ) : array {
+        foreach ($internalNetworks as $network) {
+            $configs [$network->getId()]= [
+                'id'   => $network->getId(),
+                'name' => $network->getName(),
+            ];
         }
 
+        return $configs;
+    }
+
+    /**
+     * Adds Service to specified Networks, creating non-existing Networks
+     *
+     * @param Entity\Service $service
+     * @param array          $configs User-provided data from form
+     */
+    protected function saveNotInternal(
+        Entity\Service $service,
+        array $configs
+    ) {
         $project = $service->getProject();
 
         $networks = [];
