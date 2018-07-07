@@ -150,7 +150,7 @@ class Service extends Repository\ObjectPersistAbstract
             ->from('Dashtainer:Docker\Service', 's')
             ->join('s.type', 'st')
             ->andWhere('s.parent = :parent')
-            ->andWhere('st.name = :typeName')
+            ->andWhere('st.slug = :typeName')
             ->setParameters([
                 'parent'   => $parent,
                 'typeName' => $typeName,

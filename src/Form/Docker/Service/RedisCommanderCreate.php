@@ -8,16 +8,20 @@ use Dashtainer\Validator\Constraints as DashAssert;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-class RedisCreate extends CreateAbstract implements Util\HydratorInterface
+class RedisCommanderCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
     /**
-     * @DashAssert\NonBlankString(message = "Version must be chosen")
+     * @DashAssert\NonBlankString(message = "Please enter the Hostname")
+     * @DashAssert\Hostname
      */
-    public $version;
+    public $hostname;
 
-    public $redis_commander = false;
+    /**
+     * @DashAssert\NonBlankString(message = "Please enter your Redis Host")
+     */
+    public $redis_host;
 
     /**
      * @Assert\Callback

@@ -127,7 +127,14 @@
     is_public: false
     slug: blackfire
     versions: []
-    order: 98
+    order: 90
+-
+    name: Redis Commander
+    category: Other
+    is_public: false
+    slug: redis-commander
+    versions: []
+    order: 91
 -
     name: Traefik
     category: Other

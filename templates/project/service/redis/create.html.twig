@@ -26,6 +26,34 @@
         <span id="service-name-tag">{{ service.name }}</span>:6379</span>
 </div>
 
+<div class="row mb-3">
+    <div class="col">
+        <label class="form-label"
+               for="redis_commander">Redis Commander</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input"
+                               value="1" id="redis_commander"
+                               {{ redis_commander ? 'checked' }}
+                               name="redis_commander" />
+                        <label class="custom-control-label"
+                               for="redis_commander">Install</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-control">
+                Redis Commander will be available at
+                <span class="badge badge-primary text-lg">
+                    <span class="tag-addon-left"><i class="fa fa-unlock"></i></span>
+                    http://<span id="service-name-tag">{{ service.name }}</span>.{{ service.project.slug }}.localhost</span>
+                <br />Do not enable this on a public server.
+            </div>
+        </div>
+    </div>
+</div>
+
 {% set secret = secrets.owned.remove('redis_host') %}
 <input type="hidden" name="secrets[{{ secret.id }}][id]"
        value="{{ secret.id }}" />
