@@ -29,6 +29,8 @@ RUN apt-get update \
         php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
     && apt-get -y --purge autoremove \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
+    && rm -rf /usr/share/{man,doc} \
     \
     && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
     && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \

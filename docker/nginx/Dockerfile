@@ -24,6 +24,8 @@ RUN apt-get update \
         nginx ${SYSTEM_PACKAGES} \
     && apt-get -y --purge autoremove \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
+    && rm -rf /usr/share/{man,doc} \
     \
     && chown -R www-data:www-data /var/lib/nginx \
     && install -d -m 0755 -o www-data -g www-data /var/cache/nginx \
