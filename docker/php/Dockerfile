@@ -1,18 +1,6 @@
-FROM ubuntu:16.04
+FROM blitznote/debase:18.04
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV LANG C.UTF-8
-ENV LANGUAGE C.UTF-8
-ENV LC_ALL C.UTF-8
-
-RUN apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
-        apt-utils curl locales software-properties-common python-software-properties \
-    && locale-gen en_US.UTF-8 \
-    && /usr/sbin/update-locale \
-    && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys \
-        14AA40EC0831756756D7F66C4F4EA0AAE5267A6C \
-    && apt-get update
+ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 # Custom user and group ID
 ARG USER_ID
@@ -25,16 +13,28 @@ RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
 ;fi
 
 # Per-image commands
+ARG SYSTEM_PACKAGES
 ENV PHP_VER 7.2
 ENV COMPOSER_HOME /.composer
 
-ARG SYSTEM_PACKAGES
-RUN add-apt-repository ppa:ondrej/php \
+COPY xdebug-bin /usr/bin/xdebug
+COPY fpm-bin /usr/bin/php-fpm
+
+RUN apt-get update \
+    && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
+    && printf "deb [arch=binary-amd64] http://ppa.launchpad.net/ondrej/php/ubuntu bionic main\n" \
+>/etc/apt/sources.list.d/ondrej.list \
     && apt-get update \
-    && apt-get install --no-install-recommends --no-install-suggests -y \
+    && apt-get -y install --no-install-recommends --no-install-suggests \
         php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
     && apt-get -y --purge autoremove \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    \
+    && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
+    && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
+    && chmod +x /usr/bin/xdebug \
+    && chmod +x /usr/bin/php-fpm \
+    && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
 
 ARG PEAR_PACKAGES
 RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
@@ -64,16 +64,8 @@ RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
         /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
     && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
         /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
+    && rm -f /tmp/* \
 ;fi
-
-COPY xdebug-bin /usr/bin/xdebug
-COPY fpm-bin /usr/bin/php-fpm
-
-RUN install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
-    && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-    && chmod +x /usr/bin/xdebug \
-    && chmod +x /usr/bin/php-fpm \
-    && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
 
 WORKDIR /var/www
 USER www-data
