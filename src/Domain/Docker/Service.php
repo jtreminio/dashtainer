@@ -33,6 +33,12 @@ class Service
     ) : string {
         $services = $this->repo->findByProjectAndType($project, $serviceType);
 
+        $hostname = Util\Strings::hostname($serviceType->getSlug());
+
+        if (empty($services)) {
+            return $hostname;
+        }
+
         $version  = $version ? "-{$version}" : '';
         $hostname = Util\Strings::hostname("{$serviceType->getSlug()}{$version}");
 

@@ -35,7 +35,7 @@ class ServiceTest extends DomainAbstract
         $this->assertEquals('service-type-b', $result);
     }
 
-    public function testGenerateNameReturnsServiceTypeNameWithVersionOnNoExistingServicesOfType()
+    public function testGenerateNameReturnsServiceTypeNameWithoutVersionOnNoExistingServicesOfType()
     {
         $project = $this->createProject('project');
 
@@ -51,7 +51,7 @@ class ServiceTest extends DomainAbstract
 
         $result = $this->service->generateName($project, $serviceTypeB, $version);
 
-        $this->assertEquals('service-type-b-1-2', $result);
+        $this->assertEquals('service-type-b', $result);
     }
 
     /**
@@ -103,7 +103,7 @@ class ServiceTest extends DomainAbstract
         ];
 
         yield [
-            [], '7.2', 'service-type-7-2'
+            [], '7.2', 'service-type'
         ];
     }
 
