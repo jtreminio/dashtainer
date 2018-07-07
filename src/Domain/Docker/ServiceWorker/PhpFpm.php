@@ -4,24 +4,17 @@ namespace Dashtainer\Domain\Docker\ServiceWorker;
 
 use Dashtainer\Entity\Docker as Entity;
 use Dashtainer\Form\Docker as Form;
-use Dashtainer\Repository\Docker as Repository;
 
 class PhpFpm
     extends WorkerAbstract
     implements WorkerParentInterface, WorkerServiceRepoInterface
 {
+    use WorkerServiceRepoTrait;
+
     public const SERVICE_TYPE_SLUG = 'php-fpm';
 
     /** @var Form\Service\PhpFpmCreate */
     protected $form;
-
-    /** @var Repository\Service */
-    protected $repo;
-
-    public function setRepo(Repository\Service $repo)
-    {
-        $this->repo = $repo;
-    }
 
     public static function getFormInstance() : Form\Service\CreateAbstract
     {
