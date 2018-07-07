@@ -53,7 +53,7 @@ class DateTimeTest extends KernelTestCase
     {
         $date     = new \DateTime(
             '03/12/2018 08:00:00 am',
-            new \DateTimeZone('America/Chicago')
+            new \DateTimeZone('GMT')
         );
         $timezone = 'UTC';
 
@@ -61,6 +61,6 @@ class DateTimeTest extends KernelTestCase
 
         $formatted = $result->format('m/d/Y H:i:s a');
 
-        $this->assertEquals('03/12/2018 13:00:00 pm', $formatted);
+        $this->assertEquals('03/12/2018 08:00:00 am', $formatted);
     }
 }
