@@ -491,9 +491,6 @@ class Export
             $arr []= [
                 'source' => $serviceSecret->getSource(),
                 'target' => $serviceSecret->getTarget(),
-                'uid'    => Util\YamlTag::doubleQuotes($serviceSecret->getUid()),
-                'gid'    => Util\YamlTag::doubleQuotes($serviceSecret->getGid()),
-                'mode'   => Util\YamlTag::noQuotes($serviceSecret->getMode()),
             ];
         }
 
