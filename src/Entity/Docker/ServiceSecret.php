@@ -73,7 +73,7 @@ class ServiceSecret implements
             return null;
         }
 
-        return $this->getProjectSecret()->getName();
+        return $this->getProjectSecret()->getSlug();
     }
 
     public function getName() : ?string
