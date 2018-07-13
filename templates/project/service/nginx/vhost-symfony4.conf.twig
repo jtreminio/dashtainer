@@ -1,12 +1,10 @@
 server {
     listen *:8080 default_server;
 
-    server_name {{ form.server_name }} {{ form.server_alias|join(' ') }};
+    server_name _;
     root {{ form.document_root }}/public;
 
-    sendfile off;
     autoindex off;
-    client_max_body_size 1m;
 
     location / {
         try_files $uri /index.php$is_args$args;
@@ -30,7 +28,4 @@ server {
     location ~ \.php$ {
         return 404;
     }
-
-    access_log /var/log/nginx/_.access.log;
-    error_log /var/log/nginx/_.error.log;
 }

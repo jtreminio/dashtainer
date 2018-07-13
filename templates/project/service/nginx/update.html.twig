@@ -28,28 +28,6 @@
 {% set volume = volumes.other.remove('root') %}
 {% include '@Dashtainer/project/service/snippets/volume-root.html.twig' with {'volume': volume} %}
 
-<hr class="my-6" />
-
-<h4 class="mb-3">Packages</h4>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="system-packages">System Packages</label>
-        <select class="form-control" id="system-packages" name="system_packages[]"
-                multiple data-error-container="system-packages" data-selectize-tags>
-            {% for package in systemPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-        <small class="text-muted">
-            Will be installed using <code>apt-get</code>.
-        </small>
-    </div>
-</div>
-
-<hr class="my-6" />
-
 <h4 class="mb-3">Virtual Host Config</h4>
 
 <div class="row">

@@ -1,12 +1,10 @@
 server {
     listen *:8080 default_server;
 
-    server_name {{ form.server_name }} {{ form.server_alias|join(' ') }};
+    server_name _;
     root {{ form.document_root }};
 
-    sendfile off;
     autoindex off;
-    client_max_body_size 1m;
 
     location / {
         proxy_pass http://{{ form.handler }};
@@ -21,7 +19,4 @@ server {
         access_log off;
         expires max;
     }
-
-    access_log /var/log/nginx/_.access.log;
-    error_log /var/log/nginx/_.error.log;
 }

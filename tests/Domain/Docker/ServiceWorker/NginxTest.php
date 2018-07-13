@@ -45,7 +45,7 @@ class NginxTest extends ServiceWorkerBase
             ->addService($nodejsServiceB);
 
         $this->form = Nginx::getFormInstance();
-        $this->form->name = 'service-name';
+        $this->form->name          = 'service-name';
         $this->form->server_name   = 'server_name';
         $this->form->server_alias  = ['server_alias'];
         $this->form->document_root = '~/www/project';
@@ -63,10 +63,6 @@ class NginxTest extends ServiceWorkerBase
         $this->worker->create();
 
         $labels = $this->service->getLabels();
-
-        $build = $this->service->getBuild();
-        $this->assertEquals('./service-name', $build->getContext());
-        $this->assertEquals('Dockerfile', $build->getDockerfile());
 
         $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
@@ -96,7 +92,6 @@ class NginxTest extends ServiceWorkerBase
     {
         $this->worker->create();
 
-        $this->form->system_packages = ['systemPackageA'];
         $this->form->server_name     = 'updatedServerName';
         $this->form->server_alias    = ['aliasA', 'aliasB'];
         $this->form->document_root   = '/path/to/glory';
@@ -104,12 +99,6 @@ class NginxTest extends ServiceWorkerBase
 
         $this->worker->update();
 
-        $build = $this->service->getBuild();
-
-        $this->assertEquals(
-            $this->form->system_packages,
-            $build->getArgs()['SYSTEM_PACKAGES']
-        );
         $this->assertEquals(
             'Host:updatedServerName,aliasA,aliasB',
             $this->service->getLabels()['traefik.frontend.rule']
@@ -119,14 +108,13 @@ class NginxTest extends ServiceWorkerBase
     public function testGetCreateParams()
     {
         $expected = [
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'awesome.localhost',
                 'server_alias'  => ['www.awesome.localhost'],
                 'document_root' => '/var/www',
                 'handler'       => '',
             ],
-            'handlers'               => [
+            'handlers'      => [
                 'PHP-FPM' => [
                     'php-fpm-a:9000',
                     'php-fpm-b:9000',
@@ -136,7 +124,7 @@ class NginxTest extends ServiceWorkerBase
                     'nodejs-b:123',
                 ],
             ],
-            'fileHighlight'          => 'nginx',
+            'fileHighlight' => 'nginx',
         ];
 
         $result = $this->worker->getCreateParams();
@@ -149,14 +137,13 @@ class NginxTest extends ServiceWorkerBase
         $this->worker->create();
 
         $expected = [
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'server_name',
                 'server_alias'  => ['server_alias'],
                 'document_root' => '~/www/project',
                 'handler'       => 'php-fpm-7.2:9000',
             ],
-            'handlers'               => [
+            'handlers'      => [
                 'PHP-FPM' => [
                     'php-fpm-a:9000',
                     'php-fpm-b:9000',
@@ -166,7 +153,7 @@ class NginxTest extends ServiceWorkerBase
                     'nodejs-b:123',
                 ],
             ],
-            'fileHighlight'          => 'ini',
+            'fileHighlight' => 'ini',
         ];
 
         $params = $this->worker->getViewParams();

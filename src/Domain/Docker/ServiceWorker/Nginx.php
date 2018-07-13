@@ -32,19 +32,11 @@ class Nginx extends WorkerAbstract implements WorkerServiceRepoInterface
         $serverNames = implode(',', $serverNames);
 
         $this->service->setName($this->form->name)
+            ->setImage('nginx:alpine')
             ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}")
             ->addLabel('traefik.port', 8080);
-
-        $build = $this->service->getBuild();
-        $build->setContext("./{$this->service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($this->form->system_packages),
-            ]);
-
-        $this->service->setBuild($build);
 
         $vhost = [
             'server_name'   => $this->form->server_name,
@@ -66,15 +58,6 @@ class Nginx extends WorkerAbstract implements WorkerServiceRepoInterface
 
         $this->service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
-        $build = $this->service->getBuild();
-        $build->setContext("./{$this->service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES' => array_unique($this->form->system_packages),
-            ]);
-
-        $this->service->setBuild($build);
-
         $vhost = [
             'server_name'   => $this->form->server_name,
             'server_alias'  => $this->form->server_alias,
@@ -89,34 +72,30 @@ class Nginx extends WorkerAbstract implements WorkerServiceRepoInterface
     public function getCreateParams() : array
     {
         return [
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'awesome.localhost',
                 'server_alias'  => ['www.awesome.localhost'],
                 'document_root' => '/var/www',
                 'handler'       => '',
             ],
-            'handlers'               => $this->getHandlersForView(),
-            'fileHighlight'          => 'nginx',
+            'handlers'      => $this->getHandlersForView(),
+            'fileHighlight' => 'nginx',
         ];
     }
 
     public function getViewParams() : array
     {
-        $systemPackagesSelected = $this->service->getBuild()->getArgs()['SYSTEM_PACKAGES'];
-
         $vhostMeta = $this->service->getMeta('vhost');
 
         return [
-            'systemPackagesSelected' => $systemPackagesSelected,
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'handlers'               => $this->getHandlersForView(),
-            'fileHighlight'          => 'ini',
+            'handlers'      => $this->getHandlersForView(),
+            'fileHighlight' => 'ini',
         ];
     }
 
@@ -166,7 +145,6 @@ class Nginx extends WorkerAbstract implements WorkerServiceRepoInterface
             'files' => [
                 'nginx-conf',
                 'vhost-conf',
-                'dockerfile',
             ],
             'other' => [
                 'root',
