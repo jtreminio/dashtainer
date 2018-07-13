@@ -1,8 +1,6 @@
 <VirtualHost *:8080>
-    ServerName {{ form.server_name }}
-{% if form.server_alias %}
-    ServerAlias {{ form.server_alias|join(' ') }}
-{% endif %}
+    ServerName localhost
+    ServerAlias *
     DocumentRoot {{ form.document_root }}
 
     <Directory "{{ form.document_root }}">
@@ -12,11 +10,5 @@
         DirectoryIndex index.html
     </Directory>
 
-    # keep this, it is symlinked to /dev/stderr
-    ErrorLog "/var/log/apache2/vhost-error.log"
-    # keep this, it is symlinked to /dev/stdout
-    CustomLog "/var/log/apache2/vhost-access.log" combined
-    LogLevel warn
-    ServerSignature Off
     SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 </VirtualHost>

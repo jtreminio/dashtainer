@@ -32,21 +32,11 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
         $serverNames = implode(',', $serverNames);
 
         $this->service->setName($this->form->name)
+            ->setImage('httpd:2.4-alpine')
             ->addLabel('traefik.backend', '{$COMPOSE_PROJECT_NAME}_' . $this->service->getName())
             ->addLabel('traefik.docker.network', 'traefik_webgateway')
             ->addLabel('traefik.frontend.rule', "Host:{$serverNames}")
             ->addLabel('traefik.port', 8080);
-
-        $build = $this->service->getBuild();
-        $build->setContext("./{$this->service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'        => array_unique($this->form->system_packages),
-                'APACHE_MODULES_ENABLE'  => array_unique($this->form->enabled_modules),
-                'APACHE_MODULES_DISABLE' => array_unique($this->form->disabled_modules),
-            ]);
-
-        $this->service->setBuild($build);
 
         $vhost = [
             'server_name'   => $this->form->server_name,
@@ -68,17 +58,6 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
 
         $this->service->addLabel('traefik.frontend.rule', "Host:{$serverNames}");
 
-        $build = $this->service->getBuild();
-        $build->setContext("./{$this->service->getSlug()}")
-            ->setDockerfile('Dockerfile')
-            ->setArgs([
-                'SYSTEM_PACKAGES'        => array_unique($this->form->system_packages),
-                'APACHE_MODULES_ENABLE'  => array_unique($this->form->enabled_modules),
-                'APACHE_MODULES_DISABLE' => array_unique($this->form->disabled_modules),
-            ]);
-
-        $this->service->setBuild($build);
-
         $vhost = [
             'server_name'   => $this->form->server_name,
             'server_alias'  => $this->form->server_alias,
@@ -92,53 +71,31 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
 
     public function getCreateParams() : array
     {
-        $modules = $this->serviceType->getMeta('modules');
-
         return [
-            'apacheModulesEnable'    => $modules->getData()['default'],
-            'apacheModulesDisable'   => $modules->getData()['disable'],
-            'availableApacheModules' => $modules->getData()['available'],
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'awesome.localhost',
                 'server_alias'  => ['www.awesome.localhost'],
                 'document_root' => '/var/www',
                 'handler'       => '',
             ],
-            'handlers'               => $this->getHandlersForView(),
-            'fileHighlight'          => 'apacheconf',
+            'handlers'      => $this->getHandlersForView(),
+            'fileHighlight' => 'apacheconf',
         ];
     }
 
     public function getViewParams() : array
     {
-        $args = $this->service->getBuild()->getArgs();
-
-        $apacheModulesEnable    = $args['APACHE_MODULES_ENABLE'];
-        $apacheModulesDisable   = $args['APACHE_MODULES_DISABLE'];
-        $systemPackagesSelected = $args['SYSTEM_PACKAGES'];
-
-        $availableApacheModules = [];
-
-        $apacheModules          = $this->service->getType()->getMeta('modules');
-        $availableApacheModules += $apacheModules->getData()['default'];
-        $availableApacheModules += $apacheModules->getData()['available'];
-
         $vhostMeta = $this->service->getMeta('vhost');
 
         return [
-            'apacheModulesEnable'    => $apacheModulesEnable,
-            'apacheModulesDisable'   => $apacheModulesDisable,
-            'availableApacheModules' => $availableApacheModules,
-            'systemPackagesSelected' => $systemPackagesSelected,
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => $vhostMeta->getData()['server_name'],
                 'server_alias'  => $vhostMeta->getData()['server_alias'],
                 'document_root' => $vhostMeta->getData()['document_root'],
                 'handler'       => $vhostMeta->getData()['handler'],
             ],
-            'handlers'               => $this->getHandlersForView(),
-            'fileHighlight'          => 'apacheconf',
+            'handlers'      => $this->getHandlersForView(),
+            'fileHighlight' => 'apacheconf',
         ];
     }
 
@@ -186,9 +143,8 @@ class Apache extends WorkerAbstract implements WorkerServiceRepoInterface
     {
         return [
             'files' => [
-                'apache2-conf',
+                'httpd-conf',
                 'vhost-conf',
-                'dockerfile',
             ],
             'other' => [
                 'root',

@@ -44,23 +44,12 @@ class ApacheTest extends ServiceWorkerBase
             ->addService($nodejsServiceA)
             ->addService($nodejsServiceB);
 
-        $moduleMeta = $this->createServiceTypeMeta('modules')
-            ->setData([
-                'default'   => ['default_data'],
-                'disable'   => ['disable_default'],
-                'available' => ['available_data']
-            ]);
-
-        $this->serviceType->addMeta($moduleMeta);
-
         $this->form = Apache::getFormInstance();
-        $this->form->name             = 'service-name';
-        $this->form->enabled_modules  = ['mpm_event', 'proxy_fcgi', 'rewrite'];
-        $this->form->disabled_modules = ['mpm_prefork', 'mpm_worker', 'dupe', 'dupe'];
-        $this->form->server_name      = 'server_name';
-        $this->form->server_alias     = ['server_alias'];
-        $this->form->document_root    = '~/www/project';
-        $this->form->handler          = 'php-fpm-7.2:9000';
+        $this->form->name          = 'service-name';
+        $this->form->server_name   = 'server_name';
+        $this->form->server_alias  = ['server_alias'];
+        $this->form->document_root = '~/www/project';
+        $this->form->handler       = 'php-fpm-7.2:9000';
 
         $this->worker = new Apache();
         $this->worker->setForm($this->form)
@@ -74,13 +63,6 @@ class ApacheTest extends ServiceWorkerBase
         $this->worker->create();
 
         $labels = $this->service->getLabels();
-
-        $expectedModulesDisabled = ['mpm_prefork', 'mpm_worker', 'dupe'];
-
-        $build = $this->service->getBuild();
-        $this->assertEquals('./service-name', $build->getContext());
-        $this->assertEquals('Dockerfile', $build->getDockerfile());
-        $this->assertEquals($expectedModulesDisabled, $build->getArgs()['APACHE_MODULES_DISABLE']);
 
         $expectedTraefikBackendLabel       = '{$COMPOSE_PROJECT_NAME}_service-name';
         $expectedTraefikDockerNetworkLabel = 'traefik_webgateway';
@@ -110,30 +92,12 @@ class ApacheTest extends ServiceWorkerBase
     {
         $this->worker->create();
 
-        $this->form->system_packages  = ['systemPackageA'];
-        $this->form->enabled_modules  = ['enabledModuleA'];
-        $this->form->disabled_modules = ['disabledModuleA'];
         $this->form->server_name      = 'updatedServerName';
         $this->form->server_alias     = ['aliasA', 'aliasB'];
         $this->form->document_root    = '/path/to/glory';
         $this->form->handler          = '';
 
         $this->worker->update();
-
-        $build = $this->service->getBuild();
-
-        $this->assertEquals(
-            $this->form->system_packages,
-            $build->getArgs()['SYSTEM_PACKAGES']
-        );
-        $this->assertEquals(
-            $this->form->enabled_modules,
-            $build->getArgs()['APACHE_MODULES_ENABLE']
-        );
-        $this->assertEquals(
-            $this->form->disabled_modules,
-            $build->getArgs()['APACHE_MODULES_DISABLE']
-        );
 
         $this->assertEquals(
             'Host:updatedServerName,aliasA,aliasB',
@@ -144,17 +108,13 @@ class ApacheTest extends ServiceWorkerBase
     public function testGetCreateParams()
     {
         $expected = [
-            'apacheModulesEnable'    => ['default_data'],
-            'apacheModulesDisable'   => ['disable_default'],
-            'availableApacheModules' => ['available_data'],
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'awesome.localhost',
                 'server_alias'  => ['www.awesome.localhost'],
                 'document_root' => '/var/www',
                 'handler'       => '',
             ],
-            'handlers'               => [
+            'handlers'      => [
                 'PHP-FPM' => [
                     'php-fpm-a:9000',
                     'php-fpm-b:9000',
@@ -164,7 +124,7 @@ class ApacheTest extends ServiceWorkerBase
                     'nodejs-b:123',
                 ],
             ],
-            'fileHighlight'          => 'apacheconf',
+            'fileHighlight' => 'apacheconf',
         ];
 
         $result = $this->worker->getCreateParams();
@@ -177,17 +137,13 @@ class ApacheTest extends ServiceWorkerBase
         $this->worker->create();
 
         $expected = [
-            'apacheModulesEnable'    => ['mpm_event', 'proxy_fcgi', 'rewrite'],
-            'apacheModulesDisable'   => ['mpm_prefork', 'mpm_worker', 'dupe'],
-            'availableApacheModules' => ['default_data'],
-            'systemPackagesSelected' => [],
-            'vhost'                  => [
+            'vhost'         => [
                 'server_name'   => 'server_name',
                 'server_alias'  => ['server_alias'],
                 'document_root' => '~/www/project',
                 'handler'       => 'php-fpm-7.2:9000',
             ],
-            'handlers'               => [
+            'handlers'      => [
                 'PHP-FPM' => [
                     'php-fpm-a:9000',
                     'php-fpm-b:9000',
@@ -197,7 +153,7 @@ class ApacheTest extends ServiceWorkerBase
                     'nodejs-b:123',
                 ],
             ],
-            'fileHighlight'          => 'apacheconf',
+            'fileHighlight' => 'apacheconf',
         ];
 
         $params = $this->worker->getViewParams();

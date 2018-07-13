@@ -34,63 +34,6 @@
 
 <hr class="my-6" />
 
-<h4 class="mb-3">Packages</h4>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="system-packages">System Packages</label>
-        <select class="form-control" id="system-packages" name="system_packages[]"
-                multiple data-error-container="system-packages" data-selectize-tags>
-            {% for package in systemPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-        <small class="text-muted">
-            Will be installed using <code>apt-get</code>.
-        </small>
-    </div>
-</div>
-
-<h4 class="mb-3">Modules</h4>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="enabled-modules">Enabled Modules</label>
-        <select class="form-control" id="enabled-modules" name="enabled_modules[]"
-                multiple data-error-container="enabled-modules" data-selectize-tags>
-            {% for module in apacheModulesEnable %}
-                <option value="{{ module }}" selected>{{ module }}</option>
-            {% endfor %}
-            {% for module in availableApacheModules %}
-                <option value="{{ module }}">{{ module }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="enabled-modules"></div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="disabled-modules">Disabled Modules</label>
-        <select class="form-control" id="disabled-modules" name="disabled_modules[]"
-                multiple data-error-container="disabled-modules" data-selectize-tags>
-            {% for module in apacheModulesDisable %}
-                <option value="{{ module }}" selected>{{ module }}</option>
-            {% endfor %}
-            {% for module in availableApacheModules if module not in apacheModulesEnable %}
-                <option value="{{ module }}">{{ module }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="disabled-modules"></div>
-        <small class="text-muted">
-            Some modules are incompatible with one another.
-        </small>
-    </div>
-</div>
-
-<hr class="my-6" />
-
 <h4 class="mb-3">Virtual Host Config</h4>
 
 <div class="row">

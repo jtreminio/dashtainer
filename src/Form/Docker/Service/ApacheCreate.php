@@ -12,12 +12,6 @@ class ApacheCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
-    public $system_packages = [];
-
-    public $enabled_modules = [];
-
-    public $disabled_modules = [];
-
     public $server_name;
 
     public $server_alias = [];
