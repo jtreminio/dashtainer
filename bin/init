@@ -12,7 +12,7 @@ EOF
 
 TRAEFIK=$(docker container ls --filter name=traefik_proxy | grep -c traefik_proxy || true)
 if [ ${TRAEFIK} -eq 0 ]; then
-    NETWORK=$(docker network ls --filter name=traefik_webgateway | grep -c traefik_proxy || true)
+    NETWORK=$(docker network ls --filter name=traefik_webgateway | grep -c traefik_webgateway || true)
     if [ ${NETWORK} -eq 0 ]; then
         docker network create --driver bridge traefik_webgateway
     fi
@@ -25,7 +25,8 @@ if [ ${TRAEFIK} -eq 0 ]; then
         --restart always \
         --volume /var/run/docker.sock:/var/run/docker.sock \
         --volume /dev/null:/traefik.toml \
-        traefik --api --docker --docker.domain=docker.localhost --logLevel=DEBUG
+        traefik --api --docker \
+            --docker.domain=docker.localhost --logLevel=DEBUG
 fi
 
 cd "${DIR}/../docker/"
