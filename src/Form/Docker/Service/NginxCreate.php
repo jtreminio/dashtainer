@@ -12,8 +12,6 @@ class NginxCreate extends CreateAbstract implements Util\HydratorInterface
 {
     use Util\HydratorTrait;
 
-    public $system_packages = [];
-
     public $server_name;
 
     public $server_alias = [];
