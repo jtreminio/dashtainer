@@ -31,7 +31,9 @@ class BeanstalkdTest extends ServiceWorkerBase
     {
         $this->worker->create();
 
-        $build = $this->service->getBuild();
-        $this->assertEquals('./service-name', $build->getContext());
+        $this->assertEquals(
+            'petronetto/beanstalkd-alpine',
+            $this->service->getImage()
+        );
     }
 }

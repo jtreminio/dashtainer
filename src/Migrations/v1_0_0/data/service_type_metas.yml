@@ -5387,53 +5387,11 @@
 
 -
     type: Beanstalkd
-    name: dockerfile
-    data:
-        name: dockerfile
-        source: Dockerfile
-        target: ~
-        highlight: dockerfile
-        filetype: file
-        type: bind
-        data: |
-            FROM blitznote/debase:18.04
-
-            ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
-
-            # Custom user and group ID
-            ARG USER_ID
-            ARG GROUP_ID
-            RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-                if getent group beanstalkd ; then groupdel beanstalkd; fi \
-                && groupadd -g ${GROUP_ID} beanstalkd \
-                && useradd -l -u ${USER_ID} -g beanstalkd beanstalkd \
-            ;fi
-
-            # Per-image commands
-            ARG SYSTEM_PACKAGES
-
-            RUN apt-get update \
-                && apt-get -y install --no-install-recommends --no-install-suggests \
-                    beanstalkd ${SYSTEM_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-                && rm -rf /usr/share/{man,doc} \
-                \
-                && install -d -m 0755 -o beanstalkd -g beanstalkd /var/lib/beanstalkd/binlog
-
-            WORKDIR /var/lib/beanstalkd
-            USER beanstalkd
-
-            EXPOSE 13000
-
-            CMD ["beanstalkd", "-l", "0.0.0.0", "-p", "13000", "-b", "/var/lib/beanstalkd/binlog"]
--
-    type: Beanstalkd
     name: datadir
     data:
         name: datadir
         source: datadir
-        target: /var/lib/beanstalkd/binlog
+        target: /data
         filetype: other
         type: volume
         prepend: true

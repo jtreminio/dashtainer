@@ -18,13 +18,8 @@ class Beanstalkd extends WorkerAbstract
 
     public function create()
     {
-        $this->service->setName($this->form->name);
-
-        $build = $this->service->getBuild();
-        $build->setContext("./{$this->service->getSlug()}")
-            ->setDockerfile('Dockerfile');
-
-        $this->service->setBuild($build);
+        $this->service->setName($this->form->name)
+            ->setImage('petronetto/beanstalkd-alpine');
     }
 
     public function update()
@@ -48,9 +43,7 @@ class Beanstalkd extends WorkerAbstract
     public function getInternalVolumes() : array
     {
         return [
-            'files' => [
-                'dockerfile'
-            ],
+            'files' => [],
             'other' => [
                 'datadir'
             ],
