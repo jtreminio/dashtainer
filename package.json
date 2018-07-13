@@ -7,20 +7,20 @@
     "jquery-mask-plugin": "^1.14.13",
     "jquery-sparkline": "^2.4.0",
     "misbehave": "^0.3.0",
-    "node-sass": "^4.7.2",
-    "prismjs": "^1.11.0",
+    "node-sass": "^4.9.2",
+    "prismjs": "^1.15.0",
     "sass-loader": "^6.0.6",
-    "selectize": "^0.12.4",
-    "tablesorter": "^2.29.6",
+    "selectize": "^0.12.6",
+    "tablesorter": "^2.30.7",
     "webpack-notifier": "^1.5.1"
   },
   "dependencies": {
     "bootstrap": "4.0.0",
     "floatthead": "^2.1.2",
     "font-mfizz": "^2.4.1",
-    "jdenticon": "^2.0.0",
-    "popper.js": "^1.12.9",
+    "jdenticon": "^2.1.0",
+    "popper.js": "^1.14.3",
     "sticky-js": "^1.2.0",
-    "webpack": "^3.0.0"
+    "webpack": "^3.12.0"
   }
 }

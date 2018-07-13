@@ -5,7 +5,7 @@ set -o pipefail
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 USER_ID=$(id -u ${USER})
 GROUP_ID=$(id -g ${USER})
-CONTAINER="node:9"
+CONTAINER="node:9-alpine"
 CMD="${@}"
 
 docker container run -it --rm \
