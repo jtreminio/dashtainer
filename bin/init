@@ -10,4 +10,28 @@ USER_ID=$(id -u ${USER})
 GROUP_ID=$(id -g ${USER})
 EOF
 
+TRAEFIK=$(docker container ls --filter name=traefik_proxy | grep -c traefik_proxy || true)
+if [ ${TRAEFIK} -eq 0 ]; then
+    NETWORK=$(docker network ls --filter name=traefik_webgateway | grep -c traefik_proxy || true)
+    if [ ${NETWORK} -eq 0 ]; then
+        docker network create --driver bridge traefik_webgateway
+    fi
+
+    docker container run -d \
+        --name traefik_proxy \
+        --network traefik_webgateway \
+        --publish 80:80 \
+        --publish 8080:8080 \
+        --restart always \
+        --volume /var/run/docker.sock:/var/run/docker.sock \
+        --volume /dev/null:/traefik.toml \
+        traefik --api --docker --docker.domain=docker.localhost --logLevel=DEBUG
+fi
+
+cd "${DIR}/../docker/"
+
+docker-compose up -d --build
+
+cd "${DIR}"
+
 exit 0

@@ -25,13 +25,9 @@ values. Any files then created by the container will show as owned by your curre
 
 If you would rather the containers run as root, simply copy the included `.env.dist` to `.env`.
 
-Windows users may not need to run `./bin/init` at all.
-
 ### Container init
 
-* Run `./bin/docker-traefik-up` if you do not have another 
-    [Traefik](https://traefik.io/) instance running
-* Run `./bin/docker-up`
+* Run `./bin/init`
 
 ### App configuration
 
