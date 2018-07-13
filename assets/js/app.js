@@ -1,7 +1,6 @@
 const imagesCtx = require.context('../images', true, /\.(png|jpg|jpeg|gif|ico|svg|webp)$/);
 imagesCtx.keys().forEach(imagesCtx);
 
-require('../scss/bundle.scss');
 require('../scss/app.scss');
 
 const $ = require('jquery');
