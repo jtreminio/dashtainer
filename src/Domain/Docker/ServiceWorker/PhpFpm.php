@@ -179,8 +179,6 @@ class PhpFpm
                 "fpm-conf-{$version}",
                 "xdebug-ini-{$version}",
                 "xdebug-ini-cli-{$version}",
-                'fpm-bin',
-                'xdebug-bin',
                 "dockerfile-{$version}",
             ],
             'other' => [
