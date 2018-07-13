@@ -4,8 +4,8 @@ namespace Dashtainer\Controller;
 
 use Dashtainer\Entity\User;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
 class Main extends Controller
