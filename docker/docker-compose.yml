@@ -17,8 +17,10 @@ secrets:
     file: ./secrets/db_user
   db_password:
     file: ./secrets/db_password
-  sf_secret_key:
-    file: ./secrets/sf_secret_key
+  sf_secret:
+    file: ./secrets/sf_secret
+  sf_enc_key:
+    file: ./secrets/sf_enc_key
 volumes:
   db-datastore:
   composer:
@@ -76,7 +78,8 @@ services:
       - db_port
       - db_user
       - db_password
-      - sf_secret_key
+      - sf_secret
+      - sf_enc_key
     networks:
       - private
     volumes:

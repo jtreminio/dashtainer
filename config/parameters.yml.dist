@@ -4,9 +4,9 @@ parameters:
     database_port: '%env(trim:file:DB_PORT_FILE)%'
     database_user: '%env(trim:file:DB_USER_FILE)%'
     database_password: '%env(trim:file:DB_PASSWORD_FILE)%'
+    secret: '%env(trim:file:SF_SECRET_FILE)%'
+    enc_key: '%env(trim:file:SF_ENC_KEY_FILE)%'
     mailer_transport: smtp
     mailer_host: 127.0.0.1
     mailer_user: null
     mailer_password: null
-    secret: 4a26620b4a7a55c5c48499eeecf992d6b20f19ac
-    enc_key: '%env(trim:file:SF_SECRET_KEY_FILE)%'
