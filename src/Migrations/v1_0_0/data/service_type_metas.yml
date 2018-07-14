@@ -782,8 +782,8 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=0
-            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+            ARG COMPOSER_INSTALL
+            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
                 install -d -m 0755 -o www-data -g www-data /.composer \
                 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
@@ -875,8 +875,8 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=0
-            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+            ARG COMPOSER_INSTALL
+            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
                 install -d -m 0755 -o www-data -g www-data /.composer \
                 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
@@ -968,8 +968,8 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=0
-            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+            ARG COMPOSER_INSTALL
+            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
                 install -d -m 0755 -o www-data -g www-data /.composer \
                 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \
@@ -1061,8 +1061,8 @@
                 && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
             ;fi
 
-            ARG COMPOSER_INSTALL=0
-            RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+            ARG COMPOSER_INSTALL
+            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
                 install -d -m 0755 -o www-data -g www-data /.composer \
                 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
                     --filename=composer \

@@ -15,10 +15,6 @@
 /var/cache/*
 !var/cache/.gitkeep
 
-!/var/cache/.composer
-/var/cache/.composer/*
-!var/cache/.composer/.gitkeep
-
 !/var/cache/.npm-cache
 /var/cache/.npm-cache/*
 !var/cache/.npm-cache/.gitkeep

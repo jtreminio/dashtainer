@@ -17,8 +17,15 @@ ARG SYSTEM_PACKAGES
 ENV PHP_VER 7.2
 ENV COMPOSER_HOME /.composer
 
-COPY xdebug-bin /usr/bin/xdebug
-COPY fpm-bin /usr/bin/php-fpm
+RUN echo "#!/bin/bash" > /usr/bin/php-fpm \
+    && echo "/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \\\"\(.*\)$,\1,'| sed -u 's,\"$,,' 1>&1" \
+>> /usr/bin/php-fpm \
+    && chmod +x /usr/bin/php-fpm
+
+RUN echo "#!/bin/bash" > /usr/bin/xdebug \
+    && echo "XDEBUG_CONFIG=\"idekey=xdebug\" php -dxdebug.remote_enable=1 \"\$@\"" \
+>> /usr/bin/xdebug \
+    && chmod +x /usr/bin/xdebug
 
 RUN apt-get update \
     && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
@@ -34,8 +41,6 @@ RUN apt-get update \
     \
     && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
     && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-    && chmod +x /usr/bin/xdebug \
-    && chmod +x /usr/bin/php-fpm \
     && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
 
 ARG PEAR_PACKAGES
@@ -49,8 +54,8 @@ RUN if [ ! -z "$PECL_PACKAGES" ]; then \
     && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
 ;fi
 
-ARG COMPOSER_INSTALL=0
-RUN if [ $COMPOSER_INSTALL -ne 0 ]; then \
+ARG COMPOSER_INSTALL
+RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
     install -d -m 0755 -o www-data -g www-data /.composer \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
         --filename=composer \

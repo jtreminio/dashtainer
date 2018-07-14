@@ -20,7 +20,8 @@ secrets:
   sf_secret_key:
     file: ./secrets/sf_secret_key
 volumes:
-  dashtainer-db-datastore:
+  db-datastore:
+  composer:
 services:
   mariadb:
     image: mariadb:10.1
@@ -38,13 +39,10 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
     networks:
       - private
-    ports:
-      - 3600:3306
     restart: always
     volumes:
-      - dashtainer-db-datastore:/var/lib/mysql
+      - db-datastore:/var/lib/mysql
       - ./mariadb/config-file.cnf:/etc/mysql/conf.d/config-file.cnf:ro
-      - ./mariadb/my.cnf:/etc/mysql/my.cnf:ro
   nginx:
     image: nginx:alpine
     labels:
@@ -70,6 +68,8 @@ services:
         COMPOSER_INSTALL: 1
         USER_ID: ${USER_ID:-0}
         GROUP_ID: ${GROUP_ID:-0}
+    environment:
+      - APP_ENV=dev
     secrets:
       - db_host
       - db_name
@@ -80,13 +80,13 @@ services:
     networks:
       - private
     volumes:
+      - composer:/.composer
       - ./php/php.ini:/etc/php/7.2/fpm/conf.d/zzzz_custom.ini:ro
       - ./php/php-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_custom.ini:ro
       - ./php/xdebug.ini:/etc/php/7.2/fpm/conf.d/zzzz_xdebug.ini:ro
       - ./php/xdebug-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_xdebug.ini:ro
       - ./php/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf:ro
       - ./../:/var/www:cached
-      - ./../var/cache/.composer/:/.composer:delegated
   adminer:
     image: adminer
     environment:
