@@ -1,5 +1,4 @@
 {
-    "name": "Dashtainer.com",
     "autoload": {
         "psr-4": {
             "Dashtainer\\": "src/"
@@ -18,7 +17,7 @@
         ]
     },
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=7.2",
         "behat/transliterator": "~v1.2",
         "defuse/php-encryption": "^v2.2.0",
         "doctrine/data-fixtures": "^v1.3",
@@ -28,7 +27,6 @@
         "doctrine/migrations": "^v1.6",
         "doctrine/orm": "^2.5",
         "friendsofsymfony/user-bundle": "~2.0",
-        "igorw/get-in": "~1.0",
         "incenteev/composer-parameter-handler": "^2.0",
         "ircmaxell/random-lib": "^v1.2",
         "maennchen/zipstream-php": "^v0.5",
@@ -37,17 +35,15 @@
         "sensio/framework-extra-bundle": "^5.0.0",
         "stof/doctrine-extensions-bundle": "^v1.3.0",
         "symfony/monolog-bundle": "^3.1.0",
-        "symfony/polyfill-apcu": "^1.0",
-        "symfony/swiftmailer-bundle": "^2.6.4",
+        "symfony/swiftmailer-bundle": "^3.2.0",
         "symfony/symfony": "3.4.*",
         "twig/twig": "^1.0||^2.0",
         "zendframework/zend-stdlib": "^3.1"
     },
     "require-dev": {
-        "codedungeon/phpunit-result-printer": "^0.11.4",
-        "dama/doctrine-test-bundle": "^4.0",
-        "phpunit/phpunit": "^6.0",
-        "sensio/generator-bundle": "^3.0",
+        "codedungeon/phpunit-result-printer": "^0.19",
+        "dama/doctrine-test-bundle": "^5.0.0",
+        "phpunit/phpunit": "^7.2.0",
         "symfony/phpunit-bridge": "^4.0"
     },
     "scripts": {
