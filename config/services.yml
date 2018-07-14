@@ -30,8 +30,8 @@ services:
                 db_password: '%database_password%'
 
     Dashtainer\:
-        resource: '../../src/*'
-        exclude: '../../src/{Entity,Tests}'
+        resource: '../src/*'
+        exclude: '../src/{Entity,Tests,AppCache.php,AppKernel.php}'
 
     Dashtainer\ArgumentResolver\UserValueResolver:
         tags:
@@ -45,7 +45,7 @@ services:
         tags: ['container.env_provider']
 
     Dashtainer\Controller\:
-        resource: '../../src/Controller'
+        resource: '../src/Controller'
         public: true
         tags: ['controller.service_arguments']
 

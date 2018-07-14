@@ -1,7 +1,7 @@
 /.web-server-pid
 /phpunit.xml
 /yarn-error.log
-/app/config/parameters.yml
+/config/parameters.yml
 /build/
 /docker/.env
 /docker/docker-compose.override.yml
@@ -36,4 +36,5 @@
 !var/sessions/.gitkeep
 
 !var/SymfonyRequirements.php
-/vendor/
+vendor/*
+!vendor/.gitkeep
