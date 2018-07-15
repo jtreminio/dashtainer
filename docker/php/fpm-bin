@@ -1,3 +1,0 @@
-#!/bin/bash
-# This file is used to run the PHP-FPM daemon
-/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \"\(.*\)$,\1,'| sed -u 's,"$,,' 1>&1

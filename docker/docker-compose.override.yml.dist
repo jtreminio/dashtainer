@@ -1,6 +1,5 @@
 version: '3.2'
 services:
   php:
-    volumes:
-      - ./php/xdebug-linux.ini:/etc/php/7.2/fpm/conf.d/zzzzz_xdebug.ini:ro
-      - ./php/xdebug-cli-linux.ini:/etc/php/7.2/cli/conf.d/zzzzz_xdebug.ini:ro
+    environment:
+      - XDEBUG_REMOTE_HOST=172.17.0.1

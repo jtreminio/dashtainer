@@ -1,3 +1,0 @@
-#!/bin/bash
-# This file allows debugging PHP CLI
-XDEBUG_CONFIG="idekey=xdebug" php -dxdebug.remote_enable=1 "$@"

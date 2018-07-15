@@ -64,14 +64,13 @@ services:
       context: ./php
       dockerfile: Dockerfile
       args:
-        SYSTEM_PACKAGES: git openssh-client php7.2-curl php7.2-intl php7.2-json php7.2-mbstring php7.2-mysql php7.2-opcache php7.2-xml php-pear php7.2-zip php-xdebug
-        PEAR_PACKAGES: ~
-        PECL_PACKAGES: ~
-        COMPOSER_INSTALL: 1
         USER_ID: ${USER_ID:-0}
         GROUP_ID: ${GROUP_ID:-0}
     environment:
       - APP_ENV=dev
+      - PHP_DISPLAY_ERRORS=On
+      - PHP_ERROR_REPORTING=-1
+      - PHP_INI_SCAN_DIR=:/etc/php/xdebug
     secrets:
       - db_host
       - db_name
@@ -84,11 +83,6 @@ services:
       - private
     volumes:
       - composer:/.composer
-      - ./php/php.ini:/etc/php/7.2/fpm/conf.d/zzzz_custom.ini:ro
-      - ./php/php-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_custom.ini:ro
-      - ./php/xdebug.ini:/etc/php/7.2/fpm/conf.d/zzzz_xdebug.ini:ro
-      - ./php/xdebug-cli.ini:/etc/php/7.2/cli/conf.d/zzzz_xdebug.ini:ro
-      - ./php/php-fpm.conf:/etc/php/7.2/fpm/php-fpm.conf:ro
       - ./../:/var/www:cached
   adminer:
     image: adminer
