@@ -67,18 +67,23 @@ You may also access the database using Sequel Pro or any other MySQL-compatible 
 * Database User: `dashtainer`
 * Database Password: `dashtainer`
 
+### Xdebug
+
+Two PHP containers are created, `php` and `php_xdebug`. While Xdebug is installed on both
+containers, only `php_xdebug` has it activated by default.
+
+To trigger Xdebug, you must set a cookie, `XDEBUG_SESSION`, to `xdebug` value.
+
+Use the [PhpStorm Bookmarklets](https://www.jetbrains.com/phpstorm/marklets/)
+generator to create your Start and Stop bookmarks. The IDE key should be `xdebug`.
+
 ### Linux users
-If spinning up Docker on a Linux host, the `xdebug.remote_host` value in
-[xdebug.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug.ini#L5) and
-[xdebug-cli.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-cli.ini#L5)
+If spinning up Docker on a Linux host, the `xdebug.remote_host` value in PHP INI
 use `host.docker.internal` which does not currently work on Linux hosts (only Windows and MacOS for now).
 
 To fix this, simply copy the
 [docker-compose.override.yml.dist](https://github.com/jtreminio/dashtainer/blob/master/docker/docker-compose.override.yml.dist)
-file to `docker-compose.override.yml`. You can then edit the
-[xdebug-linux.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-linux.ini) and
-[xdebug-cli-linux.ini](https://github.com/jtreminio/dashtainer/blob/master/docker/php/xdebug-cli-linux.ini)
-files to suit your needs, but the default values should be what you need to get Xdebug working.
+file to `docker-compose.override.yml`.
 
 ### Unit tests
 
