@@ -17,15 +17,9 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
      */
     public $version;
 
-    public $system_packages = [];
+    public $ini = [];
 
-    public $pear_packages = [];
-
-    public $pecl_packages = [];
-
-    public $composer = [];
-
-    public $xdebug = [];
+    public $xdebug = false;
 
     public $blackfire = [];
 
@@ -38,15 +32,7 @@ class PhpFpmCreate extends CreateAbstract implements Util\HydratorInterface
     {
         parent::validate($context, $payload);
 
-        $this->validateXdebug($context);
         $this->validateBlackfire($context);
-    }
-
-    protected function validateXdebug(ExecutionContextInterface $context)
-    {
-        if (empty($this->xdebug['install'])) {
-            return;
-        }
     }
 
     protected function validateBlackfire(ExecutionContextInterface $context)

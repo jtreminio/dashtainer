@@ -1,722 +1,5 @@
 -
     type: PHP-FPM
-    name: packages-5.6
-    data:
-        available:
-            - php5.6-bcmath
-            - php5.6-bz2
-            - php5.6-cgi
-            - php5.6-dba
-            - php5.6-dev
-            - php5.6-enchant
-            - php5.6-gd
-            - php5.6-gmp
-            - php5.6-imap
-            - php5.6-interbase
-            - php5.6-ldap
-            - php5.6-odbc
-            - php5.6-pgsql
-            - php5.6-phpdbg
-            - php5.6-pspell
-            - php5.6-readline
-            - php5.6-recode
-            - php5.6-snmp
-            - php5.6-soap
-            - php5.6-sqlite3
-            - php5.6-sybase
-            - php5.6-tidy
-            - php5.6-xmlrpc
-            - php5.6-xsl
-            - php5.6-zip
-        default:
-            - php5.6-curl
-            - php5.6-intl
-            - php5.6-json
-            - php5.6-mbstring
-            - php5.6-mcrypt
-            - php5.6-mysql
-            - php5.6-opcache
-            - php5.6-xml
--
-    type: PHP-FPM
-    name: packages-7.0
-    data:
-        available:
-            - php7.0-bcmath
-            - php7.0-bz2
-            - php7.0-cgi
-            - php7.0-dba
-            - php7.0-dev
-            - php7.0-enchant
-            - php7.0-gd
-            - php7.0-gmp
-            - php7.0-imap
-            - php7.0-interbase
-            - php7.0-ldap
-            - php7.0-odbc
-            - php7.0-pgsql
-            - php7.0-phpdbg
-            - php7.0-pspell
-            - php7.0-readline
-            - php7.0-recode
-            - php7.0-snmp
-            - php7.0-soap
-            - php7.0-sqlite3
-            - php7.0-sybase
-            - php7.0-tidy
-            - php7.0-xmlrpc
-            - php7.0-xsl
-            - php7.0-zip
-        default:
-            - php7.0-curl
-            - php7.0-intl
-            - php7.0-json
-            - php7.0-mbstring
-            - php7.0-mcrypt
-            - php7.0-mysql
-            - php7.0-opcache
-            - php7.0-xml
--
-    type: PHP-FPM
-    name: packages-7.1
-    data:
-        available:
-            - php7.1-bcmath
-            - php7.1-bz2
-            - php7.1-cgi
-            - php7.1-dba
-            - php7.1-dev
-            - php7.1-enchant
-            - php7.1-gd
-            - php7.1-gmp
-            - php7.1-imap
-            - php7.1-interbase
-            - php7.1-ldap
-            - php7.1-odbc
-            - php7.1-pgsql
-            - php7.1-phpdbg
-            - php7.1-pspell
-            - php7.1-readline
-            - php7.1-recode
-            - php7.1-snmp
-            - php7.1-soap
-            - php7.1-sqlite3
-            - php7.1-sybase
-            - php7.1-tidy
-            - php7.1-xmlrpc
-            - php7.1-xsl
-            - php7.1-zip
-        default:
-            - php7.1-curl
-            - php7.1-intl
-            - php7.1-json
-            - php7.1-mbstring
-            - php7.1-mcrypt
-            - php7.1-mysql
-            - php7.1-opcache
-            - php7.1-xml
--
-    type: PHP-FPM
-    name: packages-7.2
-    data:
-        available:
-            - php7.2-bcmath
-            - php7.2-bz2
-            - php7.2-cgi
-            - php7.2-dba
-            - php7.2-dev
-            - php7.2-enchant
-            - php7.2-gd
-            - php7.2-gmp
-            - php7.2-imap
-            - php7.2-interbase
-            - php7.2-ldap
-            - php7.2-odbc
-            - php7.2-pgsql
-            - php7.2-phpdbg
-            - php7.2-pspell
-            - php7.2-readline
-            - php7.2-recode
-            - php7.2-snmp
-            - php7.2-soap
-            - php7.2-sqlite3
-            - php7.2-sybase
-            - php7.2-tidy
-            - php7.2-xmlrpc
-            - php7.2-xsl
-            - php7.2-zip
-        default:
-            - php7.2-curl
-            - php7.2-intl
-            - php7.2-json
-            - php7.2-mbstring
-            - php7.2-mysql
-            - php7.2-opcache
-            - php7.2-xml
--
-    type: PHP-FPM
-    name: packages-general
-    data:
-        available:
-            - php-all-dev
-            - php-amqp
-            - php-apcu
-            - php-apcu-bc
-            - php-ast
-            - php-ds
-            - php-gearman
-            - php-geoip
-            - php-gettext
-            - php-gmagick
-            - php-gnupg
-            - php-http
-            - php-igbinary
-            - php-imagick
-            - php-libvirt-php
-            - php-lua
-            - php-mailparse
-            - php-memcache
-            - php-memcached
-            - php-mongo
-            - php-mongodb
-            - php-msgpack
-            - php-mysqlnd-ms
-            - php-oauth
-            - php-pear
-            - php-pecl-http
-            - php-pecl-http-dev
-            - php-phalcon
-            - php-propro
-            - php-propro-dev
-            - php-radius
-            - php-raphf
-            - php-raphf-dev
-            - php-redis
-            - php-rrd
-            - php-sass
-            - php-smbclient
-            - php-sodium
-            - php-solr
-            - php-ssh2
-            - php-stomp
-            - php-tideways
-            - php-uploadprogress
-            - php-uuid
-            - php-xcache
-            - php-xdebug
-            - php-xhprof
-            - php-yac
-            - php-yaml
-            - php-zmq
-        default:
-            - git
-            - openssh-client
--
-    type: PHP-FPM
-    name: php-ini-5.6
-    data:
-        name: php-ini
-        source: php.ini
-        target: /etc/php/5.6/fpm/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-7.0
-    data:
-        name: php-ini
-        source: php.ini
-        target: /etc/php/7.0/fpm/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-7.1
-    data:
-        name: php-ini
-        source: php.ini
-        target: /etc/php/7.1/fpm/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-7.2
-    data:
-        name: php-ini
-        source: php.ini
-        target: /etc/php/7.2/fpm/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-cli-5.6
-    data:
-        name: php-ini-cli
-        source: php-cli.ini
-        target: /etc/php/5.6/cli/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-cli-7.0
-    data:
-        name: php-ini-cli
-        source: php-cli.ini
-        target: /etc/php/7.0/cli/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-cli-7.1
-    data:
-        name: php-ini-cli
-        source: php-cli.ini
-        target: /etc/php/7.1/cli/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: php-ini-cli-7.2
-    data:
-        name: php-ini-cli
-        source: php-cli.ini
-        target: /etc/php/7.2/cli/conf.d/zzzz_custom.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-
-            [custom]
-            display_errors = "On"
-            error_reporting = -1
-            date.timezone = "UTC"
-            session.save_path = "/var/lib/php/sessions"
-            opcache.enable = 1
-            opcache.enable_cli = 1
-            opcache.fast_shutdown = 1
-            opcache.interned_strings_buffer = 16
-            opcache.max_accelerated_files = 40000
-            opcache.memory_consumption = 256
-            opcache.revalidate_freq = 0
-            opcache.validate_timestamps = 1
--
-    type: PHP-FPM
-    name: fpm-conf-5.6
-    data:
-        name: fpm-conf
-        source: php-fpm.conf
-        target: /etc/php/5.6/fpm/php-fpm.conf
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            [global]
-            ; Keep this for www-data permissions
-            pid = /var/run/php-fpm/php-fpm.pid
-            ; Avoid logs being sent to syslog
-            error_log = /proc/self/fd/2
-
-            [www]
-            listen = "0.0.0.0:9000"
-            ; Redirect logs to stdout - FPM closes /dev/std* on startup
-            access.log = /proc/self/fd/2
-            catch_workers_output = yes
-            ; Required to allow config-by-environment
-            clear_env = no
-            pm = "dynamic"
-            pm.max_children = 5
-            pm.start_servers = 2
-            pm.min_spare_servers = 1
-            pm.max_spare_servers = 3
-            security.limit_extensions = ".php"
--
-    type: PHP-FPM
-    name: fpm-conf-7.0
-    data:
-        name: fpm-conf
-        source: php-fpm.conf
-        target: /etc/php/7.0/fpm/php-fpm.conf
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            [global]
-            ; Keep this for www-data permissions
-            pid = /var/run/php-fpm/php-fpm.pid
-            ; Avoid logs being sent to syslog
-            error_log = /proc/self/fd/2
-
-            [www]
-            listen = "0.0.0.0:9000"
-            ; Redirect logs to stdout - FPM closes /dev/std* on startup
-            access.log = /proc/self/fd/2
-            catch_workers_output = yes
-            ; Required to allow config-by-environment
-            clear_env = no
-            pm = "dynamic"
-            pm.max_children = 5
-            pm.start_servers = 2
-            pm.min_spare_servers = 1
-            pm.max_spare_servers = 3
-            security.limit_extensions = ".php"
--
-    type: PHP-FPM
-    name: fpm-conf-7.1
-    data:
-        name: fpm-conf
-        source: php-fpm.conf
-        target: /etc/php/7.1/fpm/php-fpm.conf
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            [global]
-            ; Keep this for www-data permissions
-            pid = /var/run/php-fpm/php-fpm.pid
-            ; Avoid logs being sent to syslog
-            error_log = /proc/self/fd/2
-
-            [www]
-            listen = "0.0.0.0:9000"
-            ; Redirect logs to stdout - FPM closes /dev/std* on startup
-            access.log = /proc/self/fd/2
-            catch_workers_output = yes
-            ; Required to allow config-by-environment
-            clear_env = no
-            pm = "dynamic"
-            pm.max_children = 5
-            pm.start_servers = 2
-            pm.min_spare_servers = 1
-            pm.max_spare_servers = 3
-            security.limit_extensions = ".php"
--
-    type: PHP-FPM
-    name: fpm-conf-7.2
-    data:
-        name: fpm-conf
-        source: php-fpm.conf
-        target: /etc/php/7.2/fpm/php-fpm.conf
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            [global]
-            ; Keep this for www-data permissions
-            pid = /var/run/php-fpm/php-fpm.pid
-            ; Avoid logs being sent to syslog
-            error_log = /proc/self/fd/2
-
-            [www]
-            listen = "0.0.0.0:9000"
-            ; Redirect logs to stdout - FPM closes /dev/std* on startup
-            access.log = /proc/self/fd/2
-            catch_workers_output = yes
-            ; Required to allow config-by-environment
-            clear_env = no
-            pm = "dynamic"
-            pm.max_children = 5
-            pm.start_servers = 2
-            pm.min_spare_servers = 1
-            pm.max_spare_servers = 3
-            security.limit_extensions = ".php"
--
-    type: PHP-FPM
-    name: xdebug-ini-5.6
-    data:
-        name: xdebug-ini
-        source: xdebug.ini
-        target: /etc/php/5.6/fpm/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-7.0
-    data:
-        name: xdebug-ini
-        source: xdebug.ini
-        target: /etc/php/7.0/fpm/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-7.1
-    data:
-        name: xdebug-ini
-        source: xdebug.ini
-        target: /etc/php/7.1/fpm/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-7.2
-    data:
-        name: xdebug-ini
-        source: xdebug.ini
-        target: /etc/php/7.2/fpm/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-FPM
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-cli-5.6
-    data:
-        name: xdebug-ini-cli
-        source: xdebug-cli.ini
-        target: /etc/php/5.6/cli/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-cli-7.0
-    data:
-        name: xdebug-ini-cli
-        source: xdebug-cli.ini
-        target: /etc/php/7.0/cli/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-cli-7.1
-    data:
-        name: xdebug-ini-cli
-        source: xdebug-cli.ini
-        target: /etc/php/7.1/cli/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
-    name: xdebug-ini-cli-7.2
-    data:
-        name: xdebug-ini-cli
-        source: xdebug-cli.ini
-        target: /etc/php/7.2/cli/conf.d/zzzz_xdebug.ini
-        highlight: ini
-        filetype: file
-        type: bind
-        data: |
-            ; used by PHP-CLI
-            ; On Linux? Change "host.docker.internal" to 172.17.0.1
-
-            [xdebug]
-            xdebug.remote_host = "host.docker.internal"
-            xdebug.default_enable = 1
-            xdebug.remote_autostart = 1
-            xdebug.remote_connect_back = 0
-            xdebug.remote_enable = 1
-            xdebug.remote_handler = "dbgp"
-            xdebug.remote_port = 9000
--
-    type: PHP-FPM
     name: dockerfile-5.6
     data:
         name: dockerfile
@@ -726,86 +9,27 @@
         filetype: file
         type: bind
         data: |
-            FROM blitznote/debase:18.04
-
-            ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+            FROM jtreminio/php:5.6
 
             # Custom user and group ID
             ARG USER_ID
             ARG GROUP_ID
             RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-                userdel -f www-data \
-                && if getent group www-data ; then groupdel www-data; fi \
-                && groupadd -g ${GROUP_ID} www-data \
-                && useradd -l -u ${USER_ID} -g www-data www-data \
+              userdel -f www-data &&\
+              if getent group www-data ; then groupdel www-data; fi &&\
+              groupadd -g ${GROUP_ID} www-data &&\
+              useradd -l -u ${USER_ID} -g www-data www-data &&\
+              install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+              chown --changes --silent --no-dereference --recursive --from=33:33 ${USER_ID}:${GROUP_ID} \
+                /home/www-data \
+                /.composer \
+                /var/run/php-fpm \
+                /var/lib/php/sessions \
             ;fi
 
-            # Per-image commands
-            ARG SYSTEM_PACKAGES
-            ENV PHP_VER 5.6
-            ENV COMPOSER_HOME /.composer
-
-            RUN echo "#!/bin/bash" > /usr/bin/php-fpm \
-                && echo "/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \\\"\(.*\)$,\1,'| sed -u 's,\"$,,' 1>&1" \
-            >> /usr/bin/php-fpm \
-                && chmod +x /usr/bin/php-fpm
-
-            RUN echo "#!/bin/bash" > /usr/bin/xdebug \
-                && echo "XDEBUG_CONFIG=\"idekey=xdebug\" php -dxdebug.remote_enable=1 \"\$@\"" \
-            >> /usr/bin/xdebug \
-                && chmod +x /usr/bin/xdebug
-
-            RUN apt-get update \
-                && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
-                && printf "deb [arch=binary-amd64] http://ppa.launchpad.net/ondrej/php/ubuntu bionic main\n" \
-            >/etc/apt/sources.list.d/ondrej.list \
-                && apt-get update \
-                && apt-get -y install --no-install-recommends --no-install-suggests \
-                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-                && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
-                && rm -rf /usr/share/{man,doc} \
-                \
-                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
-                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
-
-            ARG PEAR_PACKAGES
-            RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
-                printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
-            ;fi
-
-            ARG PECL_PACKAGES
-            RUN if [ ! -z "$PECL_PACKAGES" ]; then \
-                pecl channel-update pecl.php.net \
-                && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
-            ;fi
-
-            ARG COMPOSER_INSTALL
-            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
-                install -d -m 0755 -o www-data -g www-data /.composer \
-                && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
-                    --filename=composer \
-            ;fi
-
-            ARG BLACKFIRE_SERVER
-            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
-                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
-                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
-                && rm -f /tmp/* \
-            ;fi
-
-            WORKDIR /var/www
             USER www-data
 
-            EXPOSE 9000
+            WORKDIR /var/www
 
             CMD /usr/bin/php-fpm
 -
@@ -819,86 +43,27 @@
         filetype: file
         type: bind
         data: |
-            FROM blitznote/debase:18.04
-
-            ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+            FROM jtreminio/php:7.0
 
             # Custom user and group ID
             ARG USER_ID
             ARG GROUP_ID
             RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-                userdel -f www-data \
-                && if getent group www-data ; then groupdel www-data; fi \
-                && groupadd -g ${GROUP_ID} www-data \
-                && useradd -l -u ${USER_ID} -g www-data www-data \
+              userdel -f www-data &&\
+              if getent group www-data ; then groupdel www-data; fi &&\
+              groupadd -g ${GROUP_ID} www-data &&\
+              useradd -l -u ${USER_ID} -g www-data www-data &&\
+              install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+              chown --changes --silent --no-dereference --recursive --from=33:33 ${USER_ID}:${GROUP_ID} \
+                /home/www-data \
+                /.composer \
+                /var/run/php-fpm \
+                /var/lib/php/sessions \
             ;fi
 
-            # Per-image commands
-            ARG SYSTEM_PACKAGES
-            ENV PHP_VER 7.0
-            ENV COMPOSER_HOME /.composer
-
-            RUN echo "#!/bin/bash" > /usr/bin/php-fpm \
-                && echo "/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \\\"\(.*\)$,\1,'| sed -u 's,\"$,,' 1>&1" \
-            >> /usr/bin/php-fpm \
-                && chmod +x /usr/bin/php-fpm
-
-            RUN echo "#!/bin/bash" > /usr/bin/xdebug \
-                && echo "XDEBUG_CONFIG=\"idekey=xdebug\" php -dxdebug.remote_enable=1 \"\$@\"" \
-            >> /usr/bin/xdebug \
-                && chmod +x /usr/bin/xdebug
-
-            RUN apt-get update \
-                && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
-                && printf "deb [arch=binary-amd64] http://ppa.launchpad.net/ondrej/php/ubuntu bionic main\n" \
-            >/etc/apt/sources.list.d/ondrej.list \
-                && apt-get update \
-                && apt-get -y install --no-install-recommends --no-install-suggests \
-                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-                && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
-                && rm -rf /usr/share/{man,doc} \
-                \
-                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
-                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
-
-            ARG PEAR_PACKAGES
-            RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
-                printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
-            ;fi
-
-            ARG PECL_PACKAGES
-            RUN if [ ! -z "$PECL_PACKAGES" ]; then \
-                pecl channel-update pecl.php.net \
-                && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
-            ;fi
-
-            ARG COMPOSER_INSTALL
-            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
-                install -d -m 0755 -o www-data -g www-data /.composer \
-                && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
-                    --filename=composer \
-            ;fi
-
-            ARG BLACKFIRE_SERVER
-            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
-                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
-                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
-                && rm -f /tmp/* \
-            ;fi
-
-            WORKDIR /var/www
             USER www-data
 
-            EXPOSE 9000
+            WORKDIR /var/www
 
             CMD /usr/bin/php-fpm
 -
@@ -912,86 +77,27 @@
         filetype: file
         type: bind
         data: |
-            FROM blitznote/debase:18.04
-
-            ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+            FROM jtreminio/php:7.1
 
             # Custom user and group ID
             ARG USER_ID
             ARG GROUP_ID
             RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-                userdel -f www-data \
-                && if getent group www-data ; then groupdel www-data; fi \
-                && groupadd -g ${GROUP_ID} www-data \
-                && useradd -l -u ${USER_ID} -g www-data www-data \
+              userdel -f www-data &&\
+              if getent group www-data ; then groupdel www-data; fi &&\
+              groupadd -g ${GROUP_ID} www-data &&\
+              useradd -l -u ${USER_ID} -g www-data www-data &&\
+              install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+              chown --changes --silent --no-dereference --recursive --from=33:33 ${USER_ID}:${GROUP_ID} \
+                /home/www-data \
+                /.composer \
+                /var/run/php-fpm \
+                /var/lib/php/sessions \
             ;fi
 
-            # Per-image commands
-            ARG SYSTEM_PACKAGES
-            ENV PHP_VER 7.1
-            ENV COMPOSER_HOME /.composer
-
-            RUN echo "#!/bin/bash" > /usr/bin/php-fpm \
-                && echo "/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \\\"\(.*\)$,\1,'| sed -u 's,\"$,,' 1>&1" \
-            >> /usr/bin/php-fpm \
-                && chmod +x /usr/bin/php-fpm
-
-            RUN echo "#!/bin/bash" > /usr/bin/xdebug \
-                && echo "XDEBUG_CONFIG=\"idekey=xdebug\" php -dxdebug.remote_enable=1 \"\$@\"" \
-            >> /usr/bin/xdebug \
-                && chmod +x /usr/bin/xdebug
-
-            RUN apt-get update \
-                && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
-                && printf "deb [arch=binary-amd64] http://ppa.launchpad.net/ondrej/php/ubuntu bionic main\n" \
-            >/etc/apt/sources.list.d/ondrej.list \
-                && apt-get update \
-                && apt-get -y install --no-install-recommends --no-install-suggests \
-                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-                && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
-                && rm -rf /usr/share/{man,doc} \
-                \
-                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
-                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
-
-            ARG PEAR_PACKAGES
-            RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
-                printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
-            ;fi
-
-            ARG PECL_PACKAGES
-            RUN if [ ! -z "$PECL_PACKAGES" ]; then \
-                pecl channel-update pecl.php.net \
-                && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
-            ;fi
-
-            ARG COMPOSER_INSTALL
-            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
-                install -d -m 0755 -o www-data -g www-data /.composer \
-                && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
-                    --filename=composer \
-            ;fi
-
-            ARG BLACKFIRE_SERVER
-            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
-                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
-                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
-                && rm -f /tmp/* \
-            ;fi
-
-            WORKDIR /var/www
             USER www-data
 
-            EXPOSE 9000
+            WORKDIR /var/www
 
             CMD /usr/bin/php-fpm
 -
@@ -1005,86 +111,27 @@
         filetype: file
         type: bind
         data: |
-            FROM blitznote/debase:18.04
-
-            ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+            FROM jtreminio/php:7.2
 
             # Custom user and group ID
             ARG USER_ID
             ARG GROUP_ID
             RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
-                userdel -f www-data \
-                && if getent group www-data ; then groupdel www-data; fi \
-                && groupadd -g ${GROUP_ID} www-data \
-                && useradd -l -u ${USER_ID} -g www-data www-data \
+              userdel -f www-data &&\
+              if getent group www-data ; then groupdel www-data; fi &&\
+              groupadd -g ${GROUP_ID} www-data &&\
+              useradd -l -u ${USER_ID} -g www-data www-data &&\
+              install -d -m 0755 -o www-data -g www-data /home/www-data &&\
+              chown --changes --silent --no-dereference --recursive --from=33:33 ${USER_ID}:${GROUP_ID} \
+                /home/www-data \
+                /.composer \
+                /var/run/php-fpm \
+                /var/lib/php/sessions \
             ;fi
 
-            # Per-image commands
-            ARG SYSTEM_PACKAGES
-            ENV PHP_VER 7.2
-            ENV COMPOSER_HOME /.composer
-
-            RUN echo "#!/bin/bash" > /usr/bin/php-fpm \
-                && echo "/usr/sbin/php-fpm -F -R -O 2>&1 | sed -u 's,.*: \\\"\(.*\)$,\1,'| sed -u 's,\"$,,' 1>&1" \
-            >> /usr/bin/php-fpm \
-                && chmod +x /usr/bin/php-fpm
-
-            RUN echo "#!/bin/bash" > /usr/bin/xdebug \
-                && echo "XDEBUG_CONFIG=\"idekey=xdebug\" php -dxdebug.remote_enable=1 \"\$@\"" \
-            >> /usr/bin/xdebug \
-                && chmod +x /usr/bin/xdebug
-
-            RUN apt-get update \
-                && get-gpg-key 0x14AA40EC0831756756D7F66C4F4EA0AAE5267A6C | apt-key add \
-                && printf "deb [arch=binary-amd64] http://ppa.launchpad.net/ondrej/php/ubuntu bionic main\n" \
-            >/etc/apt/sources.list.d/ondrej.list \
-                && apt-get update \
-                && apt-get -y install --no-install-recommends --no-install-suggests \
-                    php${PHP_VER}-fpm php${PHP_VER}-cli ${SYSTEM_PACKAGES} \
-                && apt-get -y --purge autoremove \
-                && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
-                && rm -rf /usr/lib/x86_64-linux-gnu/perl /usr/share/perl /usr/lib/x86_64-linux-gnu/libperl.* \
-                && rm -rf /usr/share/{man,doc} \
-                \
-                && install -d -m 0755 -o www-data -g www-data /var/run/php-fpm \
-                && install -d -m 0755 -o www-data -g www-data /var/lib/php/sessions \
-                && ln -sf /usr/sbin/php-fpm${PHP_VER} /usr/sbin/php-fpm
-
-            ARG PEAR_PACKAGES
-            RUN if [ ! -z "$PEAR_PACKAGES" ]; then \
-                printf "\n" | pear install -o -f ${PEAR_PACKAGES} \
-            ;fi
-
-            ARG PECL_PACKAGES
-            RUN if [ ! -z "$PECL_PACKAGES" ]; then \
-                pecl channel-update pecl.php.net \
-                && printf "\n" | pecl install -o -f ${PECL_PACKAGES} \
-            ;fi
-
-            ARG COMPOSER_INSTALL
-            RUN if [ ${COMPOSER_INSTALL:-0} -ne 0 ]; then \
-                install -d -m 0755 -o www-data -g www-data /.composer \
-                && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin \
-                    --filename=composer \
-            ;fi
-
-            ARG BLACKFIRE_SERVER
-            RUN if [ ! -z "$BLACKFIRE_SERVER" ]; then \
-                curl -A "Docker" -o /tmp/blackfire-probe.tar.gz -D - -L -s \
-                    https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_VER} \
-                && tar zxpf /tmp/blackfire-probe.tar.gz -C /tmp \
-                && mv /tmp/blackfire-*.so $(php -r "echo ini_get('extension_dir');")/blackfire.so \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/cli/conf.d/blackfire.ini \
-                && printf "extension=blackfire.so\nblackfire.agent_socket=tcp://${BLACKFIRE_SERVER}:8707\n" > \
-                    /etc/php/${PHP_VER}/fpm/conf.d/blackfire.ini \
-                && rm -f /tmp/* \
-            ;fi
-
-            WORKDIR /var/www
             USER www-data
 
-            EXPOSE 9000
+            WORKDIR /var/www
 
             CMD /usr/bin/php-fpm
 -

@@ -28,93 +28,25 @@
 
 <hr class="my-6" />
 
-<h4 class="mb-3">Packages</h4>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="system-packages">System Packages</label>
-        <select class="form-control" id="system-packages" name="system_packages[]"
-                multiple data-error-container="system-packages" data-selectize-tags>
-            {% for package in systemPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-            {% for package in systemPackagesAvailable %}
-                <option value="{{ package }}">{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="system-packages"></div>
-        <small class="text-muted">
-            Will be installed using <code>apt-get</code>.
-            Package list
-            <a href="https://launchpad.net/~ondrej/+archive/ubuntu/php"
-               target="_blank">available here</a>.
-            <code>PHP-FPM</code> and <code>PHP-CLI</code> packages installed by default.
-        </small>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="pear-packages">PEAR Packages</label>
-        <select class="form-control" id="pear-packages" name="pear_packages[]"
-                multiple data-error-container="pear-packages" data-selectize-tags>
-            {% for package in pearPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="pear-packages"></div>
-        <small class="text-muted">
-            Package list
-            <a href="https://pear.php.net/packages.php"
-               target="_blank">available here</a>.
-            PEAR is deprecated, you should consider something else.
-        </small>
-    </div>
-</div>
-
-<div class="row">
-    <div class="form-group col">
-        <label class="form-label" for="pecl-packages">PECL Packages</label>
-        <select class="form-control" id="pecl-packages" name="pecl_packages[]"
-                multiple data-error-container="pecl-packages" data-selectize-tags>
-            {% for package in peclPackagesSelected %}
-                <option value="{{ package }}" selected>{{ package }}</option>
-            {% endfor %}
-        </select>
-        <div class="invalid-feedback" data-error-container-name="pecl-packages"></div>
-        <small class="text-muted">
-            Package list
-            <a href="https://pecl.php.net/packages.php"
-               target="_blank">available here</a>.
-            PECL is deprecated, you should consider something else.
-        </small>
-    </div>
-</div>
-
-<hr class="my-6" />
-
 <h4 class="mb-3">Additional Tools</h4>
 
 <div class="row mb-3">
     <div class="col">
-        <label class="form-label text-uppercase"
-               for="composer-install">Composer</label>
+        <label class="form-label text-uppercase">Composer</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input"
-                               value="1" id="composer-install"
-                               {{ composer.install ? 'checked' }}
-                               name="composer[install]" />
+                               id="composer"
+                               value="1" disabled checked />
                         <label class="custom-control-label"
-                               for="composer-install">Install</label>
+                               for="composer">Enabled</label>
                     </div>
                 </div>
             </div>
             <div class="form-control">
-                Composer will be available as a system service at
-                <code>$ composer</code>
+                Composer is available as a system service at <code>$ composer</code>
             </div>
         </div>
     </div>
@@ -123,26 +55,32 @@
 <div class="row mb-3">
     <div class="col">
         <label class="form-label text-uppercase"
-               for="xdebug-install">Xdebug</label>
+               for="xdebug">Xdebug</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input"
-                               value="1" id="xdebug-install"
-                               {{ xdebug.install ? 'checked' }}
-                               name="xdebug[install]" />
+                               value="1"
+                               id="xdebug" name="xdebug"
+                               {{ xdebug ? 'checked' }} />
                         <label class="custom-control-label"
-                               for="xdebug-install">Install</label>
+                               for="xdebug">Enable</label>
                     </div>
                 </div>
             </div>
             <div class="form-control">
+                <p>Xdebug is installed but <strong>disabled</strong> by default. You must
+                    select <em>Enable</em> to the left to enable it.</p>
                 <p><code>xdebug</code> will be available via CLI as <code>$ xdebug</code>.
                     For example, you can use the following to debug your programs via
                     CLI:</p>
                 <p><code>docker container exec -it dash_php_1 xdebug foo.php</code></p>
-                <p>You can edit INI values in the <strong>Config Files</strong> section.</p>
+                <p>You can edit INI values in the <strong>Common INI Settings</strong>
+                    section below.</p>
+                <p>On Linux? Change the <code>XDEBUG_REMOTE_HOST</code> value
+                    <code>host.docker.internal</code> to your host IP.
+                    I have found <code>172.17.0.1</code> to work in most cases.</p>
             </div>
         </div>
     </div>
@@ -192,6 +130,69 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-6" />
+
+<div class="page-header mb-0" id="ini">
+    <div class="d-flex align-items-end w-100">
+        <div class="p-2 w-100">
+            <h1 class="page-title">
+                Common INI Settings
+            </h1>
+        </div>
+
+        <div class="p-2 flex-shrink-1">
+            <a class="btn btn-outline-success"
+               data-toggle="add-element"
+               data-target="#ini-container"
+               href="{{ path('project.service.php.ini.get', {
+                  'projectId': service.project.id,
+               }) }}"><i class="fe fe-plus"></i> Add INI Variable</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col">
+        <div class="table-responsive scrollable-container mb-5">
+            <table class="table table-striped table-vcenter table-scroll table-sm">
+                <thead class="bg-white">
+                <tr>
+                    <th class="w-auto">Environment Variable Name</th>
+                    <th class="w-auto">Value</th>
+                    <th class="w-1"></th>
+                </tr>
+                </thead>
+                <tbody id="ini-container">
+                <tr class="empty-table">
+                    <td colspan="3">
+                        To add an INI ENV Variable, click "Add INI Variable" above.
+                    </td>
+                </tr>
+                {% for id, var in ini %}
+                    {% include '@Dashtainer/project/service/php-fpm/ini.html.twig'
+                        with {'id': id, 'var': var} %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-muted">
+            <p>The above INI settings are set by environment variables, and are only a small
+                subset of all pre-defined PHP INI environment variables.
+                <a href="https://github.com/jtreminio/php-docker#ini-through-environment-variables"
+                   target="_blank">Click here for more information and to see default values
+                    of all settings</a>.
+                To add more, click the "Add INI Variable" button above, and create a new INI
+                file to the Config Files section under Advanced Settings below.
+            </p>
+
+            <p>Custom INI files should point to <code>/etc/php/cli-custom.ini</code>
+                for CLI, and <code>/etc/php/fpm-custom.ini</code> for FPM.
+            </p>
         </div>
     </div>
 </div>

@@ -1,0 +1,46 @@
+<tr id="ini-{{ id }}-row">
+    <td>
+        <div class="form-group col mt-3">
+            {% if var.ini is defined and var.ini is not empty %}
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">
+                        <i class="fa fa-info" aria-hidden="true"
+                           data-toggle="tooltip" data-html="true"
+                           title="{{ var.ini }}"></i>
+                        </span>
+                    </div>
+                    <input type="text" class="form-control" maxlength="64"
+                           id="ini-{{ id }}-name"
+                           name="ini[{{ id }}][name]"
+                           placeholder="{{ var.env }}" value="{{ var.env }}"
+                           required />
+                </div>
+            {% else %}
+                <div class="form-group col mt-3">
+                    <input type="text" class="form-control"
+                           id="ini-{{ id }}-name"
+                           name="ini[{{ id }}][name]"
+                           placeholder="{{ var.env }}" value="{{ var.env }}" />
+                </div>
+            {% endif %}
+        </div>
+    </td>
+    <td>
+        <input type="text" class="form-control"
+               id="ini-{{ id }}-value"
+               name="ini[{{ id }}][value]"
+               placeholder="{{ var.value }}" value="{{ var.value }}" />
+    </td>
+    <td class="td-action">
+        <div class="selectgroup" data-toggle="delete-element"
+             data-target="#ini-{{ id }}-row">
+            <label class="selectgroup-item dark mb-0">
+                <span class="btn btn-outline-danger">
+                    <i class="fe fe-x-square" aria-hidden="true"></i>
+                    Delete
+                </span>
+            </label>
+        </div>
+    </td>
+</tr>
