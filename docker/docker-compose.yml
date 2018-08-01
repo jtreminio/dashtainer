@@ -27,13 +27,6 @@ volumes:
 services:
   mariadb:
     image: mariadb:10.1
-    secrets:
-      - db_host
-      - db_name
-      - db_port
-      - db_root_password
-      - db_user
-      - db_password
     environment:
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
       - MYSQL_DATABASE_FILE=/run/secrets/db_name
@@ -42,6 +35,13 @@ services:
     networks:
       - private
     restart: always
+    secrets:
+      - db_host
+      - db_name
+      - db_port
+      - db_root_password
+      - db_user
+      - db_password
     volumes:
       - db-datastore:/var/lib/mysql
       - ./mariadb/config-file.cnf:/etc/mysql/conf.d/config-file.cnf:ro
@@ -70,6 +70,8 @@ services:
       - APP_ENV=dev
       - PHP_DISPLAY_ERRORS=On
       - PHP_ERROR_REPORTING=-1
+    networks:
+      - private
     secrets:
       - db_host
       - db_name
@@ -78,8 +80,6 @@ services:
       - db_password
       - sf_secret
       - sf_enc_key
-    networks:
-      - private
     volumes:
       - composer:/.composer
       - ./../:/var/www:cached
@@ -94,7 +94,10 @@ services:
       - APP_ENV=dev
       - PHP_DISPLAY_ERRORS=On
       - PHP_ERROR_REPORTING=-1
+      - XDEBUG_REMOTE_CONNECT_BACK=1
       - PHP_INI_SCAN_DIR=:/etc/php/conf-env/xdebug
+    networks:
+      - private
     secrets:
       - db_host
       - db_name
@@ -103,8 +106,6 @@ services:
       - db_password
       - sf_secret
       - sf_enc_key
-    networks:
-      - private
     volumes:
       - composer:/.composer
       - ./../:/var/www:cached

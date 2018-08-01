@@ -1,5 +1,0 @@
-version: '3.2'
-services:
-  php_xdebug:
-    environment:
-      - XDEBUG_REMOTE_HOST=172.17.0.1
